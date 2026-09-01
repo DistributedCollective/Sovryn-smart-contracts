@@ -11,8 +11,8 @@
  *      and the two Zero implementation-only deploys, all on
  *      `--network rskForkedMainnet`.
  * The spec consumes that state: controller/vault proxies and the two Zero
- * implementations via env (COLFEE_EXIT_FEE_CONTROLLER / EXIT_FEE_VAULT_PROXY /
- * COLFEE_ZERO_BORROWER_OPERATIONS / COLFEE_ZERO_COLL_SURPLUS_POOL, plus the
+ * implementations via env (PERIMETER_EXIT_FEE_CONTROLLER / EXIT_FEE_VAULT_PROXY /
+ * PERIMETER_ZERO_BORROWER_OPERATIONS / PERIMETER_ZERO_COLL_SURPLUS_POOL, plus the
  * three codehash pins), the 7 lending modules via their fresh
  * rskForkedMainnet deployment records. It performs NO node reset and deploys
  * NO contract bytecode of its own; a redeploy sneaking in fails the run.
@@ -53,10 +53,10 @@
  *
  * Run (after the prerequisite deploys above, against the SAME node):
  *     COLFEE_DRESS_RUN=TRUE __decryptionAlreadyDone__=TRUE \
- *       COLFEE_EXIT_FEE_CONTROLLER=... COLFEE_EXIT_FEE_CONTROLLER_CODEHASH=... \
+ *       PERIMETER_EXIT_FEE_CONTROLLER=... PERIMETER_EXIT_FEE_CONTROLLER_CODEHASH=... \
  *       EXIT_FEE_VAULT_PROXY=... \
- *       COLFEE_ZERO_BORROWER_OPERATIONS=... COLFEE_ZERO_BORROWER_OPERATIONS_CODEHASH=... \
- *       COLFEE_ZERO_COLL_SURPLUS_POOL=... COLFEE_ZERO_COLL_SURPLUS_POOL_CODEHASH=... \
+ *       PERIMETER_ZERO_BORROWER_OPERATIONS=... PERIMETER_ZERO_BORROWER_OPERATIONS_CODEHASH=... \
+ *       PERIMETER_ZERO_COLL_SURPLUS_POOL=... PERIMETER_ZERO_COLL_SURPLUS_POOL_CODEHASH=... \
  *       npx hardhat test tests-onchain/perimeter/perimeterExecutionDayDressRun.test.js --network rskForkedMainnet
  */
 const { expect } = require("chai");
@@ -175,7 +175,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
             // The live stack from the prerequisite deploys — env-supplied addresses,
             // committed-fixture ABIs; no bytecode deployed here.
             const controller = new ethers.Contract(
-                requireEnvAddress("COLFEE_EXIT_FEE_CONTROLLER"),
+                requireEnvAddress("PERIMETER_EXIT_FEE_CONTROLLER"),
                 controllerFixture.abi,
                 context.deployerSigner
             );
@@ -185,8 +185,10 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                 context.deployerSigner
             );
             const stack = { controller, vault };
-            const hookedImpl = { address: requireEnvAddress("COLFEE_ZERO_BORROWER_OPERATIONS") };
-            const poolImpl = { address: requireEnvAddress("COLFEE_ZERO_COLL_SURPLUS_POOL") };
+            const hookedImpl = {
+                address: requireEnvAddress("PERIMETER_ZERO_BORROWER_OPERATIONS"),
+            };
+            const poolImpl = { address: requireEnvAddress("PERIMETER_ZERO_COLL_SURPLUS_POOL") };
 
             // Parameter pre-checks: the controller bootstrap + Safe handoff must have
             // left EXACTLY the launch posture (runbook CP-A, re-asserted here the

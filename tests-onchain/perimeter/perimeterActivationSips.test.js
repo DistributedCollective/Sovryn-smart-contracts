@@ -109,7 +109,7 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // The `<TBD>` SIP inputs: the real 0.8.20 controller+vault (record
         // "ExitFeeController") and the hooked Zero BorrowerOperations built at
         // the audited zero-contracts-perimeter commit (record
-        // "BorrowerOperationsPerimeter").
+        // "BorrowerOperations_Implementation").
         const stack = await deployPerimeterStack(
             context.deployerSigner,
             RATE_BPS_FOR_FRESH_DEPLOY

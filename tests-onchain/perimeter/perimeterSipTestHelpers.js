@@ -7,7 +7,7 @@
  * fixtures (./fixtures/*.json, each with a _provenance block naming the source
  * repo/branch/commit). The deployed addresses are saved as the deployment
  * records the sipArgs entries resolve ("ExitFeeController",
- * "BorrowerOperationsPerimeter") — which is exactly how the `<TBD>` production
+ * "BorrowerOperations_Implementation") — which is exactly how the `<TBD>` production
  * inputs are wired at SIP-creation time.
  */
 const {
@@ -213,15 +213,15 @@ const attachedOperator = async (controller) => {
 
 /** Deploy the hooked Zero BorrowerOperations implementation (built from
  *  zero-contracts-perimeter @ private/perimeter) and save the
- *  "BorrowerOperationsPerimeter" record the sipArgs Part 1 entry resolves.
+ *  "BorrowerOperations_Implementation" record the sipArgs Part 1 entry resolves.
  *  The constructor's permit2 address is read from the live proxy so the new
  *  implementation is constructed exactly like the production one. */
 const deployHookedBorrowerOperationsImpl = async (deployerSigner) => {
     const _ov = deployedAddressOverrides();
-    if (_ov["BorrowerOperationsPerimeter"]) {
+    if (_ov["BorrowerOperations_Implementation"]) {
         return await attachDeployed(
-            "BorrowerOperationsPerimeter",
-            _ov["BorrowerOperationsPerimeter"],
+            "BorrowerOperations_Implementation",
+            _ov["BorrowerOperations_Implementation"],
             borrowerOperationsFixture.abi,
             deployerSigner
         );
@@ -238,7 +238,7 @@ const deployHookedBorrowerOperationsImpl = async (deployerSigner) => {
         deployerSigner
     ).deploy(permit2);
     await impl.deployed();
-    await deployments.save("BorrowerOperationsPerimeter", {
+    await deployments.save("BorrowerOperations_Implementation", {
         address: impl.address,
         abi: borrowerOperationsFixture.abi,
     });
@@ -247,14 +247,14 @@ const deployHookedBorrowerOperationsImpl = async (deployerSigner) => {
 
 /** Deploy the surplus-claim CollSurplusPool implementation (built from
  *  zero-contracts-perimeter @ private/perimeter, claimCollWithFee two-leg split) and
- *  save the "CollSurplusPoolPerimeter" record the sipArgs Part 1 entry resolves —
+ *  save the "CollSurplusPool_Implementation" record the sipArgs Part 1 entry resolves —
  *  the FIRST-EVER implementation upgrade of that proxy (runbook §8). */
 const deployCollSurplusPoolImpl = async (deployerSigner) => {
     const _ov = deployedAddressOverrides();
-    if (_ov["CollSurplusPoolPerimeter"]) {
+    if (_ov["CollSurplusPool_Implementation"]) {
         return await attachDeployed(
-            "CollSurplusPoolPerimeter",
-            _ov["CollSurplusPoolPerimeter"],
+            "CollSurplusPool_Implementation",
+            _ov["CollSurplusPool_Implementation"],
             collSurplusPoolFixture.abi,
             deployerSigner
         );
@@ -265,7 +265,7 @@ const deployCollSurplusPoolImpl = async (deployerSigner) => {
         deployerSigner
     ).deploy();
     await impl.deployed();
-    await deployments.save("CollSurplusPoolPerimeter", {
+    await deployments.save("CollSurplusPool_Implementation", {
         address: impl.address,
         abi: collSurplusPoolFixture.abi,
     });

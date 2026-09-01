@@ -1592,20 +1592,20 @@ const assertDescriptionFinalized = (description) => {
  * INPUTS to these SIPs, not deployments of this repo. Resolution order:
  *   1. a hardhat-deploy record named "ExitFeeController" (the fork tests save
  *      one after deploying the stack in their setup);
- *   2. the COLFEE_EXIT_FEE_CONTROLLER env var (mainnet SIP creation).
+ *   2. the PERIMETER_EXIT_FEE_CONTROLLER env var (mainnet SIP creation).
  * Anything else throws — a SIP must never be proposed with a zero/garbage
  * controller pointer.
  */
 const resolveExitFeeControllerAddress = async (hre) => {
     const { ethers, deployments } = hre;
     const record = await deployments.getOrNull("ExitFeeController");
-    const envAddress = process.env.COLFEE_EXIT_FEE_CONTROLLER;
+    const envAddress = process.env.PERIMETER_EXIT_FEE_CONTROLLER;
     // F-8c: a stale record must never silently shadow the address the operator
     // exported. If both exist and disagree, fail — do not pick one silently.
     if (record && envAddress && record.address.toLowerCase() !== envAddress.toLowerCase()) {
         throw new Error(
             `Perimeter Fee: ExitFeeController record (${record.address}) and ` +
-                `COLFEE_EXIT_FEE_CONTROLLER (${envAddress}) disagree. Remove one — a stale ` +
+                `PERIMETER_EXIT_FEE_CONTROLLER (${envAddress}) disagree. Remove one — a stale ` +
                 "'ExitFeeController' record must not override the address you exported."
         );
     }
@@ -1613,7 +1613,7 @@ const resolveExitFeeControllerAddress = async (hre) => {
     if (!address || !ethers.utils.isAddress(address)) {
         throw new Error(
             "Perimeter Fee: ExitFeeController address unresolved. Save an 'ExitFeeController' " +
-                "deployment record or set COLFEE_EXIT_FEE_CONTROLLER=<address>. The controller " +
+                "deployment record or set PERIMETER_EXIT_FEE_CONTROLLER=<address>. The controller " +
                 "is deployed from the perimeter repo (see its UPGRADEABILITY.md §A) — it is an " +
                 "input to this SIP, not a deployment of this repo."
         );
@@ -1621,7 +1621,12 @@ const resolveExitFeeControllerAddress = async (hre) => {
     if ((await ethers.provider.getCode(address)) === "0x") {
         throw new Error(`Perimeter Fee: no contract code at ExitFeeController address ${address}`);
     }
-    await assertPerimeterCodehash(hre, address, "COLFEE_EXIT_FEE_CONTROLLER", "ExitFeeController");
+    await assertPerimeterCodehash(
+        hre,
+        address,
+        "PERIMETER_EXIT_FEE_CONTROLLER",
+        "ExitFeeController"
+    );
     return address;
 };
 
@@ -1680,9 +1685,9 @@ const resolveExitFeeControllerAddress = async (hre) => {
  * deployment/deploy/2070 (protocol modules) and 2061 (BorrowerExitPerimeterOps);
  * beacon module deployments from 2000; the hooked BorrowerOperations and the
  * new CollSurplusPool are built in zero-contracts (branch
- * sovryn-perimeter-fee) and resolve from "BorrowerOperationsPerimeter" /
- * "CollSurplusPoolPerimeter" records or COLFEE_ZERO_BORROWER_OPERATIONS /
- * COLFEE_ZERO_COLL_SURPLUS_POOL. The existing
+ * sovryn-perimeter-fee) and resolve from "BorrowerOperations_Implementation" /
+ * "CollSurplusPool_Implementation" records or PERIMETER_ZERO_BORROWER_OPERATIONS /
+ * PERIMETER_ZERO_COLL_SURPLUS_POOL. The existing
  * "BorrowerOperations_Implementation" record deliberately stays untouched —
  * it pins the pre-Perimeter implementation, i.e. the rollback target (the pool
  * proxy has NO prior implementation record at all — first-ever upgrade;
@@ -1807,8 +1812,8 @@ const getArgsSip0094Part1 = async (hre) => {
      *  claimCollateral path needs the pool's claimCollWithFee selector live
      *  strictly before any Safe activation of PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS;
      *  pool-side failures stay loud. */
-    const poolImplRecord = await getOrNull("CollSurplusPoolPerimeter");
-    const poolImplEnv = process.env.COLFEE_ZERO_COLL_SURPLUS_POOL;
+    const poolImplRecord = await getOrNull("CollSurplusPool_Implementation");
+    const poolImplEnv = process.env.PERIMETER_ZERO_COLL_SURPLUS_POOL;
     // F-8c: same record-vs-env divergence guard as the controller resolver.
     if (
         poolImplRecord &&
@@ -1817,7 +1822,7 @@ const getArgsSip0094Part1 = async (hre) => {
     ) {
         throw new Error(
             `Perimeter Fee: CollSurplusPoolPerimeter record (${poolImplRecord.address}) and ` +
-                `COLFEE_ZERO_COLL_SURPLUS_POOL (${poolImplEnv}) disagree. Remove one — a stale ` +
+                `PERIMETER_ZERO_COLL_SURPLUS_POOL (${poolImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
     }
@@ -1826,7 +1831,7 @@ const getArgsSip0094Part1 = async (hre) => {
         throw new Error(
             "Perimeter Fee: new CollSurplusPool implementation unresolved. Save a " +
                 "'CollSurplusPoolPerimeter' deployment record or set " +
-                "COLFEE_ZERO_COLL_SURPLUS_POOL=<address> (built from zero-contracts " +
+                "PERIMETER_ZERO_COLL_SURPLUS_POOL=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
     }
@@ -1838,7 +1843,7 @@ const getArgsSip0094Part1 = async (hre) => {
     await assertPerimeterCodehash(
         hre,
         poolImplAddress,
-        "COLFEE_ZERO_COLL_SURPLUS_POOL",
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
         "CollSurplusPool implementation"
     );
     const collSurplusPoolProxy = await ethers.getContract("CollSurplusPool_Proxy");
@@ -1860,8 +1865,8 @@ const getArgsSip0094Part1 = async (hre) => {
      *  exists only on this new implementation, so the two MUST stay in this
      *  order. Keeping them paired means the hooked BO is never live with an
      *  unset controller. */
-    const newImplRecord = await getOrNull("BorrowerOperationsPerimeter");
-    const newImplEnv = process.env.COLFEE_ZERO_BORROWER_OPERATIONS;
+    const newImplRecord = await getOrNull("BorrowerOperations_Implementation");
+    const newImplEnv = process.env.PERIMETER_ZERO_BORROWER_OPERATIONS;
     // F-8c: same record-vs-env divergence guard as the controller resolver.
     if (
         newImplRecord &&
@@ -1870,7 +1875,7 @@ const getArgsSip0094Part1 = async (hre) => {
     ) {
         throw new Error(
             `Perimeter Fee: BorrowerOperationsPerimeter record (${newImplRecord.address}) and ` +
-                `COLFEE_ZERO_BORROWER_OPERATIONS (${newImplEnv}) disagree. Remove one — a stale ` +
+                `PERIMETER_ZERO_BORROWER_OPERATIONS (${newImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
     }
@@ -1879,7 +1884,7 @@ const getArgsSip0094Part1 = async (hre) => {
         throw new Error(
             "Perimeter Fee: hooked BorrowerOperations implementation unresolved. Save a " +
                 "'BorrowerOperationsPerimeter' deployment record or set " +
-                "COLFEE_ZERO_BORROWER_OPERATIONS=<address> (built from zero-contracts " +
+                "PERIMETER_ZERO_BORROWER_OPERATIONS=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
     }
@@ -1891,7 +1896,7 @@ const getArgsSip0094Part1 = async (hre) => {
     await assertPerimeterCodehash(
         hre,
         newImplAddress,
-        "COLFEE_ZERO_BORROWER_OPERATIONS",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
         "BorrowerOperations implementation"
     );
     const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
