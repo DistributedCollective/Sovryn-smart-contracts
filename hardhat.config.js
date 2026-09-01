@@ -145,10 +145,12 @@ module.exports = {
         deployer: {
             default: 0,
             rskSovrynMainnet: 3, //deployer is the 4th account in the mainnetAccounts array, which is the 3rd index
+            rskMainnetTenderly: 3,
         },
         signer: {
             default: 1,
             rskSovrynMainnet: 0,
+            rskMainnetTenderly: 0,
         },
         signer2: {
             default: 2,
@@ -156,6 +158,7 @@ module.exports = {
         voter: {
             default: 1,
             rskForkedMainnet: 0,
+            rskMainnetTenderly: 0,
             rskMainnet: 0,
         },
         proposer2: {
@@ -245,7 +248,7 @@ module.exports = {
             accounts: mainnetAccounts,
             tags: ["mainnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
-            timeout: 100000,
+            timeout: 900000,
         },
         rskSovrynTestnet: {
             chainId: 31,
@@ -273,7 +276,7 @@ module.exports = {
             gasPrice: 66000010,
             blockGasLimit: 6800000,
             tags: ["mainnet"],
-            timeout: 100000,
+            timeout: 900000,
             // Source verification target for `hardhat etherscan-verify` (see testnet note).
             verify: {
                 etherscan: { apiUrl: "https://rootstock.blockscout.com" },
