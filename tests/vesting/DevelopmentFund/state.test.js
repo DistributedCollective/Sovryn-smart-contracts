@@ -145,7 +145,7 @@ function createReleaseTokenAmount() {
     let balance = totalSupply;
     let releaseTokenAmounts = [];
     for (let times = 0; times < 60; times++) {
-        let newValue = randomValue() * 10; // Get's a number between 0 to 10000.
+        let newValue = (randomValue() + 1) * 10; // 10..10000 — zero would revert withdrawals with "Zero can't be withdrawn."
         balance -= newValue;
         releaseTokenAmounts.push(newValue);
     }
