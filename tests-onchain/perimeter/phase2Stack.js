@@ -37,6 +37,10 @@ const DELAY_SECONDS = 3600;
 const MIN_DELAY_SECONDS = 60;
 const EXCHEQUER = "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711";
 const SUBMISSION_TOPIC = ethers.utils.id("Submission(uint256)");
+/** The block gas limit the network config carries — what a signer's wallet can
+ *  put behind one multisig confirmation, and what every operator action here is
+ *  sent with. See `viaMultisig` for why this is stated rather than estimated. */
+const OPERATOR_CALL_GAS = 6800000;
 
 const LOAN_TOKENS = [
     "LoanToken_iRBTC",
@@ -178,10 +182,23 @@ const setupPhase2Stack = async () => {
 
     /** Drive one operator action the way the multisig does: the submitter's own
      *  confirmation is the first of the threshold, and the wallet executes on
-     *  the last one. */
+     *  the last one.
+     *
+     *  The gas limit is stated, never estimated. The wallet SWALLOWS a failing
+     *  inner call — it emits ExecutionFailure, clears the executed flag, and
+     *  the confirming transaction itself still succeeds. An estimator therefore
+     *  settles on the cheapest limit at which the OUTER transaction succeeds,
+     *  which is a limit where the inner call runs out of gas: EIP-150 hands the
+     *  inner call only 63/64 of what is left, so the wallet's own frame keeps
+     *  enough to finish while the action it was meant to take does not happen.
+     *  The lever then reports success and changes nothing. A stated limit, at
+     *  the network's block gas limit, is what the signers actually send. */
     const viaMultisig = async (target, data) => {
+        const gasLimit = OPERATOR_CALL_GAS;
         const submitReceipt = await (
-            await multisig.connect(ownerSigners[0]).submitTransaction(target, 0, data)
+            await multisig
+                .connect(ownerSigners[0])
+                .submitTransaction(target, 0, data, { gasLimit })
         ).wait();
         const log = submitReceipt.logs.find((l) => l.topics[0] === SUBMISSION_TOPIC);
         if (!log) throw new Error("the multisig did not record a submission");
@@ -189,7 +206,7 @@ const setupPhase2Stack = async () => {
         let receipt = submitReceipt;
         for (let i = 1; i < required; i++) {
             receipt = await (
-                await multisig.connect(ownerSigners[i]).confirmTransaction(txId)
+                await multisig.connect(ownerSigners[i]).confirmTransaction(txId, { gasLimit })
             ).wait();
         }
         const executed = (await multisig.transactions(txId)).executed;

@@ -1,6 +1,12 @@
 /**
  * Aggregate perimeter release — fork execution rehearsal.
  *
+ * SUPERSEDED as the delay rehearsal: what this file exercises is the
+ * single-release shape, and it ends at one held withdrawal released once. The
+ * sequenced path — the live release first, the delay layered on top of it, and
+ * every operator lever driven through the multisig — lives in
+ * `perimeterDelayE2E.test.js`. Keep this one for the aggregate shape itself.
+ *
  * The aggregate shape ships the fee and the delay in ONE release: three
  * proposals instead of the five that sequencing Phase 1 then Phase 2 would
  * take. This runs all three through real governance on a forked RSK mainnet
