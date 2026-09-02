@@ -30,6 +30,12 @@ describe("Phase 2 stack fixture", () => {
             );
         }
         const s = await setupPhase2Stack();
+        console.log(
+            "        phase2 proposals: part1 #" +
+                s.proposals.part1.toString() +
+                ", part2 #" +
+                s.proposals.part2.toString()
+        );
 
         // ── The queue is in the operator's hands ───────────────────────────
         expect((await s.queue.owner()).toLowerCase()).to.equal(s.exchequer.address.toLowerCase());
