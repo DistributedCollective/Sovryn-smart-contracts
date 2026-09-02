@@ -24,7 +24,6 @@ const { ethers, deployments } = hre;
 const { get } = deployments;
 
 const {
-    ONE_RBTC,
     PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
     PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
     PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
@@ -34,6 +33,7 @@ const {
     forkOps,
 } = require("./perimeterSipTestHelpers");
 const { setupPhase2Stack } = require("./phase2Stack");
+const drivers = require("./qa/drivers");
 
 const ZERO_ADDRESS = ethers.constants.AddressZero;
 const ERC20_ABI = [
@@ -44,18 +44,12 @@ const ERC20_ABI = [
 /** ExitStatus / BlockState as the queue stores them. */
 const STATUS = { None: 0, Queued: 1, Executed: 2, ResolvedToProtocol: 3, ResolvedBySIP: 4 };
 const BLOCK = { None: 0, Frozen: 1, Blacklisted: 2 };
-/** Zero's Status.closedByRedemption. */
-const TROVE_CLOSED_BY_REDEMPTION = 4;
 
 const REASON_E2E = ethers.utils.id("e2e");
 /** The reason hash the admin page stamps on every block it submits. */
 const REASON_ADMIN_PAGE = ethers.utils.id("admin-page");
 
 const LEND_AMOUNT = ethers.utils.parseEther("1");
-const LOAN_DURATION = 28 * 24 * 60 * 60;
-/** Zero's origination/redemption rates float; the probes below are all
- *  balance-based, so the rate actually charged does not enter an assertion. */
-const MAX_ZERO_FEE_PERCENTAGE = ethers.utils.parseEther("0.99");
 
 /** A fresh actor, funded by the fork. Every scenario uses its own so none
  *  inherits another's position, allowance or block state. */
@@ -166,25 +160,15 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
      *  burn is the lender exit: with the delay armed it escrows WRBTC in the
      *  queue and unwraps to native at delivery. */
     const queueLenderWithdrawal = async (address, receiver = address, amount = LEND_AMOUNT) => {
-        const signer = await signerFor(address);
-        const held = await s.iRBTC.balanceOf(address);
-        await (
-            await s.iRBTC.connect(signer).mintWithBTC(address, false, { value: amount })
-        ).wait();
-        const minted = (await s.iRBTC.balanceOf(address)).sub(held);
-        expect(minted.gt(0), "iRBTC position minted").to.be.true;
-
-        const before = await s.queue.lastRequestId();
-        await (await s.iRBTC.connect(signer).burnToBTC(receiver, minted, false)).wait();
-        const id = await s.queue.lastRequestId();
-        expect(id.sub(before), "the lender withdrawal was not held").to.equal(1);
-
-        const request = await s.queue.getRequest(id);
-        expect(request.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
-        expect(request.originator).to.equal(address);
-        expect(request.receiver).to.equal(receiver);
-        expect(request.status).to.equal(STATUS.Queued);
-        return { id, request };
+        const queued = await drivers.queueLenderWithdrawal(s, await signerFor(address), {
+            receiver,
+            amount,
+        });
+        expect(queued.request.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW);
+        expect(queued.request.originator).to.equal(address);
+        expect(queued.request.receiver).to.equal(receiver);
+        expect(queued.request.status).to.equal(STATUS.Queued);
+        return queued;
     };
 
     /** Release one request and prove the receiver was paid to the wei. */
@@ -305,212 +289,63 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
 
         // ── Lending, borrower exit ─────────────────────────────────────────
         const borrower = await signerFor(S1.borrower);
-        const borrowAmount = ethers.utils.parseEther("300");
-        const collateralNeeded = (
-            await s.iXUSD.getDepositAmountForBorrow(borrowAmount, LOAN_DURATION, wrbtcAddress)
-        )
-            .mul(120)
-            .div(100);
-        const borrowReceipt = await (
-            await s.iXUSD
-                .connect(borrower)
-                .borrow(
-                    ethers.constants.HashZero,
-                    borrowAmount,
-                    LOAN_DURATION,
-                    collateralNeeded,
-                    wrbtcAddress,
-                    S1.borrower,
-                    S1.borrower,
-                    "0x",
-                    { value: collateralNeeded }
-                )
-        ).wait();
-        const borrowEvent = borrowReceipt.logs
-            .map((log) => {
-                try {
-                    return s.protocol.interface.parseLog(log);
-                } catch (e) {
-                    return null;
-                }
-            })
-            .find((parsed) => parsed && parsed.name === "Borrow");
-        expect(borrowEvent, "the borrow did not open a loan").to.not.be.undefined;
-
-        const borrowerReceiverBefore = await nativeBalance(S1.borrowerReceiver);
-        const borrowerQueuedBefore = await s.queue.lastRequestId();
-        await (
-            await s.protocol
-                .connect(borrower)
-                .withdrawCollateral(
-                    borrowEvent.args.loanId,
-                    S1.borrowerReceiver,
-                    ethers.utils.parseEther("0.00001")
-                )
-        ).wait();
-        const borrowerId = await s.queue.lastRequestId();
-        expect(
-            borrowerId.sub(borrowerQueuedBefore),
-            "the collateral withdrawal was not held"
-        ).to.equal(1);
-        const borrowerRequest = await s.queue.getRequest(borrowerId);
-        expect(borrowerRequest.surfaceId).to.equal(PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW);
-        expect(borrowerRequest.receiver).to.equal(S1.borrowerReceiver);
+        const borrowerExit = await drivers.queueBorrowerClose(s, borrower, {
+            receiver: S1.borrowerReceiver,
+        });
+        expect(borrowerExit.request.surfaceId).to.equal(
+            PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW
+        );
+        expect(borrowerExit.request.receiver).to.equal(S1.borrowerReceiver);
         expect(
             await nativeBalance(S1.borrowerReceiver),
             "the borrower's receiver was paid despite the hold"
-        ).to.equal(borrowerReceiverBefore);
-        queued.push({ id: borrowerId, request: borrowerRequest, executor: S1.borrower });
+        ).to.equal(borrowerExit.before.receiver);
+        queued.push({
+            id: borrowerExit.id,
+            request: borrowerExit.request,
+            executor: S1.borrower,
+        });
 
         // ── Zero, collateral withdrawal ────────────────────────────────────
         const zeroColl = await signerFor(S1.zeroColl);
-        const zeroBorrowAmount = (await s.borrowerOperations.MIN_NET_DEBT()).mul(2);
-        await (
-            await s.borrowerOperations
-                .connect(zeroColl)
-                .openTrove(MAX_ZERO_FEE_PERCENTAGE, zeroBorrowAmount, S1.zeroColl, S1.zeroColl, {
-                    value: ONE_RBTC.mul(2),
-                })
-        ).wait();
-
-        const zeroCollBefore = await nativeBalance(S1.zeroColl);
-        const zeroQueuedBefore = await s.queue.lastRequestId();
-        const withdrawCollReceipt = await (
-            await s.borrowerOperations
-                .connect(zeroColl)
-                .withdrawColl(ethers.utils.parseEther("0.0001"), S1.zeroColl, S1.zeroColl)
-        ).wait();
-        const zeroCollId = await s.queue.lastRequestId();
-        expect(zeroCollId.sub(zeroQueuedBefore), "the Zero withdrawal was not held").to.equal(1);
-        const zeroCollRequest = await s.queue.getRequest(zeroCollId);
-        expect(zeroCollRequest.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_WITHDRAW_COLL);
-        expect(zeroCollRequest.receiver).to.equal(S1.zeroColl);
+        const zeroExit = await drivers.queueZeroCollWithdraw(s, zeroColl, {});
+        expect(zeroExit.request.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_WITHDRAW_COLL);
+        expect(zeroExit.request.receiver).to.equal(S1.zeroColl);
         // The withdrawer pays gas and receives nothing: the collateral is held.
         expect(
             await nativeBalance(S1.zeroColl),
             "Zero paid the collateral despite the hold"
-        ).to.equal(zeroCollBefore.sub(gasSpent(withdrawCollReceipt)));
-        queued.push({ id: zeroCollId, request: zeroCollRequest, executor: S1.zeroColl });
+        ).to.equal(zeroExit.before.originator.sub(gasSpent(zeroExit.receipt)));
+        queued.push({ id: zeroExit.id, request: zeroExit.request, executor: S1.zeroColl });
 
         // ── Zero, collateral-surplus claim ─────────────────────────────────
         // A FULL redemption of a deterministic probe trove leaves its owner a
         // claimable surplus, and claiming it is the fourth delayed surface. The
-        // probe opens as the system's first redeemable trove, derived from the
-        // live queue floor rather than a hardcoded ratio.
-        const troveManager = await ethers.getContract("TroveManager");
-        const hintHelpers = await ethers.getContract("HintHelpers");
-        const sortedTroves = await ethers.getContract("SortedTroves");
-        const zeroPriceFeed = await ethers.getContract("PriceFeed");
-        const zusd = new ethers.Contract(
-            (await get("ZUSDToken")).address,
-            ERC20_ABI,
-            s.ctx.deployerSigner
-        );
+        // probe is funded from the Zero prober's own ZUSD, so the redemption
+        // spends what this scenario has already borrowed.
         const collSurplusPool = new ethers.Contract(
             (await get("CollSurplusPool_Proxy")).address,
             collSurplusPoolFixture.abi,
-            s.ctx.deployerSigner
+            ethers.provider
         );
-
-        const victim = await signerFor(S1.surplusVictim);
-        const redeemer = await signerFor(S1.redeemer);
-        const price = await zeroPriceFeed.callStatic.fetchPrice();
-        const gasCompensation = await s.borrowerOperations.ZUSD_GAS_COMPENSATION();
-        const expectedDebt = zeroBorrowAmount
-            .add(await troveManager.getBorrowingFeeWithDecay(zeroBorrowAmount))
-            .add(gasCompensation);
-        const mcr = await troveManager.MCR();
-        let probeIcr = ethers.utils.parseEther("1.13");
-        const floorHints = await hintHelpers.getRedemptionHints(ONE_RBTC, price, 0);
-        if (floorHints.firstRedemptionHint !== ZERO_ADDRESS) {
-            const floorIcr = await troveManager.getCurrentICR(
-                floorHints.firstRedemptionHint,
-                price
-            );
-            if (floorIcr.lte(probeIcr)) {
-                const gap = floorIcr.sub(mcr);
-                expect(
-                    gap.gte(ethers.utils.parseEther("0.0004")),
-                    "the live redemption queue's floor grazes the MCR — no room to open the " +
-                        "probe trove below it"
-                ).to.be.true;
-                probeIcr = mcr.add(gap.div(2));
-            }
-        }
-        await (
-            await s.borrowerOperations
-                .connect(victim)
-                .openTrove(
-                    MAX_ZERO_FEE_PERCENTAGE,
-                    zeroBorrowAmount,
-                    S1.surplusVictim,
-                    S1.surplusVictim,
-                    { value: expectedDebt.mul(probeIcr).div(price).add(1) }
-                )
-        ).wait();
-
-        // The probe's own ZUSD plus the Zero prober's fund the redeemer.
-        await (
-            await zusd
-                .connect(victim)
-                .transfer(S1.redeemer, await zusd.balanceOf(S1.surplusVictim))
-        ).wait();
-        await (
-            await zusd.connect(zeroColl).transfer(S1.redeemer, await zusd.balanceOf(S1.zeroColl))
-        ).wait();
-        const redeemable = (await troveManager.getEntireDebtAndColl(S1.surplusVictim)).debt.sub(
-            gasCompensation
-        );
-        expect(
-            (await zusd.balanceOf(S1.redeemer)).gte(redeemable),
-            "the redeemer cannot cover a full redemption of the probe trove"
-        ).to.be.true;
-
-        const surplusHints = await hintHelpers.getRedemptionHints(redeemable, price, 0);
-        expect(
-            surplusHints.firstRedemptionHint,
-            "the probe trove must be the system's first redeemable trove"
-        ).to.equal(S1.surplusVictim);
-        const [surplusUpper, surplusLower] = await sortedTroves.findInsertPosition(
-            surplusHints.partialRedemptionHintNICR,
-            surplusHints.firstRedemptionHint,
-            surplusHints.firstRedemptionHint
-        );
-        await (
-            await troveManager
-                .connect(redeemer)
-                .redeemCollateral(
-                    redeemable,
-                    surplusHints.firstRedemptionHint,
-                    surplusUpper,
-                    surplusLower,
-                    surplusHints.partialRedemptionHintNICR,
-                    0,
-                    MAX_ZERO_FEE_PERCENTAGE
-                )
-        ).wait();
-        expect(await troveManager.getTroveStatus(S1.surplusVictim)).to.equal(
-            TROVE_CLOSED_BY_REDEMPTION
-        );
-        const surplusGross = await collSurplusPool.getCollateral(S1.surplusVictim);
-        expect(surplusGross.gt(0), "a full redemption must leave a surplus").to.be.true;
-
-        const victimBefore = await nativeBalance(S1.surplusVictim);
-        const surplusQueuedBefore = await s.queue.lastRequestId();
-        const claimReceipt = await (
-            await s.borrowerOperations.connect(victim).claimCollateral()
-        ).wait();
-        const surplusId = await s.queue.lastRequestId();
-        expect(surplusId.sub(surplusQueuedBefore), "the surplus claim was not held").to.equal(1);
-        const surplusRequest = await s.queue.getRequest(surplusId);
-        expect(surplusRequest.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS);
-        expect(surplusRequest.receiver).to.equal(S1.surplusVictim);
+        const surplusExit = await drivers.queueSurplusClaim(s, await signerFor(S1.surplusVictim), {
+            redeemer: S1.redeemer,
+            fundFrom: [zeroColl],
+        });
+        expect(surplusExit.surplusGross.gt(0), "a full redemption must leave a surplus").to.be
+            .true;
+        expect(surplusExit.request.surfaceId).to.equal(PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS);
+        expect(surplusExit.request.receiver).to.equal(S1.surplusVictim);
         expect(
             await nativeBalance(S1.surplusVictim),
             "the surplus was paid despite the hold"
-        ).to.equal(victimBefore.sub(gasSpent(claimReceipt)));
+        ).to.equal(surplusExit.before.originator.sub(gasSpent(surplusExit.receipt)));
         expect(await collSurplusPool.getCollateral(S1.surplusVictim)).to.equal(0);
-        queued.push({ id: surplusId, request: surplusRequest, executor: S1.surplusVictim });
+        queued.push({
+            id: surplusExit.id,
+            request: surplusExit.request,
+            executor: S1.surplusVictim,
+        });
 
         // ── All four escrowed, none paid ───────────────────────────────────
         const escrowed = {};

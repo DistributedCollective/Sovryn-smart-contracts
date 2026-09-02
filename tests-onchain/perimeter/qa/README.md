@@ -61,12 +61,65 @@ was settled.
 
 Each of the four accounts is funded with 100 RBTC and 50,000 XUSD.
 
+## Drive the queue
+
+Every command below is `npx hardhat perimeter:qa <command> --network rskForkedMainnetQa`
+with `__decryptionAlreadyDone__=TRUE` in front, and each one refuses to run on
+anything but a QA fork. Each prints what it did as a table and appends the same
+record to `qa/state.json`.
+
+Only `advance` moves the chain clock. Everything else leaves it alone, because a
+wallet counts a hold down against its own clock and a jump makes every countdown
+the dapps draw wrong for the rest of the session.
+
+| command | what it does | example |
+| --- | --- | --- |
+| `status` | the whole queue: paused, kill switch, hold, charge, every request with its parties, unlock and block states, and the multisig transactions still pending | `perimeter:qa status` |
+| `withdraw` | takes a withdrawal on one surface — `lender`, `borrower`, `zero` or `surplus` | `perimeter:qa withdraw --surface lender --as suspect1 --receiver 0x…` |
+| `advance` | jumps the chain clock by n seconds and warns that every wallet countdown is now wrong | `perimeter:qa advance 121` |
+| `execute` | releases one request as its originator and proves the receiver was paid to the wei | `perimeter:qa execute 3` |
+| `execute-all` | releases every request one actor may release | `perimeter:qa execute-all --as test` |
+| `freeze` | freezes the parties of one or more requests, through the multisig | `perimeter:qa freeze 3 4` |
+| `blacklist` | the same, escalated to a blacklist | `perimeter:qa blacklist 3 --also-receiver` |
+| `release` | puts a frozen or blacklisted address back to None | `perimeter:qa release 0x709… --blacklisted` |
+| `pause` / `unpause` | stops and restarts every payout; ingress and blocking keep working while paused | `perimeter:qa pause` |
+| `kill` | the controller's switch: `off` makes new withdrawals pass straight through, `on` re-arms the hold. Requests already queued keep their own unlock either way | `perimeter:qa kill off` |
+| `route` | registers a recovery route for a surface — `topup` back into the pool the exit came from, or `address` to a named destination | `perimeter:qa route lender topup` |
+| `refund` | sends blacklisted escrow away: `--to pool` along the registered route, `--to <address>` by the owner's own lever | `perimeter:qa refund 6 --to pool` |
+| `confirm` | adds confirmations from the wallet's real owners to a pending multisig transaction (only needed after `up --keep-threshold`) | `perimeter:qa confirm 2231` |
+| `snapshot` / `revert` | takes a chain snapshot and rewinds to it | `perimeter:qa snapshot` then `perimeter:qa revert 0x1f` |
+
+`freeze` and `blacklist` also take `--via-console`, which prints the call's
+selector, arguments, calldata and the multisig `submitTransaction` calldata
+instead of sending anything — so the operator console's own path can be driven
+by hand with the same bytes.
+
+Three things the surfaces themselves impose, rather than this tooling:
+
+- **The surplus claim needs an account with no open trove.** An account may hold
+  only one, and `withdraw --surface zero` opens one, so take the surplus claim
+  first or run it as a different account.
+- **Only the lending lender surface has a pool to top up.** The other three
+  escrow native RBTC and carry no sub-product, so `route <surface> topup` is
+  refused on them; recover those along `route <surface> address <address>`.
+- **The borrower surface needs a collateral price.** The RBTC/USD oracle the
+  protocol reads expires within about a minute of the block the fork was taken
+  at, so the first borrower withdrawal pins the last price the fork saw onto the
+  live RBTC feed, through that feed's own owner. Nothing else about the feed
+  registry is touched.
+
 ## Check it
 
 ```
 __decryptionAlreadyDone__=TRUE npx hardhat test \
   tests-onchain/perimeter/qa/bootstrap.test.js --network rskForkedMainnetQa
+__decryptionAlreadyDone__=TRUE npx hardhat test \
+  tests-onchain/perimeter/qa/engine.test.js --network rskForkedMainnetQa
 ```
+
+The engine test writes to the fork and puts nothing back — the states it leaves
+behind are what the dapps are then driven against. Run it once per `up`; to run
+it again, restart the node and bootstrap it afresh.
 
 ## Stop the node
 
