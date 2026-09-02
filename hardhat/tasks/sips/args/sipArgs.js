@@ -2570,13 +2570,13 @@ const getArgsSipPerimeterPart2 = async (hre) => {
     const poolImplAddress = await resolvePerimeterInput(
         hre,
         "CollSurplusPoolPerimeter",
-        "PERIMETER_DELAY_ZERO_COLL_SURPLUS_POOL",
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
         "CollSurplusPool implementation"
     );
     const boImplAddress = await resolvePerimeterInput(
         hre,
         "BorrowerOperationsPerimeter",
-        "PERIMETER_DELAY_ZERO_BORROWER_OPERATIONS",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
         "BorrowerOperations implementation"
     );
     const boOpsAddress = await resolvePerimeterInput(
@@ -3118,13 +3118,13 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
     const poolImplAddress = await resolvePerimeterInput(
         hre,
         "CollSurplusPoolPerimeter",
-        "PERIMETER_DELAY_ZERO_COLL_SURPLUS_POOL",
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
         "CollSurplusPool implementation"
     );
     const boImplAddress = await resolvePerimeterInput(
         hre,
         "BorrowerOperationsPerimeter",
-        "PERIMETER_DELAY_ZERO_BORROWER_OPERATIONS",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
         "BorrowerOperations implementation"
     );
     const boOpsAddress = await resolvePerimeterInput(

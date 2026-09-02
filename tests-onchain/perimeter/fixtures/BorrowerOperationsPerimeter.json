@@ -4,7 +4,7 @@
         "branch": "sovryn-perimeter-delay",
         "commit": "2bbaccc",
         "compiler": "solc 0.6.11 via hardhat",
-        "note": "Exit-fee-hooked Zero BorrowerOperations incl. the surplus-claim hook (PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS on claimCollateral, runbook §8). Test-only fixture for the fork-based SIP tests; the production implementation is deployed from zero-contracts branch sovryn-perimeter-fee and saved as the BorrowerOperationsPerimeter record / PERIMETER_DELAY_ZERO_BORROWER_OPERATIONS env."
+        "note": "Exit-fee-hooked Zero BorrowerOperations incl. the surplus-claim hook (PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS on claimCollateral, runbook §8). Test-only fixture for the fork-based SIP tests; the production implementation is deployed from zero-contracts branch sovryn-perimeter-fee and saved as the BorrowerOperationsPerimeter record / PERIMETER_ZERO_BORROWER_OPERATIONS env."
     },
     "contractName": "BorrowerOperations",
     "abi": [
