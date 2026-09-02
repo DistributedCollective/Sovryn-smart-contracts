@@ -1,11 +1,11 @@
 {
     "_provenance": {
         "repo": "perimeter",
-        "branch": "sovryn-perimeter-fee",
-        "commit": "ea3fae1",
+        "branch": "sovryn-perimeter-delay",
+        "commit": "befccb0",
         "compiler": "solc 0.8.20 via forge (evm_version paris)",
-        "note": "Test-only fixture for the fork-based SIP tests; production deploys run from the perimeter repo itself. INTERIM re-pin at the feat/initial-implementation tip (2026-07-23); final re-pin happens at the P8 source freeze.",
-        "pinned": "2026-07-23"
+        "note": "Test-only fixture for the fork-based SIP tests; production deploys run from the perimeter repo itself.",
+        "pinned": "2026-09-02"
     },
     "contractName": "ExitFeeVault",
     "abi": [
