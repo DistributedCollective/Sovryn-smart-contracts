@@ -3140,6 +3140,28 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
                 "reconcile the record or the pointer before proposing."
         );
     }
+    // The same precondition on the Zero side, and this is the proposal that
+    // touches it: the controller pointer lives in a fixed slot and survives the
+    // implementation swap below, so an unset or foreign pointer here would put
+    // a delay-vintage implementation over a controller it cannot reach.
+    const boPinnedController = await new ethers.Contract(
+        (await ethers.getContract("BorrowerOperations_Proxy")).address,
+        ["function exitFeeController() view returns (address)"],
+        ethers.provider
+    ).exitFeeController();
+    if (boPinnedController === ethers.constants.AddressZero) {
+        throw new Error(
+            "Perimeter: BorrowerOperations has no controller pointer — the release that installs " +
+                "it must be executed before this one."
+        );
+    }
+    if (boPinnedController.toLowerCase() !== controllerAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter: BorrowerOperations points at controller ${boPinnedController} but this ` +
+                `proposal resolves ${controllerAddress}. Both products must sit on the one live ` +
+                "controller before the delay is installed."
+        );
+    }
 
     const targets = [];
     const values = [];

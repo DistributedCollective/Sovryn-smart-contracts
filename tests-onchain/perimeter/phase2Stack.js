@@ -13,16 +13,6 @@ const path = require("path");
 const { ethers, deployments } = hre;
 const { get } = deployments;
 
-/** Attach to the live perimeter stack instead of deploying one, and to nothing
- *  else. The lending modules and the Zero implementations MUST be deployed
- *  fresh here: the ones already on chain are the previous release's, which is
- *  exactly what this release replaces. Set before anything reads the overrides,
- *  which are resolved once per process. */
-process.env.PERIMETER_DEPLOYED_ADDRESSES = path.join(
-    __dirname,
-    "deployed.perimeterStack.rskSovrynMainnet.json"
-);
-
 const {
     setupGovernanceContext,
     deployLendingReleaseContracts,
@@ -57,7 +47,35 @@ const LOAN_TOKENS = [
     "LoanToken_iBPRO",
 ];
 
+/** Attach to the live perimeter stack instead of deploying one, and to nothing
+ *  else. The lending modules and the Zero implementations MUST be deployed
+ *  fresh: the ones already on chain are the previous release's, which is
+ *  exactly what this release replaces.
+ *
+ *  The overrides are resolved once per process, so this has to be set before
+ *  anything reads them — but inside the build, never at import: requiring this
+ *  file must not reconfigure sibling tests that share the process. An operator
+ *  who has already chosen a file keeps it, unless it disagrees, which is a
+ *  contradiction worth stopping for rather than silently resolving. */
+const ATTACHED_STACK = path.join(__dirname, "deployed.perimeterStack.rskSovrynMainnet.json");
+
+const useAttachedStack = () => {
+    const chosen = process.env.PERIMETER_DEPLOYED_ADDRESSES;
+    if (!chosen) {
+        process.env.PERIMETER_DEPLOYED_ADDRESSES = ATTACHED_STACK;
+        return;
+    }
+    if (path.resolve(chosen) !== ATTACHED_STACK) {
+        throw new Error(
+            `PERIMETER_DEPLOYED_ADDRESSES is already set to ${chosen}, but this fixture attaches ` +
+                `to the live perimeter stack named in ${ATTACHED_STACK}. Unset it, or point it ` +
+                "there, so it is clear which contracts the rehearsal exercises."
+        );
+    }
+};
+
 const setupPhase2Stack = async () => {
+    useAttachedStack();
     assertDelayVintageControllerFixture();
 
     const ctx = await setupGovernanceContext();
