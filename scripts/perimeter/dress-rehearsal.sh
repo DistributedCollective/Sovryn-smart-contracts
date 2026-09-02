@@ -176,7 +176,7 @@ for file in "${FILES[@]}"; do
 
     if ! start_node; then
         log "$name: NODE FAILED TO START"
-        [ -n "$NODE_LOG" ] && cat "$NODE_LOG" >>"$LOG" 2>/dev/null
+        [ -n "$NODE_LOG" ] && cat "$NODE_LOG" 2>/dev/null | tee -a "$LOG"
         OVERALL_FAILED=1
         stop_node
         continue
@@ -186,9 +186,12 @@ for file in "${FILES[@]}"; do
     TEST_OUT="$(mktemp -t perimeter-test-out)"
     START_TS=$(date +%s)
     set +e
+    # Streamed to the terminal AND the temp file as it happens (this script is
+    # meant to be watched live); the pass/fail signal is still the test
+    # process's own exit code, read from PIPESTATUS[0] rather than tee's.
     __decryptionAlreadyDone__=TRUE script -q /dev/null npx hardhat test "$file" \
-        --network "$NETWORK" >"$TEST_OUT" 2>&1
-    TEST_STATUS=$?
+        --network "$NETWORK" 2>&1 | tee "$TEST_OUT"
+    TEST_STATUS=${PIPESTATUS[0]}
     set -e
     ELAPSED=$(($(date +%s) - START_TS))
 
