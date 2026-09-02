@@ -38,7 +38,8 @@ KIND="${PERIMETER_FORK_KIND:-hardhat}"
 RPC="${PERIMETER_FORK_RPC:-https://mainnet-dev.sovryn.app/rpc}"
 NETWORK=rskForkedMainnet
 LOG="${PERIMETER_REHEARSAL_LOG:-/tmp/perimeter-dress-rehearsal.log}"
-RPC_URL="http://127.0.0.1:8545"
+PORT=8545
+RPC_URL="http://127.0.0.1:$PORT"
 NODE_START_TIMEOUT=120
 PORT_FREE_TIMEOUT=30
 
@@ -123,6 +124,66 @@ wait_for_rpc_down() {
     return 1
 }
 
+# Whatever is LISTENING on the port. The recorded PID is npx's, and killing npx
+# does not always take the hardhat process it spawned with it — so the port is
+# the authority on what has to die, not the process tree.
+node_listeners() {
+    lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true
+}
+
+# Best effort teardown: the recorded process, then anything still holding the
+# port, escalating to SIGKILL. Non-zero when the port is still answering.
+shutdown_node() {
+    local pids
+    pids="$(node_listeners)"
+    if [ -n "$NODE_PID" ]; then
+        kill "$NODE_PID" 2>/dev/null || true
+    fi
+    if [ -n "$pids" ]; then
+        # shellcheck disable=SC2086
+        kill $pids 2>/dev/null || true
+    fi
+    if [ -n "$NODE_PID" ]; then
+        wait "$NODE_PID" 2>/dev/null || true
+    fi
+    NODE_PID=""
+
+    if wait_for_rpc_down; then
+        return 0
+    fi
+    pids="$(node_listeners)"
+    if [ -n "$pids" ]; then
+        # shellcheck disable=SC2086
+        kill -9 $pids 2>/dev/null || true
+    fi
+    wait_for_rpc_down
+}
+
+# A node that outlives its own teardown is fatal, and deliberately so. The next
+# file's node cannot bind a port that is still held, while the readiness probe
+# answers happily against the OLD one — so the run would continue on the
+# previous fork's state and the failure would be reported against a test file
+# that is perfectly fine.
+stop_node_or_die() {
+    if ! shutdown_node; then
+        log "FATAL: $RPC_URL is still answering after the fork node was told to stop." \
+            "The next file would run against the previous fork's state." \
+            "Stop it by hand (lsof -tiTCP:$PORT -sTCP:LISTEN) and re-run."
+        exit 3
+    fi
+}
+
+# Nothing may be serving the port at the moment a node is spawned: a spawn that
+# cannot bind is silent, and the readiness probe would pass against whatever is
+# already there.
+require_port_free() {
+    if rpc_is_up || [ -n "$(node_listeners)" ]; then
+        log "FATAL: something is already serving $RPC_URL before this run's node was started." \
+            "Stop it by hand (lsof -tiTCP:$PORT -sTCP:LISTEN) and re-run."
+        exit 3
+    fi
+}
+
 # Starts the fork node once, retrying a single time if it dies with a
 # transient connect-timeout while it is dialing the fork RPC.
 start_node() {
@@ -133,6 +194,8 @@ start_node() {
 
     local attempt
     for attempt in 1 2; do
+        require_port_free
+
         NODE_LOG="$(mktemp -t perimeter-hh-node)"
         __decryptionAlreadyDone__=TRUE npx hardhat node --fork "$RPC" --no-deploy \
             "${block_args[@]+"${block_args[@]}"}" >"$NODE_LOG" 2>&1 &
@@ -142,10 +205,7 @@ start_node() {
             return 0
         fi
 
-        kill "$NODE_PID" 2>/dev/null || true
-        wait "$NODE_PID" 2>/dev/null || true
-        NODE_PID=""
-        wait_for_rpc_down || true
+        stop_node_or_die
 
         if [ "$attempt" -eq 1 ] && grep -q "HH604" "$NODE_LOG" 2>/dev/null; then
             log "   node did not come up (HH604 connect timeout) — retrying once"
@@ -156,16 +216,7 @@ start_node() {
     return 1
 }
 
-stop_node() {
-    if [ -n "$NODE_PID" ]; then
-        kill "$NODE_PID" 2>/dev/null || true
-        wait "$NODE_PID" 2>/dev/null || true
-    fi
-    NODE_PID=""
-    wait_for_rpc_down || true
-}
-
-trap stop_node EXIT
+trap 'shutdown_node || true' EXIT
 
 TOTAL_PASS=0
 TOTAL_FAIL=0
@@ -178,7 +229,6 @@ for file in "${FILES[@]}"; do
         log "$name: NODE FAILED TO START"
         [ -n "$NODE_LOG" ] && cat "$NODE_LOG" 2>/dev/null | tee -a "$LOG"
         OVERALL_FAILED=1
-        stop_node
         continue
     fi
     log "   node ready for $name (block $(rpc_block_number))"
@@ -211,7 +261,7 @@ for file in "${FILES[@]}"; do
     fi
 
     rm -f "$TEST_OUT"
-    stop_node
+    stop_node_or_die
 done
 
 log "== summary: $TOTAL_PASS passing / $TOTAL_FAIL failing =="
