@@ -1821,7 +1821,7 @@ const getArgsSip0094Part1 = async (hre) => {
         poolImplRecord.address.toLowerCase() !== poolImplEnv.toLowerCase()
     ) {
         throw new Error(
-            `Perimeter Fee: CollSurplusPoolPerimeter record (${poolImplRecord.address}) and ` +
+            `Perimeter Fee: CollSurplusPool_Implementation record (${poolImplRecord.address}) and ` +
                 `PERIMETER_ZERO_COLL_SURPLUS_POOL (${poolImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
@@ -1830,7 +1830,7 @@ const getArgsSip0094Part1 = async (hre) => {
     if (!poolImplAddress || !ethers.utils.isAddress(poolImplAddress)) {
         throw new Error(
             "Perimeter Fee: new CollSurplusPool implementation unresolved. Save a " +
-                "'CollSurplusPoolPerimeter' deployment record or set " +
+                "'CollSurplusPool_Implementation' deployment record or set " +
                 "PERIMETER_ZERO_COLL_SURPLUS_POOL=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
@@ -1874,7 +1874,7 @@ const getArgsSip0094Part1 = async (hre) => {
         newImplRecord.address.toLowerCase() !== newImplEnv.toLowerCase()
     ) {
         throw new Error(
-            `Perimeter Fee: BorrowerOperationsPerimeter record (${newImplRecord.address}) and ` +
+            `Perimeter Fee: BorrowerOperations_Implementation record (${newImplRecord.address}) and ` +
                 `PERIMETER_ZERO_BORROWER_OPERATIONS (${newImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
@@ -1883,7 +1883,7 @@ const getArgsSip0094Part1 = async (hre) => {
     if (!newImplAddress || !ethers.utils.isAddress(newImplAddress)) {
         throw new Error(
             "Perimeter Fee: hooked BorrowerOperations implementation unresolved. Save a " +
-                "'BorrowerOperationsPerimeter' deployment record or set " +
+                "'BorrowerOperations_Implementation' deployment record or set " +
                 "PERIMETER_ZERO_BORROWER_OPERATIONS=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
