@@ -8,6 +8,15 @@
  * Each part is found by the actions it carries, never by a proposal id, and is
  * then walked through real governance — real stakers, real votes, real queue
  * and execute. Nothing is written to vote storage.
+ *
+ * CREATING a missing part is a fallback for Part 3 ONLY. Parts 1 and 2 install
+ * the modules and the pointer that the sequenced rehearsal then replaces, and
+ * this branch never deploys the vintage those two builders demand — so their
+ * own guards would refuse the build, and a fork that is genuinely missing them
+ * is a fork the sequenced rehearsal cannot be run on at all. Those two are
+ * therefore refused here, with the alternative named, rather than attempted.
+ * Part 3 is one setter against a contract nothing else in the rehearsal
+ * touches, so creating it is both possible and harmless.
  */
 const { ethers, deployments, network } = require("hardhat");
 const { createAndQueueSip, executeQueuedSip } = require("./perimeterSipTestHelpers");
@@ -252,10 +261,22 @@ const useSettableCommunityIssuanceFeed = async (ctx) => {
     await (await communityIssuance.connect(feedOwner).setPriceFeed(localFeeds.address)).wait();
 };
 
-/** Finish an existing proposal, or create and execute it when the chain has
- *  none matching. */
-const settlePart = async (ctx, governorKey, proposalId, argsFunc) => {
+/** Finish an existing proposal, or — where `label` says creation is a supported
+ *  fallback — create and execute it when the chain has none matching.
+ *
+ *  `creatable` is false for the two parts whose contracts this rehearsal
+ *  replaces: creating them would need the vintage they installed, which this
+ *  branch does not build, so the builder's own "already registered" guard would
+ *  throw a puzzle instead of an answer. Naming the real alternative is worth
+ *  more than a doomed attempt. */
+const settlePart = async (ctx, governorKey, proposalId, argsFunc, { label, creatable }) => {
     if (proposalId === null) {
+        if (!creatable) {
+            throw new Error(
+                `preflight: ${label} is not on chain — the sequenced rehearsal needs the live ` +
+                    "proposals; run the single-release rehearsal instead"
+            );
+        }
         const created = await createAndQueueSip(ctx, argsFunc, governorKey);
         const id = Number(created.proposalId);
         await executeQueuedSip(ctx, id, governorKey);
@@ -286,7 +307,10 @@ const ensurePhase1Executed = async (ctx) => {
         [BO_PROXY, ...beacons],
         (actions) => rewiresLendingAndZero(actions, beacons)
     );
-    result.part1 = await settlePart(ctx, "governorOwner", part1Id, "getArgsSip0094Part1");
+    result.part1 = await settlePart(ctx, "governorOwner", part1Id, "getArgsSip0094Part1", {
+        label: "Phase 1 Part 1",
+        creatable: false,
+    });
 
     // Part 2: the activation pointer on the protocol. Must follow Part 1 —
     // the selector it routes through is registered by Part 1's execution.
@@ -299,7 +323,10 @@ const ensurePhase1Executed = async (ctx) => {
         [protocolAddress],
         (actions) => hasAction(actions, "setExitFeeController(address)", protocolAddress)
     );
-    result.part2 = await settlePart(ctx, "governorOwner", part2Id, "getArgsSip0094Part2");
+    result.part2 = await settlePart(ctx, "governorOwner", part2Id, "getArgsSip0094Part2", {
+        label: "Phase 1 Part 2",
+        creatable: false,
+    });
 
     // Part 3: admin-side subsidy rate to zero on the CommunityIssuance.
     const communityIssuanceAddress = (await deployments.get("ZeroCommunityIssuance")).address;
@@ -312,13 +339,17 @@ const ensurePhase1Executed = async (ctx) => {
     const part3Done =
         part3Id !== null && Number(await ctx.governorAdmin.state(part3Id)) === STATE.Executed;
     if (!part3Done) await useSettableCommunityIssuanceFeed(ctx);
-    result.part3 = await settlePart(ctx, "governorAdmin", part3Id, "getArgsSip0094Part3");
+    result.part3 = await settlePart(ctx, "governorAdmin", part3Id, "getArgsSip0094Part3", {
+        label: "Phase 1 Part 3",
+        creatable: true,
+    });
 
     return result;
 };
 
 module.exports = {
     ensurePhase1Executed,
+    settlePart,
     findProposalByActions,
     hasAction,
     rewiresLendingAndZero,

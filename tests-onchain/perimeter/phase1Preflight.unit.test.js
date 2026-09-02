@@ -21,6 +21,7 @@ const {
     hasAction,
     rewiresLendingAndZero,
     retiresTheSubsidy,
+    settlePart,
 } = require("./phase1Preflight");
 
 const bn = (value) => ethers.BigNumber.from(value);
@@ -291,4 +292,25 @@ describe("Phase 1 preflight — the action-shape predicates", () => {
             expect(retiresTheSubsidy(elsewhere, COMMUNITY_ISSUANCE)).to.equal(false);
         });
     });
+});
+
+describe("Phase 1 preflight — the create arm", () => {
+    /** The refusal happens before anything is read from the chain or from the
+     *  governance context, so a null context is enough to reach it. */
+    const settleMissing = (label, creatable) =>
+        settlePart(null, "governorOwner", null, "getArgsSip0094Part1", { label, creatable });
+
+    for (const label of ["Phase 1 Part 1", "Phase 1 Part 2"]) {
+        it(`refuses to create ${label} and names the rehearsal that can be run instead`, async () => {
+            let thrown = null;
+            try {
+                await settleMissing(label, false);
+            } catch (error) {
+                thrown = error;
+            }
+            expect(thrown, "a missing part was not refused").to.not.equal(null);
+            expect(thrown.message).to.contain(`${label} is not on chain`);
+            expect(thrown.message).to.contain("run the single-release rehearsal instead");
+        });
+    }
 });
