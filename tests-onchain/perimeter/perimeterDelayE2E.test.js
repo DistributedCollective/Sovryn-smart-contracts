@@ -228,6 +228,20 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
         const protocolAddress = (await get("SovrynProtocol")).address;
         const xusdAddress = (await get("XUSD")).address;
         const liveWrbtcAddress = (await get("WRBTC")).address;
+
+        // On a node that has been running for a while — this file sharing a
+        // node with phase2Stack.test.js's own governance walk, most of all —
+        // the underlying MoC RBTC/USD publication has already expired by the
+        // time this hook runs, and the live-rate read just below reverts on a
+        // line that has nothing to do with the perimeter. Pin it first; this
+        // is a no-op wherever the live oracle still answers. Reused from the
+        // QA driver (tests-onchain/perimeter/qa/drivers.js) rather than
+        // duplicated, since it is the same fork-freshness problem either way.
+        await drivers.ensureCollateralPrice({
+            protocol: { address: protocolAddress },
+            wrbtc: { address: liveWrbtcAddress },
+        });
+
         originalPriceFeeds = await new ethers.Contract(
             protocolAddress,
             ["function priceFeeds() view returns (address)"],

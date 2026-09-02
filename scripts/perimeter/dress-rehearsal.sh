@@ -8,11 +8,17 @@
 #   3. drives all six operator scenarios through that multisig at its real
 #      confirmation threshold.
 #
-# Each test file gets its own fresh fork node. phase2Stack.test.js and
-# perimeterDelayE2E.test.js both build the activated-perimeter fixture from
-# scratch, and the delay's own governance proposals refuse to install over a
-# target that already carries them — so the four files cannot share one node,
-# and this script tears its node down and starts a new one between files.
+# phase2Stack.test.js and perimeterDelayE2E.test.js both need the
+# activated-perimeter fixture, and by default now share ONE fork node for it:
+# phase2Stack.test.js's own `before` builds it, and perimeterDelayE2E.test.js's
+# `before` finds it already installed and attaches instead of repeating the
+# build — see findInstalledPhase2Release/attachToInstalledPhase2Stack in
+# tests-onchain/perimeter/phase2Stack.js. They run as ONE `hardhat test`
+# invocation, in that order, so the second file's `before` always finds the
+# first's release on chain. forkOps.test.js and phase1Preflight.test.js touch
+# neither fixture and keep their own fresh node each, unchanged.
+# PERIMETER_REHEARSAL_FRESH_NODE=1 restores a fresh node per file for all four,
+# which also still works: phase2Stack.js attaches or builds either way.
 #
 # PERIMETER_FORK_KIND selects the node kind; only "hardhat" runs today. The
 # shared governance helpers (createAndQueueGovernorOwnerSip and friends) pull
@@ -34,12 +40,17 @@ KIND="${PERIMETER_FORK_KIND:-hardhat}"
 RPC="${PERIMETER_FORK_RPC:-https://mainnet-dev.sovryn.app/rpc}"
 NETWORK=rskForkedMainnet
 LOG="${PERIMETER_REHEARSAL_LOG:-/tmp/perimeter-dress-rehearsal.log}"
-PORT=8545
+PORT="${PERIMETER_REHEARSAL_PORT:-8545}"
 
 export __decryptionAlreadyDone__=TRUE
 
 # shellcheck source=/dev/null
 . "$SCRIPT_DIR/fork-node.lib.sh"
+
+# rskForkedMainnet's own url (hardhat.config.js) reads this, defaulting to
+# 127.0.0.1:8545 when it is unset — set it always so a non-default
+# PERIMETER_REHEARSAL_PORT is never silently ignored.
+export PERIMETER_FORK_RPC_URL="$RPC_URL"
 
 # Overrides the lib's plain-echo default so every message also lands in the
 # run's log file, not just the terminal.
@@ -71,21 +82,43 @@ esac
 : >"$LOG"
 log "== $(date -u +%FT%TZ) kind=$KIND network=$NETWORK rpc=$RPC =="
 
-FILES=(
-    "tests-onchain/perimeter/forkOps.test.js"
-    "tests-onchain/perimeter/phase1Preflight.test.js"
-    "tests-onchain/perimeter/phase2Stack.test.js"
-    "tests-onchain/perimeter/perimeterDelayE2E.test.js"
-)
+# Each entry is one node's worth of work: a space-separated list of test
+# files run as a single `hardhat test` invocation, in the order given. Default
+# mode puts phase2Stack.test.js and perimeterDelayE2E.test.js in the same
+# entry so they share one node; PERIMETER_REHEARSAL_FRESH_NODE=1 puts every
+# file in its own entry, restoring one node per file for all four.
+#
+# Named RUN_GROUPS, not GROUPS: bash reserves the plain name GROUPS as a
+# built-in array (the caller's own group ids, same as `id -G`), and assigning
+# to it does not touch what `${GROUPS[@]}` later expands to — the loop below
+# would silently iterate over gids instead of test files.
+if [ "${PERIMETER_REHEARSAL_FRESH_NODE:-0}" = "1" ]; then
+    RUN_GROUPS=(
+        "tests-onchain/perimeter/forkOps.test.js"
+        "tests-onchain/perimeter/phase1Preflight.test.js"
+        "tests-onchain/perimeter/phase2Stack.test.js"
+        "tests-onchain/perimeter/perimeterDelayE2E.test.js"
+    )
+else
+    RUN_GROUPS=(
+        "tests-onchain/perimeter/forkOps.test.js"
+        "tests-onchain/perimeter/phase1Preflight.test.js"
+        "tests-onchain/perimeter/phase2Stack.test.js tests-onchain/perimeter/perimeterDelayE2E.test.js"
+    )
+fi
 
 # Starts this rehearsal's fork node via the shared start_node, with the
-# --fork-block-number override applied when PERIMETER_FORK_BLOCK is set.
+# --fork-block-number override applied when PERIMETER_FORK_BLOCK is set. The
+# listen port is explicit: `hardhat node` defaults to 8545 regardless of what
+# the client-side network config's url points at, so PERIMETER_REHEARSAL_PORT
+# would otherwise be silently ignored by the node itself.
 start_rehearsal_node() {
     local block_args=()
     if [ -n "${PERIMETER_FORK_BLOCK:-}" ]; then
         block_args=(--fork-block-number "$PERIMETER_FORK_BLOCK")
     fi
-    start_node npx hardhat node --fork "$RPC" --no-deploy "${block_args[@]+"${block_args[@]}"}"
+    start_node npx hardhat node --fork "$RPC" --no-deploy --port "$PORT" \
+        "${block_args[@]+"${block_args[@]}"}"
 }
 
 trap 'shutdown_node || true' EXIT
@@ -94,8 +127,15 @@ TOTAL_PASS=0
 TOTAL_FAIL=0
 OVERALL_FAILED=0
 
-for file in "${FILES[@]}"; do
-    name="$(basename "$file" .test.js)"
+for run_group in "${RUN_GROUPS[@]}"; do
+    # Deliberate word-splitting: each RUN_GROUPS entry is a space-separated
+    # file list, and file paths in this repo never contain spaces.
+    # shellcheck disable=SC2206
+    files=($run_group)
+    name="$(basename "${files[0]}" .test.js)"
+    if [ "${#files[@]}" -gt 1 ]; then
+        name="$name+$(basename "${files[$((${#files[@]} - 1))]}" .test.js)"
+    fi
 
     if ! start_rehearsal_node; then
         log "$name: NODE FAILED TO START"
@@ -111,7 +151,7 @@ for file in "${FILES[@]}"; do
     # Streamed to the terminal AND the temp file as it happens (this script is
     # meant to be watched live); the pass/fail signal is still the test
     # process's own exit code, read from PIPESTATUS[0] rather than tee's.
-    __decryptionAlreadyDone__=TRUE script -q /dev/null npx hardhat test "$file" \
+    __decryptionAlreadyDone__=TRUE script -q /dev/null npx hardhat test "${files[@]}" \
         --network "$NETWORK" 2>&1 | tee "$TEST_OUT"
     TEST_STATUS=${PIPESTATUS[0]}
     set -e

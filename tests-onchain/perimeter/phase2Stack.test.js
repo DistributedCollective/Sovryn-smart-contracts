@@ -10,7 +10,7 @@
  */
 const { expect } = require("chai");
 const hre = require("hardhat");
-const { ethers } = hre;
+const { ethers, deployments } = hre;
 const { time, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { setupPhase2Stack } = require("./phase2Stack");
 const {
@@ -146,5 +146,35 @@ describe("Phase 2 stack fixture", () => {
             "the lender was not paid after the hold ended"
         ).to.be.true;
         expect((await s.queue.totalEscrowed(wrbtcAddress)).toString()).to.equal("0");
+    });
+
+    it("attaches to the stack it already installed instead of redeploying", async () => {
+        // The delay proposals refuse to install over targets that already
+        // carry them, so a second call on the same node only means something
+        // if it recognizes the release is already there and reads it back
+        // rather than repeating the build.
+        const queueRecordBefore = await deployments.get("ExitDelayQueue");
+        const lastRequestIdBefore = await s.queue.lastRequestId();
+
+        const attached = await setupPhase2Stack();
+
+        expect(attached.queue.address).to.equal(s.queue.address);
+        expect(attached.stack.controller.address).to.equal(s.stack.controller.address);
+        expect(attached.protocol.address).to.equal(s.protocol.address);
+        expect(attached.borrowerOperations.address).to.equal(s.borrowerOperations.address);
+        expect(attached.upgrade.performed, "a second call must not repeat the controller upgrade")
+            .to.be.false;
+
+        expect(
+            await attached.queue.lastRequestId(),
+            "attaching must not touch the queue it reads"
+        ).to.equal(lastRequestIdBefore);
+
+        const queueRecordAfter = await deployments.get("ExitDelayQueue");
+        expect(
+            queueRecordAfter.address,
+            "a second call deployed a new ExitDelayQueue instead of attaching to the one already " +
+                "installed"
+        ).to.equal(queueRecordBefore.address);
     });
 });

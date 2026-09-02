@@ -214,7 +214,7 @@ module.exports = {
         rskForkedMainnet: {
             chainId: 31337,
             accounts: mainnetAccounts,
-            url: "http://127.0.0.1:8545",
+            url: process.env.PERIMETER_FORK_RPC_URL || "http://127.0.0.1:8545",
             blockGasLimit: 6800000,
             gasPrice: 66000010,
             live: true,
