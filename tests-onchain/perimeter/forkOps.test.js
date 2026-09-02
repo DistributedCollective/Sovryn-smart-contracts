@@ -5,7 +5,7 @@ const forkOps = require("./forkOps");
 describe("forkOps adapter", () => {
     it("detects the node kind and can impersonate, fund, warp and mine", async () => {
         if (!hre.network.tags["forked"]) throw new Error("run on rskForkedMainnet");
-        const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
+        const provider = new ethers.providers.JsonRpcProvider(hre.network.config.url);
         const kind = await forkOps.detectForkKind(provider);
         expect(["hardhat", "anvil", "tenderly"]).to.include(kind);
         const who = "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711";

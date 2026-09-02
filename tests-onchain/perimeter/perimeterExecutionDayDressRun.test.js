@@ -11,7 +11,7 @@
  *      and the two Zero implementation-only deploys, all on
  *      `--network rskForkedMainnet`.
  * The spec consumes that state: controller/vault proxies and the two Zero
- * implementations via env (PERIMETER_EXIT_FEE_CONTROLLER / EXIT_FEE_VAULT_PROXY /
+ * implementations via env (PERIMETER_EXIT_FEE_CONTROLLER / PERIMETER_EXIT_FEE_VAULT_PROXY /
  * PERIMETER_ZERO_BORROWER_OPERATIONS / PERIMETER_ZERO_COLL_SURPLUS_POOL, plus the
  * three codehash pins), the 7 lending modules via their fresh
  * rskForkedMainnet deployment records. It performs NO node reset and deploys
@@ -54,7 +54,7 @@
  * Run (after the prerequisite deploys above, against the SAME node):
  *     PERIMETER_DRESS_RUN=TRUE __decryptionAlreadyDone__=TRUE \
  *       PERIMETER_EXIT_FEE_CONTROLLER=... PERIMETER_EXIT_FEE_CONTROLLER_CODEHASH=... \
- *       EXIT_FEE_VAULT_PROXY=... \
+ *       PERIMETER_EXIT_FEE_VAULT_PROXY=... \
  *       PERIMETER_ZERO_BORROWER_OPERATIONS=... PERIMETER_ZERO_BORROWER_OPERATIONS_CODEHASH=... \
  *       PERIMETER_ZERO_COLL_SURPLUS_POOL=... PERIMETER_ZERO_COLL_SURPLUS_POOL_CODEHASH=... \
  *       npx hardhat test tests-onchain/perimeter/perimeterExecutionDayDressRun.test.js --network rskForkedMainnet
@@ -180,7 +180,7 @@ const DRESS_RUN = process.env.PERIMETER_DRESS_RUN === "TRUE";
                 context.deployerSigner
             );
             const vault = new ethers.Contract(
-                requireEnvAddress("EXIT_FEE_VAULT_PROXY"),
+                requireEnvAddress("PERIMETER_EXIT_FEE_VAULT_PROXY"),
                 vaultFixture.abi,
                 context.deployerSigner
             );

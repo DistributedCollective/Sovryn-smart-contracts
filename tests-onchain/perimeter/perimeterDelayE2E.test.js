@@ -727,16 +727,19 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
             PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
             true,
         ]);
-        const routeResult = await onQueue("setRecoveryRoute", [
+        const routeResult = await onQueue(
+            "setRecoveryRoute((bool,bytes32,address,address,address,bool))",
             [
-                true,
-                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
-                s.iRBTC.address,
-                wrbtcAddress,
-                s.iRBTC.address,
-                true,
-            ],
-        ]);
+                [
+                    true,
+                    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+                    s.iRBTC.address,
+                    wrbtcAddress,
+                    s.iRBTC.address,
+                    true,
+                ],
+            ]
+        );
         const routeSet = routeResult.receipt.logs
             .map((log) => {
                 try {
