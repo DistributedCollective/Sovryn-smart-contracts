@@ -23,8 +23,11 @@ cd "$SCRIPT_DIR/../.."
 PORT="${PERIMETER_QA_PORT:-8545}"
 FORK_RPC="${PERIMETER_FORK_RPC:-https://mainnet-dev.sovryn.app/rpc}"
 QA_DIR=qa
-PID_FILE="$QA_DIR/node.pid"
-LOG_FILE="$QA_DIR/node.log"
+# Scoped by port so a second node on a different PERIMETER_QA_PORT gets its
+# own pidfile and log instead of colliding with (or overwriting the record
+# of) one already running.
+PID_FILE="$QA_DIR/node.$PORT.pid"
+LOG_FILE="$QA_DIR/node.$PORT.log"
 
 export __decryptionAlreadyDone__=TRUE
 
@@ -62,10 +65,30 @@ qa_status() {
     fi
 }
 
-# Kills only the PID this tool itself recorded, plus that process's own
-# children (the hardhat node running inside the pty wrapper) — never
-# anything else found listening on the port, which may belong to an
-# unrelated process sharing this machine.
+# Refuses to start a second node for this port over a live one: never
+# overwrite the pidfile of a session that is still running. A pidfile whose
+# process is already gone is a stale leftover and is removed so a new node
+# can start.
+qa_refuse_if_running() {
+    [ -f "$PID_FILE" ] || return 0
+    local pid cmd
+    pid="$(cat "$PID_FILE" 2>/dev/null || true)"
+    if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+        cmd="$(ps -o command= -p "$pid" 2>/dev/null)"
+        echo "QA node: already running for port $PORT (pid $pid: ${cmd:-?})." \
+            "Refusing to overwrite $PID_FILE — stop it first with --stop, or boot" \
+            "with a different PERIMETER_QA_PORT." >&2
+        exit 1
+    fi
+    rm -f "$PID_FILE"
+}
+
+# Kills every process the recorded pid's launch actually spawned (walked via
+# pid_tree, not just the one direct child a single pgrep -P would catch) —
+# TERM first, KILL for whatever is still alive after the wait. This does not
+# depend on npx/script forwarding the signal to the hardhat process under
+# them, and it never touches a process outside that tree, so an unrelated
+# process that happens to share the port is never at risk.
 qa_stop() {
     if [ ! -f "$PID_FILE" ]; then
         echo "QA node: not running (no $PID_FILE)"
@@ -79,16 +102,23 @@ qa_stop() {
         return 0
     fi
 
-    local descendants
-    descendants="$(pgrep -P "$pid" 2>/dev/null || true)"
+    local tree
+    tree="$(pid_tree "$pid")"
     # shellcheck disable=SC2086
-    kill "$pid" $descendants 2>/dev/null || true
+    kill $tree 2>/dev/null || true
 
     local waited=0
-    while kill -0 "$pid" 2>/dev/null && [ "$waited" -lt "$PORT_FREE_TIMEOUT" ]; do
+    # shellcheck disable=SC2086
+    while any_alive $tree && [ "$waited" -lt "$PORT_FREE_TIMEOUT" ]; do
         sleep 1
         waited=$((waited + 1))
     done
+    # shellcheck disable=SC2086
+    if any_alive $tree; then
+        # shellcheck disable=SC2086
+        kill -9 $tree 2>/dev/null || true
+        sleep 1
+    fi
 
     if wait_for_rpc_down; then
         rm -f "$PID_FILE"
@@ -96,9 +126,10 @@ qa_stop() {
         return 0
     fi
 
-    echo "QA node: pid $pid is gone but $RPC_URL is still answering." \
-        "Something else may now be listening on port $PORT — investigate by hand" \
-        "(lsof -tiTCP:$PORT -sTCP:LISTEN); this tool will not kill a process it did not start." >&2
+    echo "QA node: pid $pid's whole process tree is gone but $RPC_URL is still" \
+        "answering. Something else may now be listening on port $PORT —" \
+        "investigate by hand (lsof -tiTCP:$PORT -sTCP:LISTEN); this tool will" \
+        "not kill a process it did not start." >&2
     return 1
 }
 
@@ -113,6 +144,7 @@ if [ "$MODE" = "stop" ]; then
 fi
 
 mkdir -p "$QA_DIR"
+qa_refuse_if_running
 
 block_args=()
 if [ -n "${PERIMETER_FORK_BLOCK:-}" ]; then

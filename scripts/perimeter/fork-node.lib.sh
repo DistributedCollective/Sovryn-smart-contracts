@@ -13,11 +13,6 @@
 # the recorded PID may be a wrapper (npx, script) whose own death does not
 # always take the hardhat process it spawned with it.
 
-export NVM_DIR="$HOME/.nvm"
-# shellcheck source=/dev/null
-. "$NVM_DIR/nvm.sh" >/dev/null
-nvm use 20.19.0 >/dev/null
-
 : "${NODE_START_TIMEOUT:=120}"
 : "${PORT_FREE_TIMEOUT:=30}"
 RPC_URL="http://127.0.0.1:$PORT"
@@ -71,6 +66,32 @@ wait_for_rpc_down() {
 
 node_listeners() {
     lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true
+}
+
+# $1 and every descendant of it (children, grandchildren, ...), one pid per
+# line, root first. A hardhat node started through npx/script comes up as a
+# short process chain (script -> npm -> node, or npx -> node) — this walks
+# however deep that chain actually is instead of assuming a fixed depth or
+# relying on the process in front forwarding a signal to the one behind it.
+pid_tree() {
+    local queue=("$1") pid child
+    while [ "${#queue[@]}" -gt 0 ]; do
+        pid="${queue[0]}"
+        queue=("${queue[@]:1}")
+        echo "$pid"
+        for child in $(pgrep -P "$pid" 2>/dev/null); do
+            queue+=("$child")
+        done
+    done
+}
+
+# True if any pid in "$@" is still alive.
+any_alive() {
+    local pid
+    for pid in "$@"; do
+        kill -0 "$pid" 2>/dev/null && return 0
+    done
+    return 1
 }
 
 # Best-effort "pid (command line)" for whatever is listening on the port, one
@@ -141,12 +162,25 @@ require_port_free() {
     fi
 }
 
+# Switches to the Node version the fork-node tooling needs. Only called from
+# start_node, right before a node actually boots: --status and --stop never
+# invoke hardhat, so they have no reason to touch nvm or depend on it being
+# installed.
+activate_node_version() {
+    export NVM_DIR="$HOME/.nvm"
+    # shellcheck source=/dev/null
+    . "$NVM_DIR/nvm.sh" >/dev/null
+    nvm use 20.19.0 >/dev/null
+}
+
 # Starts the given hardhat node command (passed as "$@") as a background
 # process, retrying once if it dies with a transient HH604 connect-timeout
 # while dialing the fork RPC. Output goes to NODE_LOG_PATH if the caller set
 # one (truncated fresh on each attempt), otherwise to a new temp file per
 # attempt. Sets NODE_PID and NODE_LOG on success.
 start_node() {
+    activate_node_version
+
     local attempt
     for attempt in 1 2; do
         require_port_free

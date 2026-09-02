@@ -13,6 +13,7 @@
  */
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { deployments } = hre;
 
 describe("QA node", () => {
     it("reports chain id 30, the qa tag, and resolves live deployment records", async () => {
