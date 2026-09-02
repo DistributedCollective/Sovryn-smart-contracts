@@ -78,6 +78,15 @@ const printStatus = (state) => {
         `${state.multisigTransactionCount} (last ${state.multisigPendingScanned} scanned)`
     );
     row("multisig pending", state.multisigPending.length ? state.multisigPending.join(", ") : "—");
+    if (state.multisigRequired === 1 && state.multisigPending.length) {
+        // At threshold 1 every lever this tool sends executes on submission, so
+        // anything still pending is the live wallet's own backlog, carried in
+        // from mainnet — not work this session left half done.
+        console.log(
+            "    (threshold is 1, so these are the live wallet's own unfinished transactions " +
+                "from mainnet, not anything this session submitted)"
+        );
+    }
     console.log("");
     if (!state.requests.length) {
         console.log("  no requests yet");
@@ -161,11 +170,23 @@ task("perimeter:qa", "Bring up a local QA fork and drive its withdrawal queue")
         types.string
     )
     .addOptionalParam("receiver", "withdraw: where the exit pays out", undefined, types.string)
-    .addOptionalParam("amount", "withdraw: amount in RBTC, e.g. 0.5", undefined, types.string)
+    .addOptionalParam(
+        "amount",
+        "withdraw: amount in RBTC, e.g. 0.5 — on the lender surface how much to lend and then " +
+            "withdraw, on the borrower and zero surfaces how much collateral to take back out. " +
+            "The surplus surface ignores it: the surplus is whatever the redemption left",
+        undefined,
+        types.string
+    )
     .addOptionalParam("to", "refund: 'pool' or an address", undefined, types.string)
     .addFlag("blacklisted", "release: undo a blacklist rather than a freeze")
     .addFlag("alsoReceiver", "freeze/blacklist: block the payout address too")
-    .addFlag("viaConsole", "freeze/blacklist: print the calldata instead of sending it")
+    .addFlag(
+        "viaConsole",
+        "print the calldata instead of sending it — works on every lever that goes through the " +
+            "multisig (freeze, blacklist, release, pause, unpause, kill, route, refund). On " +
+            "route, which is two levers, it prints both and reports that nothing was sent"
+    )
     .setAction(async (params, hre) => {
         const { subcommand, args } = params;
         if (!SUBCOMMANDS.includes(subcommand)) {

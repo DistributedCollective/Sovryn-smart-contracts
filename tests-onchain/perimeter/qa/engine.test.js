@@ -109,58 +109,22 @@ describe("QA scenario engine", () => {
         }
     });
 
-    it("freezes a party off one request and lets it go again", async function () {
+    it("records a freeze against the request that triggered it, and lets it go again", async function () {
         this.timeout(HALF_HOUR);
+        // What a freeze RECORDS. What it stops is a separate matter and cannot
+        // be proved here: nothing has reached its unlock yet, so the queue would
+        // refuse a payout whether the freeze existed or not. The payout gate is
+        // proved further down, on a request that is unlocked.
         const suspect1 = ethers.utils.getAddress(s.state.suspects[0]);
         const frozen = await engine.freeze(s, [ids.suspect1Lender], silent);
         expect(frozen.applied, frozen.note || "").to.equal(true);
         expect(await s.queue.blockStateOf(suspect1)).to.equal(BLOCK.Frozen);
         expect(await s.queue.blockTrigger(suspect1)).to.equal(ids.suspect1Lender);
-
-        const signer = await engine.signerFor(s, "suspect1");
-        const why = await expectRevert(s.queue, () =>
-            s.queue.connect(signer).executeExit(ids.suspect1Lender)
-        );
-        expect(why, "the queue paid a frozen party").to.match(/ActorBlocked|NotUnlocked/);
-        expect((await s.queue.getRequest(ids.suspect1Lender)).status).to.equal(STATUS.Queued);
+        expect(frozen.reason).to.equal(engine.REASON_QA);
 
         const released = await engine.release(s, suspect1, { ...silent, blacklisted: false });
         expect(released.applied, released.note || "").to.equal(true);
         expect(await s.queue.blockStateOf(suspect1)).to.equal(BLOCK.None);
-    });
-
-    it("pauses every payout without stopping ingress or blocking", async function () {
-        this.timeout(HALF_HOUR);
-        const paused = await engine.pause(s, silent);
-        expect(paused.applied, paused.note || "").to.equal(true);
-        expect(await s.queue.securityPerimeterPaused()).to.equal(true);
-
-        const signer = await engine.signerFor(s, "test");
-        const why = await expectRevert(s.queue, () =>
-            s.queue.connect(signer).executeExit(ids.lender)
-        );
-        expect(why, "the queue paid while paused").to.match(/QueuePaused|NotUnlocked/);
-        expect((await s.queue.getRequest(ids.lender)).status).to.equal(STATUS.Queued);
-
-        // Ingress stays live under the pause.
-        const before = await s.queue.lastRequestId();
-        const ingress = await engine.withdraw(s, {
-            ...silent,
-            surface: "lender",
-            as: "suspect2",
-        });
-        expect(ingress.queued).to.equal(true);
-        expect(await s.queue.lastRequestId()).to.equal(before.add(1));
-        ids.suspect2Lender = ingress.id;
-
-        // And so does blocking — the pause buys time, it does not spend it.
-        const blocked = await engine.blacklist(s, [ids.suspect2Lender], silent);
-        expect(blocked.applied, blocked.note || "").to.equal(true);
-        expect(await s.queue.blockStateOf(s.state.suspects[1])).to.equal(BLOCK.Blacklisted);
-
-        const unpaused = await engine.unpause(s, silent);
-        expect(unpaused.applied, unpaused.note || "").to.equal(true);
-        expect(await s.queue.securityPerimeterPaused()).to.equal(false);
     });
 
     it("pays the receiver to the wei once the hold has run out", async function () {
@@ -182,6 +146,105 @@ describe("QA scenario engine", () => {
         expect(await ethers.provider.getBalance(request.receiver)).to.equal(
             receiverBefore.add(request.amount).sub(gas)
         );
+    });
+
+    it("refuses to pay a frozen party once the hold has run out", async function () {
+        this.timeout(HALF_HOUR);
+        // The gate itself, on a request the queue has no other reason to refuse:
+        // Queued, unlocked, and its party unblocked until this freeze lands. The
+        // freeze is the ONLY thing standing between it and a payout, so the
+        // revert names it and nothing else.
+        const suspect1 = ethers.utils.getAddress(s.state.suspects[0]);
+        const held = await s.queue.getRequest(ids.suspect1Lender);
+        expect(held.status, "the gate needs a request that is still Queued").to.equal(
+            STATUS.Queued
+        );
+        expect(
+            Number(held.unlockAt),
+            "the gate needs a request whose hold has already run out"
+        ).to.be.at.most((await ethers.provider.getBlock("latest")).timestamp);
+        expect(await s.queue.blockStateOf(suspect1)).to.equal(BLOCK.None);
+
+        const frozen = await engine.freeze(s, [ids.suspect1Lender], silent);
+        expect(frozen.applied, frozen.note || "").to.equal(true);
+        expect(await s.queue.blockStateOf(suspect1)).to.equal(BLOCK.Frozen);
+
+        const signer = await engine.signerFor(s, "suspect1");
+        const why = await expectRevert(s.queue, () =>
+            s.queue.connect(signer).executeExit(ids.suspect1Lender)
+        );
+        expect(why, "the queue paid a frozen party an unlocked request").to.match(
+            /^ActorBlocked\(/
+        );
+        expect((await s.queue.getRequest(ids.suspect1Lender)).status).to.equal(STATUS.Queued);
+
+        // The engine reports that refusal by the queue's own name for it,
+        // instead of handing the operator a provider error to read.
+        const refused = await engine.execute(s, ids.suspect1Lender, { ...silent, as: "suspect1" });
+        expect(refused.applied).to.equal(false);
+        expect(refused.refused).to.equal(true);
+        expect(refused.note).to.match(/^REFUSED: ActorBlocked\(/);
+
+        // The batch form reports the same refusal and says what it means for the
+        // rest of the batch: executeExits takes all of it or none of it.
+        const batch = await engine.executeAll(s, { ...silent, as: "suspect1" });
+        expect(batch.applied).to.equal(false);
+        expect(batch.note).to.match(/^REFUSED: ActorBlocked\(.*whole batch rolled back/s);
+        for (const id of batch.ids) {
+            expect((await s.queue.getRequest(id)).status).to.equal(STATUS.Queued);
+        }
+
+        const released = await engine.release(s, suspect1, { ...silent, blacklisted: false });
+        expect(released.applied, released.note || "").to.equal(true);
+        expect(await s.queue.blockStateOf(suspect1)).to.equal(BLOCK.None);
+    });
+
+    it("pauses every payout without stopping ingress or blocking", async function () {
+        this.timeout(HALF_HOUR);
+        const paused = await engine.pause(s, silent);
+        expect(paused.applied, paused.note || "").to.equal(true);
+        expect(await s.queue.securityPerimeterPaused()).to.equal(true);
+
+        // Unlocked and unblocked, so the pause is the only thing left to refuse
+        // it — the revert names the pause and nothing else.
+        const gated = await s.queue.getRequest(ids.surplus);
+        expect(gated.status).to.equal(STATUS.Queued);
+        expect(Number(gated.unlockAt)).to.be.at.most(
+            (await ethers.provider.getBlock("latest")).timestamp
+        );
+        expect(await s.queue.blockStateOf(gated.originator)).to.equal(BLOCK.None);
+
+        const signer = await engine.signerFor(s, "test");
+        const why = await expectRevert(s.queue, () =>
+            s.queue.connect(signer).executeExit(ids.surplus)
+        );
+        expect(why, "the queue paid while paused").to.match(/^QueuePaused\(/);
+        expect((await s.queue.getRequest(ids.surplus)).status).to.equal(STATUS.Queued);
+
+        // Reported by name, not as a provider error.
+        const refused = await engine.execute(s, ids.surplus, silent);
+        expect(refused.refused).to.equal(true);
+        expect(refused.note).to.match(/^REFUSED: QueuePaused\(/);
+
+        // Ingress stays live under the pause.
+        const before = await s.queue.lastRequestId();
+        const ingress = await engine.withdraw(s, {
+            ...silent,
+            surface: "lender",
+            as: "suspect2",
+        });
+        expect(ingress.queued).to.equal(true);
+        expect(await s.queue.lastRequestId()).to.equal(before.add(1));
+        ids.suspect2Lender = ingress.id;
+
+        // And so does blocking — the pause buys time, it does not spend it.
+        const blocked = await engine.blacklist(s, [ids.suspect2Lender], silent);
+        expect(blocked.applied, blocked.note || "").to.equal(true);
+        expect(await s.queue.blockStateOf(s.state.suspects[1])).to.equal(BLOCK.Blacklisted);
+
+        const unpaused = await engine.unpause(s, silent);
+        expect(unpaused.applied, unpaused.note || "").to.equal(true);
+        expect(await s.queue.securityPerimeterPaused()).to.equal(false);
     });
 
     it("passes a withdrawal straight through with the perimeter switched off", async function () {

@@ -86,49 +86,6 @@ const rpc = () => new ethers.providers.JsonRpcProvider(hre.network.config.url);
 
 const chainNow = async () => (await ethers.provider.getBlock("latest")).timestamp;
 
-/**
- * One write, with the state it claims to change read back afterwards.
- *
- * `verify` returns true when the change landed, or a string describing what is
- * wrong. Its verdict, not the receipt's status, decides OK vs NOT APPLIED.
- */
-const send = async (label, txPromise, opts = {}) => {
-    const log = logOf(opts);
-    const tx = await txPromise;
-    const receipt = await tx.wait();
-    const verdict = opts.verify ? await opts.verify(receipt) : true;
-    const applied = verdict === true;
-    const note = applied ? "" : ` (${verdict})`;
-    log(`  ${applied ? "OK" : "NOT APPLIED"}  ${label}${note}  [gas ${receipt.gasUsed}]`);
-    return {
-        label,
-        applied,
-        note: applied ? null : String(verdict),
-        txHash: receipt.transactionHash,
-        gasUsed: receipt.gasUsed.toString(),
-        receipt,
-    };
-};
-
-/** The calldata a lever is, without sending it: the call itself and the
- *  `submitTransaction` that carries it to the wallet. */
-const calldataFor = (s, target, contract, signature, args) => {
-    const data = contract.interface.encodeFunctionData(signature, args);
-    return {
-        target,
-        signature,
-        selector: ethers.utils.id(signature).slice(0, 10),
-        args: args.map((a) => (Array.isArray(a) ? a.map(String) : String(a))),
-        calldata: data,
-        multisig: s.multisig.address,
-        multisigCalldata: s.multisig.interface.encodeFunctionData("submitTransaction", [
-            target,
-            0,
-            data,
-        ]),
-    };
-};
-
 /** The revert payload a node attached to a failed call, decoded against the
  *  called contract's own ABI. Looked for only where a node puts it — never in
  *  the transaction's `data`, which decodes as the call, not the refusal. */
@@ -172,6 +129,74 @@ const innerCallReason = async (s, contract, signature, args) => {
 };
 
 /**
+ * One write, with the state it claims to change read back afterwards.
+ *
+ * `verify` returns true when the change landed, or a string describing what is
+ * wrong. Its verdict, not the receipt's status, decides OK vs NOT APPLIED.
+ *
+ * A call the chain refuses outright never reaches `verify`: it comes back as
+ * REFUSED carrying the contract's own error name, decoded against
+ * `opts.contract`. Without that a refusal reaches the operator as a wall of
+ * provider JSON with the reason buried in it.
+ */
+const send = async (label, txPromise, opts = {}) => {
+    const log = logOf(opts);
+    let receipt;
+    try {
+        const tx = await txPromise;
+        receipt = await tx.wait();
+    } catch (error) {
+        const why = opts.contract
+            ? revertReason(opts.contract, error)
+            : error.reason || error.message;
+        log(`  REFUSED  ${label}: ${why}`);
+        return {
+            label,
+            applied: false,
+            refused: true,
+            reason: String(why),
+            note: `REFUSED: ${why}`,
+            txHash: null,
+            gasUsed: null,
+            receipt: null,
+        };
+    }
+    const verdict = opts.verify ? await opts.verify(receipt) : true;
+    const applied = verdict === true;
+    const note = applied ? "" : ` (${verdict})`;
+    log(`  ${applied ? "OK" : "NOT APPLIED"}  ${label}${note}  [gas ${receipt.gasUsed}]`);
+    return {
+        label,
+        applied,
+        refused: false,
+        reason: null,
+        note: applied ? null : String(verdict),
+        txHash: receipt.transactionHash,
+        gasUsed: receipt.gasUsed.toString(),
+        receipt,
+    };
+};
+
+/** The calldata a lever is, without sending it: the call itself and the
+ *  `submitTransaction` that carries it to the wallet. */
+const calldataFor = (s, target, contract, signature, args) => {
+    const data = contract.interface.encodeFunctionData(signature, args);
+    return {
+        target,
+        signature,
+        selector: ethers.utils.id(signature).slice(0, 10),
+        args: args.map((a) => (Array.isArray(a) ? a.map(String) : String(a))),
+        calldata: data,
+        multisig: s.multisig.address,
+        multisigCalldata: s.multisig.interface.encodeFunctionData("submitTransaction", [
+            target,
+            0,
+            data,
+        ]),
+    };
+};
+
+/**
  * One operator lever, submitted to the Exchequer from the test key.
  *
  * At threshold 1 the submission executes on the spot. Above it the transaction
@@ -203,6 +228,10 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
         {
             ...opts,
             log: noLog,
+            // The submission itself is a call on the wallet, so a refusal of it
+            // decodes against the wallet. The inner call's own refusal is read
+            // separately below, because the wallet swallows it.
+            contract: s.multisig,
             verify: async (receipt) => {
                 const entry = receipt.logs.find((l) => l.topics[0] === SUBMISSION_TOPIC);
                 if (!entry) return "the multisig recorded no submission";
@@ -218,6 +247,17 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
             },
         }
     );
+    if (result.refused) {
+        log(`  REFUSED  ${label}: ${result.reason}`);
+        return {
+            ...encoded,
+            sent: true,
+            applied: false,
+            pending: false,
+            txId: null,
+            note: result.note,
+        };
+    }
     const entry = result.receipt.logs.find((l) => l.topics[0] === SUBMISSION_TOPIC);
     const txId = entry ? ethers.BigNumber.from(entry.topics[1]).toNumber() : null;
     const pending = txId !== null && !(await s.multisig.transactions(txId)).executed;
@@ -368,6 +408,13 @@ const advance = async (s, seconds, opts = {}) => {
     await forkOps.increaseTime(provider, jump);
     await forkOps.mine(provider, 1);
     const after = await chainNow();
+    if (after < before + jump) {
+        throw new Error(
+            `perimeter:qa advance: the chain clock went from ${before} to ${after}, short of the ` +
+                `${jump}s asked for — nothing downstream that counts on the hold having run out ` +
+                "can be trusted"
+        );
+    }
     log(
         "  WARNING: the chain clock jumped. A wallet counts a hold down against ITS OWN clock, " +
             "so every countdown the dapp draws is now wrong by this much — reload nothing and " +
@@ -397,6 +444,7 @@ const execute = async (s, id, opts = {}) => {
     const before = await balanceOf();
     const result = await send(`execute ${id}`, s.queue.connect(signer).executeExit(id), {
         ...opts,
+        contract: s.queue,
         verify: async (receipt) => {
             const after = await s.queue.getRequest(id);
             if (after.status !== STATUS.Executed) {
@@ -419,6 +467,8 @@ const execute = async (s, id, opts = {}) => {
         receiver: request.receiver,
         amount: request.amount.toString(),
         applied: result.applied,
+        refused: result.refused,
+        reason: result.reason,
         note: result.note,
         txHash: result.txHash,
     };
@@ -443,6 +493,7 @@ const executeAll = async (s, opts = {}) => {
         s.queue.connect(signer).executeExits(ids),
         {
             ...opts,
+            contract: s.queue,
             verify: async () => {
                 for (const id of ids) {
                     const after = await s.queue.getRequest(id);
@@ -454,12 +505,20 @@ const executeAll = async (s, opts = {}) => {
             },
         }
     );
+    // executeExits takes the whole batch or none of it, so one refused request
+    // leaves every other one in the batch untouched and still Queued.
+    const note = result.refused
+        ? `${result.note} — the whole batch rolled back, no request was released`
+        : result.note;
+    if (result.refused) logOf(opts)(`  the whole batch rolled back, no request was released`);
     return {
         command: "execute-all",
         as: who,
         ids,
         applied: result.applied,
-        note: result.note,
+        refused: result.refused,
+        reason: result.reason,
+        note,
         txHash: result.txHash,
     };
 };
@@ -620,15 +679,25 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
     const surfaceId = SURFACE_IDS[surface];
     if (!surfaceId) {
         throw new Error(
-            `perimeter:qa route: unknown surface '${surface}' — one of: ` +
-                Object.keys(SURFACE_IDS).join(", ")
+            `perimeter:qa route: '${surface || "<nothing>"}' is not a surface — say ` +
+                `\`route <${Object.keys(SURFACE_IDS).join("|")}> topup|address <address>\``
+        );
+    }
+    const topUp = mode === "topup";
+    if (!topUp && mode !== "address") {
+        throw new Error(
+            `perimeter:qa route: '${mode || "<nothing>"}' is not a mode — say ` +
+                `\`route ${surface} topup\` to send recovered escrow back to the pool the exit ` +
+                `came from, or \`route ${surface} address <address>\` to name a destination`
+        );
+    }
+    if (!topUp && !ethers.utils.isAddress(String(destinationAddress))) {
+        throw new Error(
+            `perimeter:qa route: '${destinationAddress || "<nothing>"}' is not an address — ` +
+                `\`route ${surface} address\` needs the destination to send recovered escrow to`
         );
     }
     const { subProduct, token } = await provenanceOf(s, surfaceId);
-    const topUp = mode === "topup";
-    if (!topUp && mode !== "address") {
-        throw new Error("perimeter:qa route: the mode is 'topup' or 'address <address>'");
-    }
     const destination = topUp ? subProduct : ethers.utils.getAddress(destinationAddress);
     const steps = [];
 
@@ -671,6 +740,9 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
         )
     );
 
+    // With --via-console nothing was sent, so there is no verdict to report:
+    // `applied` stays null rather than reading as a failure.
+    const sent = steps.every((step) => step.sent);
     return {
         command: "route",
         surface,
@@ -679,7 +751,9 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
         token: token === ZERO_ADDRESS ? "native" : token,
         destination,
         routeId,
-        applied: steps.every((step) => step.applied),
+        sent,
+        applied: sent ? steps.every((step) => step.applied) : null,
+        note: sent ? null : "nothing was sent — the calldata for each step was printed instead",
         steps: steps.map((step) => ({
             label: step.signature,
             applied: step.applied,
@@ -794,6 +868,16 @@ const refund = async (s, ids, to, opts = {}) => {
  */
 const confirm = async (s, txId, opts = {}) => {
     const id = Number(txId);
+    if (!Number.isInteger(id) || id < 0) {
+        throw new Error(
+            `perimeter:qa confirm: '${txId === undefined ? "<nothing>" : txId}' is not a ` +
+                "multisig transaction id — `status` lists the pending ones, and every lever " +
+                "reports the id it submitted"
+        );
+    }
+    if (id >= (await s.multisig.transactionCount()).toNumber()) {
+        throw new Error(`perimeter:qa confirm: the wallet has no transaction ${id}`);
+    }
     const log = logOf(opts);
     if ((await s.multisig.transactions(id)).executed) {
         return { command: "confirm", txId: id, applied: true, note: "already executed" };

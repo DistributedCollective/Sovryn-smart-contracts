@@ -289,7 +289,7 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
 
         // ── Lending, borrower exit ─────────────────────────────────────────
         const borrower = await signerFor(S1.borrower);
-        const borrowerExit = await drivers.queueBorrowerClose(s, borrower, {
+        const borrowerExit = await drivers.queueBorrowerCollateralWithdraw(s, borrower, {
             receiver: S1.borrowerReceiver,
         });
         expect(borrowerExit.request.surfaceId).to.equal(

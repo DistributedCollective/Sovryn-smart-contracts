@@ -121,7 +121,8 @@ const queuedBy = async (s, label, surfaceId, lastIdBefore, opts = {}) => {
 /**
  * Lending, lender exit. Mint an iRBTC position with native RBTC and burn it
  * straight back: with the delay armed the burn escrows WRBTC in the queue and
- * unwraps to native at delivery.
+ * unwraps to native at delivery. `opts.amount` is how much RBTC to lend, and so
+ * how much the whole position withdrawn is worth.
  */
 const queueLenderWithdrawal = async (s, signer, opts = {}) => {
     const originator = await addressOf(signer);
@@ -249,8 +250,12 @@ const ensureCollateralPrice = async (s, opts = {}) => {
 /**
  * Lending, borrower exit. Open an XUSD loan against WRBTC collateral, then take
  * a slice of that collateral back out — the call the borrower surface covers.
+ * The loan is left open: this withdraws collateral from a live position, it does
+ * not close one.
+ *
+ * `opts.amount` is how much collateral to take out.
  */
-const queueBorrowerClose = async (s, signer, opts = {}) => {
+const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
     const originator = await addressOf(signer);
     const receiver = opts.receiver || originator;
     const borrowAmount = opts.borrowAmount || BORROW_AMOUNT;
@@ -323,7 +328,7 @@ const queueBorrowerClose = async (s, signer, opts = {}) => {
 
 /**
  * Zero, collateral withdrawal. Open a trove with native RBTC, then take a slice
- * of the collateral back out.
+ * of the collateral back out. `opts.amount` is how much collateral to take out.
  */
 const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
     const originator = await addressOf(signer);
@@ -390,6 +395,9 @@ const derivedActor = (from, tag) =>
  *
  * The trove has to be the system's first redeemable one, so it is opened just
  * above the live redemption queue's floor rather than at a hardcoded ratio.
+ *
+ * The surplus is whatever the redemption leaves behind, so `opts.amount` has
+ * nothing to size here and is ignored.
  *
  * `opts.redeemer` is the account that performs the redemption (derived from the
  * signer when not given) and `opts.fundFrom` are signers whose ZUSD it may
@@ -545,7 +553,7 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
 
 const SURFACE_DRIVERS = {
     lender: queueLenderWithdrawal,
-    borrower: queueBorrowerClose,
+    borrower: queueBorrowerCollateralWithdraw,
     zero: queueZeroCollWithdraw,
     surplus: queueSurplusClaim,
 };
@@ -561,7 +569,7 @@ module.exports = {
     ERC20_ABI,
     ensureCollateralPrice,
     queueLenderWithdrawal,
-    queueBorrowerClose,
+    queueBorrowerCollateralWithdraw,
     queueZeroCollWithdraw,
     queueSurplusClaim,
     SURFACE_DRIVERS,

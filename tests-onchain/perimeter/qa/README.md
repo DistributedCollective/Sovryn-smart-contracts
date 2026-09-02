@@ -82,6 +82,7 @@ the dapps draw wrong for the rest of the session.
 | --- | --- | --- |
 | `status` | the whole queue: paused, kill switch, hold, charge, every request with its parties, unlock and block states, and the multisig transactions still pending | `perimeter:qa status` |
 | `withdraw` | takes a withdrawal on one surface — `lender`, `borrower`, `zero` or `surplus` | `perimeter:qa withdraw --surface lender --as suspect1 --receiver 0x…` |
+| | `--amount` is in RBTC and means something different per surface: on `lender` how much to lend and then withdraw, on `borrower` and `zero` how much collateral to take back out. `surplus` ignores it — the surplus is whatever the redemption left | `perimeter:qa withdraw --surface zero --amount 0.002` |
 | `advance` | jumps the chain clock by n seconds and warns that every wallet countdown is now wrong | `perimeter:qa advance 121` |
 | `execute` | releases one request as its originator and proves the receiver was paid to the wei | `perimeter:qa execute 3` |
 | `execute-all` | releases every request one actor may release | `perimeter:qa execute-all --as test` |
@@ -95,10 +96,17 @@ the dapps draw wrong for the rest of the session.
 | `confirm` | adds confirmations from the wallet's real owners to a pending multisig transaction (only needed after `up --keep-threshold`) | `perimeter:qa confirm 2231` |
 | `snapshot` / `revert` | takes a chain snapshot and rewinds to it | `perimeter:qa snapshot` then `perimeter:qa revert 0x1f` |
 
-`freeze` and `blacklist` also take `--via-console`, which prints the call's
-selector, arguments, calldata and the multisig `submitTransaction` calldata
-instead of sending anything — so the operator console's own path can be driven
-by hand with the same bytes.
+`--via-console` prints the call's selector, arguments, calldata and the multisig
+`submitTransaction` calldata instead of sending anything — so the operator
+console's own path can be driven by hand with the same bytes. It works on every
+lever that goes through the multisig: `freeze`, `blacklist`, `release`, `pause`,
+`unpause`, `kill`, `route` and `refund`. `route` is two levers, so it prints both
+and reports that nothing was sent rather than a verdict.
+
+`status` lists the multisig transactions still pending. At threshold 1 — what
+`up` leaves behind unless you pass `--keep-threshold` — every lever executes on
+submission, so anything in that row is the live wallet's own backlog carried in
+from mainnet, not work this session left half done. The row says so.
 
 Three things the surfaces themselves impose, rather than this tooling:
 
