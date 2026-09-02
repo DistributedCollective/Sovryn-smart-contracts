@@ -215,6 +215,135 @@ const attachedOperator = async (controller) => {
     return signer;
 };
 
+/** ERC1967 implementation slot — where a UUPS proxy keeps its implementation
+ *  pointer, read directly so the upgrade can be shown to have moved it. */
+const ERC1967_IMPL_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
+
+const PERIMETER_SURFACES = {
+    LENDING_LENDER_WITHDRAW: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+    LENDING_BORROWER_WITHDRAW: PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+    ZERO_WITHDRAW_COLL: PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+    ZERO_CLAIM_SURPLUS: PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
+};
+
+/** Refuse to rehearse the delay against a controller build that has none.
+ *
+ *  The committed fixture is the only controller build these tests deploy. When
+ *  it predates the delay the whole rehearsal still runs and still passes its
+ *  wiring assertions, while quoting no hold at all — so the check is worth more
+ *  loud and early than as a puzzling revert later. */
+const assertDelayVintageControllerFixture = () => {
+    const names = controllerFixture.abi.filter((e) => e.type === "function").map((e) => e.name);
+    const missing = [
+        "securityPerimeterEnabled",
+        "globalDelaySeconds",
+        "setGlobalDelaySeconds",
+    ].filter((n) => !names.includes(n));
+    if (missing.length > 0) {
+        throw new Error(
+            `fixtures/ExitFeeController.json has no ${missing.join("/")} — it was built before ` +
+                "the delay. Rebuild the source repo and re-run fixtures/regenerate.js."
+        );
+    }
+};
+
+/** Move the live controller proxy onto the delay-vintage implementation, the
+ *  way its owner does in production: deploy the implementation, then call
+ *  `upgradeTo` from the owner. Nothing is written to storage by hand — the
+ *  proxy's own authorization is what admits the change, so an owner that could
+ *  not do this on mainnet cannot do it here either.
+ *
+ *  Everything the proxy already holds must survive: ownership, the incident
+ *  admin, the receiver, the charge switch and every registered surface policy.
+ *  Those are asserted rather than assumed, because a layout-incompatible
+ *  implementation would keep answering — with other variables' bytes.
+ *
+ *  The two delay scalars must read as disabled afterwards; arming them is a
+ *  separate, deliberate act. */
+const upgradeControllerToDelayBuild = async (controllerAddress, ownerSigner) => {
+    assertDelayVintageControllerFixture();
+
+    const before = new ethers.Contract(controllerAddress, controllerFixture.abi, ownerSigner);
+    const owner = await before.owner();
+    if (owner.toLowerCase() !== ownerSigner.address.toLowerCase()) {
+        throw new Error(
+            `controller ${controllerAddress} is owned by ${owner}, not by the signer ` +
+                `${ownerSigner.address} — only the owner may upgrade it`
+        );
+    }
+    const kept = {
+        admin: await before.admin(),
+        feeReceiver: await before.feeReceiver(),
+        exitFeeEnabled: await before.exitFeeEnabled(),
+    };
+    const policies = {};
+    for (const [label, surfaceId] of Object.entries(PERIMETER_SURFACES)) {
+        const policy = await before.surfacePolicy(surfaceId);
+        policies[label] = { active: policy.active, rateBps: policy.rateBps };
+    }
+    const previousImplementation = ethers.utils.getAddress(
+        "0x" + (await ethers.provider.getStorageAt(controllerAddress, ERC1967_IMPL_SLOT)).slice(26)
+    );
+
+    const implementation = await new ethers.ContractFactory(
+        controllerFixture.abi,
+        controllerFixture.bytecode,
+        ownerSigner
+    ).deploy();
+    await implementation.deployed();
+
+    await (await before.upgradeTo(implementation.address)).wait();
+
+    const active = ethers.utils.getAddress(
+        "0x" + (await ethers.provider.getStorageAt(controllerAddress, ERC1967_IMPL_SLOT)).slice(26)
+    );
+    if (active.toLowerCase() !== implementation.address.toLowerCase()) {
+        throw new Error(
+            `controller still serves ${active} after the upgrade, expected ${implementation.address}`
+        );
+    }
+
+    const after = new ethers.Contract(controllerAddress, controllerFixture.abi, ownerSigner);
+    const now = {
+        owner: await after.owner(),
+        admin: await after.admin(),
+        feeReceiver: await after.feeReceiver(),
+        exitFeeEnabled: await after.exitFeeEnabled(),
+    };
+    for (const [field, was] of Object.entries({ owner, ...kept })) {
+        const is = now[field];
+        const same =
+            typeof was === "string" ? was.toLowerCase() === String(is).toLowerCase() : was === is;
+        if (!same) {
+            throw new Error(
+                `controller ${field} changed across the upgrade: ${was} became ${is} — the new ` +
+                    "implementation does not share the deployed storage layout"
+            );
+        }
+    }
+    for (const [label, was] of Object.entries(policies)) {
+        const is = await after.surfacePolicy(PERIMETER_SURFACES[label]);
+        if (is.active !== was.active || is.rateBps !== was.rateBps) {
+            throw new Error(
+                `controller policy ${label} changed across the upgrade: ` +
+                    `active ${was.active}->${is.active}, rate ${was.rateBps}->${is.rateBps}`
+            );
+        }
+    }
+    if ((await after.securityPerimeterEnabled()) !== false) {
+        throw new Error("the perimeter switched itself on during the upgrade");
+    }
+    if (!ethers.BigNumber.from(await after.globalDelaySeconds()).isZero()) {
+        throw new Error("a delay appeared during the upgrade");
+    }
+
+    return {
+        implementation: implementation.address,
+        previousImplementation,
+        preserved: { owner, ...kept, policies },
+    };
+};
+
 /** Deploy the hooked Zero BorrowerOperations implementation (built from
  *  zero-contracts-perimeter @ private/perimeter) and save the
  *  "BorrowerOperations_Implementation" record the sipArgs Part 1 entry resolves.
@@ -705,6 +834,8 @@ module.exports = {
     getImpersonatedSigner,
     getImpersonatedSignerFromJsonRpcProvider,
     deployPerimeterStack,
+    upgradeControllerToDelayBuild,
+    assertDelayVintageControllerFixture,
     deployHookedBorrowerOperationsImpl,
     deployCollSurplusPoolImpl,
     deployLendingReleaseContracts,
