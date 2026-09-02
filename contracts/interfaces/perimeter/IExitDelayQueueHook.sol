@@ -1,16 +1,4 @@
 // SPDX-License-Identifier: MIT
-// ─────────────────────────────────────────────────────────────────────────────
-// Cross-pragma ingress stub for `ExitDelayQueue` (the security-perimeter delay
-// queue). The FULL interface + type/event/error catalog lives in
-// `IExitDelayQueue.sol` (0.8.20, provenance-locked to
-// DistributedCollective/perimeter @ 51457b21). This stub declares ONLY the members
-// the 0.5.17 lending + borrower/margin product hooks actually call, so it can be
-// imported under the range pragma the product repos compile with.
-//
-// The four `record*` signatures here are byte-for-byte identical to the FINAL
-// ones in `IExitDelayQueue.sol`. Do NOT diverge — the queue's
-// IExitDelayQueue is final.
-// ─────────────────────────────────────────────────────────────────────────────
 // aderyn-ignore-next-line(unspecific-solidity-pragma)
 pragma solidity >=0.5.17 <0.9.0;
 
@@ -21,6 +9,10 @@ pragma solidity >=0.5.17 <0.9.0;
 ///         registered source): the iToken proxy for lending, the `sovrynProtocol`
 ///         singleton for borrower/margin. Never called until `d > 0` is
 ///         established off-queue.
+/// @dev    Cross-pragma ingress stub: declares only the members the 0.5.17
+///         product hosts call, so it imports under their pragma. The four
+///         `record*` signatures here are byte-for-byte identical to the ones
+///         in the queue's own `IExitDelayQueue.sol` and must stay that way.
 interface IExitDelayQueueHook {
     /// @notice ERC20 pull ingress (preferred; also the WRBTC path). The queue does
     ///         `safeTransferFrom(msg.sender, address(this), amount)` and requires

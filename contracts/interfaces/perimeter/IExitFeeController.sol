@@ -1,12 +1,5 @@
 // SPDX-License-Identifier: MIT
 // ─────────────────────────────────────────────────────────────────────────────
-// Copied from DistributedCollective/perimeter @ 29062c6b4a85abef8e8ae438a8570fa41c5fbda0
-//   src/interfaces/IExitFeeController.sol
-// Do not modify the declarations here. To update: change upstream, re-copy,
-// bump SHA in this header. Layout follows this repo's formatter, and comment
-// text is kept free of tracker/plan references, so a re-copy is a declaration
-// diff, not a byte diff.
-// ─────────────────────────────────────────────────────────────────────────────
 // Range pragma is intentional: this file is consumed under Solidity 0.5.17
 // (Sovryn-smart-contracts), 0.6.11 (zero-contracts), and 0.8.20 (this repo).
 // aderyn-ignore-next-line(unspecific-solidity-pragma)
@@ -60,7 +53,7 @@ interface IExitFeeController {
     ///         tier decides: `bypass == true` exempts (`d = 0`), `bypass == false`
     ///         FORCES `globalDelaySeconds` (overriding a broader bypass). It is an
     ///         exemption toggle only — there is no per-instance delay
-    ///         duration. Copied final from perimeter.
+    ///         duration.
     struct DelayBypassPolicy {
         bool active;
         bool bypass;
