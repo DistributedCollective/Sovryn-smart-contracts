@@ -14,14 +14,14 @@ const { ethers } = hre;
 const { time, mine } = require("@nomicfoundation/hardhat-network-helpers");
 const { setupPhase2Stack } = require("./phase2Stack");
 const {
-    ONE_RBTC,
+    ERC1967_IMPL_SLOT,
     PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
 } = require("./perimeterSipTestHelpers");
 
-const ERC1967_IMPL_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
-
 describe("Phase 2 stack fixture", () => {
-    it("arms a delay perimeter owned and administered by the multisig, holds a real withdrawal, and takes operator actions at threshold", async () => {
+    let s;
+
+    before(async function () {
         if (!hre.network.tags["forked"]) {
             // Throw, never return: a bare return marks a security rehearsal
             // PASSED with zero assertions.
@@ -29,14 +29,36 @@ describe("Phase 2 stack fixture", () => {
                 "run on a forked mainnet (rskForkedMainnet); no fork tag on this network"
             );
         }
-        const s = await setupPhase2Stack();
+        s = await setupPhase2Stack();
         console.log(
             "        phase2 proposals: part1 #" +
                 s.proposals.part1.toString() +
                 ", part2 #" +
                 s.proposals.part2.toString()
         );
+    });
 
+    it("refuses both delay proposals until the controller carries the delay", async () => {
+        // The proposals install modules that quote a hold on every hooked exit
+        // and fail closed when the controller cannot answer. Ordering them
+        // after the controller upgrade is therefore not a matter of care taken
+        // on the day: the builders read the controller and refuse.
+        expect(
+            s.controllerPrecondition.beforeUpgrade.refused,
+            "the proposals would have been built against the controller as it was found"
+        ).to.be.true;
+        expect(s.controllerPrecondition.beforeUpgrade.message).to.contain("upgradeTo");
+        expect(s.controllerPrecondition.beforeUpgrade.message).to.contain(
+            s.stack.controller.address
+        );
+        expect(
+            s.controllerPrecondition.afterUpgrade.refused,
+            "the upgrade did not lift the refusal: " +
+                String(s.controllerPrecondition.afterUpgrade.message)
+        ).to.be.false;
+    });
+
+    it("arms a delay perimeter owned and administered by the multisig, holds a real withdrawal, and takes operator actions at threshold", async () => {
         // ── The queue is in the operator's hands ───────────────────────────
         expect((await s.queue.owner()).toLowerCase()).to.equal(s.exchequer.address.toLowerCase());
         expect((await s.queue.admin()).toLowerCase()).to.equal(s.exchequer.address.toLowerCase());

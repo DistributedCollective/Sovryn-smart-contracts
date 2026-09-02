@@ -31,8 +31,8 @@ const {
     forkOps,
 } = require("./perimeterSipTestHelpers");
 const { ensurePhase1Executed } = require("./phase1Preflight");
+const { assertControllerIsDelayBuild } = require("../../hardhat/tasks/sips/args/sipArgs");
 
-const RATE_BPS = 50;
 const DELAY_SECONDS = 3600;
 const MIN_DELAY_SECONDS = 60;
 const EXCHEQUER = "0x924f5ad34698Fd20c90Fe5D5A8A0abd3b42dc711";
@@ -83,7 +83,7 @@ const setupPhase2Stack = async () => {
     assertDelayVintageControllerFixture();
 
     const ctx = await setupGovernanceContext();
-    const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
+    const provider = new ethers.providers.JsonRpcProvider(hre.network.config.url);
 
     // The preceding release must be finished before any of this one is
     // proposed: its proposals are discovered by shape, and this one emits some
@@ -128,7 +128,7 @@ const setupPhase2Stack = async () => {
         EXCHEQUER
     );
 
-    const stack = await deployPerimeterStack(ctx.deployerSigner, RATE_BPS);
+    const stack = await deployPerimeterStack(ctx.deployerSigner);
     if ((await stack.controller.owner()).toLowerCase() !== EXCHEQUER.toLowerCase()) {
         throw new Error(
             `the controller at ${stack.controller.address} is not owned by the multisig that ` +
@@ -137,7 +137,27 @@ const setupPhase2Stack = async () => {
     }
 
     const exchequerSigner = await forkOps.impersonate(provider, EXCHEQUER);
+
+    /** Both delay proposals refuse to build against a controller that is not
+     *  yet the delay build, and the upgrade below is the only thing that lifts
+     *  that refusal. The reading is taken on either side of it — the controller
+     *  is live and the release before this one is finished by now — so a test
+     *  can hold the release to the ordering it depends on rather than trusting
+     *  the order these lines happen to be written in. */
+    const controllerPrecondition = { beforeUpgrade: null, afterUpgrade: null };
+    const readPrecondition = async () => {
+        try {
+            await assertControllerIsDelayBuild(hre, stack.controller.address);
+            return { refused: false, message: null };
+        } catch (error) {
+            return { refused: true, message: error.message };
+        }
+    };
+    controllerPrecondition.beforeUpgrade = await readPrecondition();
+
     const upgrade = await upgradeControllerToDelayBuild(stack.controller.address, exchequerSigner);
+
+    controllerPrecondition.afterUpgrade = await readPrecondition();
 
     // Pin what the proposals are allowed to resolve to. The hash covers the
     // proxy the products call, which is the address the proposals carry; the
@@ -255,6 +275,7 @@ const setupPhase2Stack = async () => {
         MIN_DELAY_SECONDS,
         phase1,
         upgrade,
+        controllerPrecondition,
         proposals: { part1: part1.proposalId, part2: part2.proposalId },
     };
 };

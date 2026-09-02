@@ -247,6 +247,28 @@ const assertDelayVintageControllerFixture = () => {
     }
 };
 
+/** True when the proxy already answers the delay views — i.e. it is serving an
+ *  implementation that carries the delay. Read through a minimal interface, so
+ *  the answer is about the bytes behind the proxy and not about the fixture ABI
+ *  this file happens to hold. */
+const servesDelayBuild = async (controllerAddress) => {
+    const probe = new ethers.Contract(
+        controllerAddress,
+        [
+            "function globalDelaySeconds() view returns (uint32)",
+            "function securityPerimeterEnabled() view returns (bool)",
+        ],
+        ethers.provider
+    );
+    try {
+        await probe.globalDelaySeconds();
+        await probe.securityPerimeterEnabled();
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
+
 /** Move the live controller proxy onto the delay-vintage implementation, the
  *  way its owner does in production: deploy the implementation, then call
  *  `upgradeTo` from the owner. Nothing is written to storage by hand — the
@@ -262,6 +284,18 @@ const assertDelayVintageControllerFixture = () => {
  *  separate, deliberate act. */
 const upgradeControllerToDelayBuild = async (controllerAddress, ownerSigner) => {
     assertDelayVintageControllerFixture();
+
+    // A proxy that already answers the delay views has been through this once.
+    // Deploying a second implementation over it would leave the assertions
+    // below passing against an upgrade that changed nothing that mattered, so
+    // the re-run stops here instead.
+    if (await servesDelayBuild(controllerAddress)) {
+        throw new Error(
+            `controller ${controllerAddress} already serves an implementation that carries the ` +
+                "delay — it is already where this fixture is trying to take it. Each build needs " +
+                "a fresh fork node."
+        );
+    }
 
     const before = new ethers.Contract(controllerAddress, controllerFixture.abi, ownerSigner);
     const owner = await before.owner();
@@ -836,6 +870,8 @@ module.exports = {
     deployPerimeterStack,
     upgradeControllerToDelayBuild,
     assertDelayVintageControllerFixture,
+    servesDelayBuild,
+    ERC1967_IMPL_SLOT,
     deployHookedBorrowerOperationsImpl,
     deployCollSurplusPoolImpl,
     deployLendingReleaseContracts,

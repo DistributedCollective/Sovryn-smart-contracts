@@ -2859,6 +2859,47 @@ const getArgsSipPerimeterPart3 = async (hre) => {
 };
 
 /**
+ * Perimeter delay — refuse to build either delay proposal against a controller
+ * that is not the delay build.
+ *
+ * The lending modules the delay release installs quote a hold on EVERY hooked
+ * exit and fail CLOSED when the controller cannot answer that quote, so a delay
+ * proposal executed while the proxy still serves the build that predates the
+ * delay would revert every hooked withdrawal until the controller caught up.
+ * The upgrade behind that is an Exchequer transaction on an Exchequer-owned
+ * proxy, never a governance action, which is exactly why the ordering has to be
+ * asserted here rather than assumed from the order the parts are proposed in.
+ *
+ * Both delay views are probed: `globalDelaySeconds` is the scalar the hold
+ * itself depends on, and `securityPerimeterEnabled` is read beside it so a
+ * proxy that happens to answer one selector cannot pass for the delay ABI. A
+ * call that reverts or returns nothing to decode is the refusal.
+ */
+const assertControllerIsDelayBuild = async (hre, controllerAddress) => {
+    const { ethers } = hre;
+    const controller = new ethers.Contract(
+        controllerAddress,
+        [
+            "function globalDelaySeconds() view returns (uint32)",
+            "function securityPerimeterEnabled() view returns (bool)",
+        ],
+        ethers.provider
+    );
+    for (const view of ["globalDelaySeconds", "securityPerimeterEnabled"]) {
+        try {
+            await controller[view]();
+        } catch (error) {
+            throw new Error(
+                `Perimeter: the controller at ${controllerAddress} does not answer ${view}() — ` +
+                    "it still serves the build that predates the delay. The Exchequer must run " +
+                    "upgradeTo on the controller proxy before this proposal is created, or every " +
+                    "hooked withdrawal reverts the moment it executes."
+            );
+        }
+    }
+};
+
+/**
  * Sequenced delay release — Part 1 (GovernorOwner, 10 actions).
  *
  * The lending half of the delay, laid over a perimeter that is already live.
@@ -2887,9 +2928,13 @@ const getArgsSipPerimeterPart3 = async (hre) => {
  *   9.  sovrynProtocol.setBorrowerExitPerimeterOps(BorrowerExitPerimeterOps)
  *   10. sovrynProtocol.setExitDelayQueue(ExitDelayQueue)
  *
- * The queue pinned here is inert on its own: while the perimeter switch is off
- * the delay quote is zero and the queue is never touched, so this part changes
- * no user-visible behaviour until the perimeter is armed.
+ * The queue pinned here is inert on its own, but not because the perimeter is
+ * off — the release this one follows already armed the charge. It is inert
+ * because a controller that has just been upgraded carries no hold: the delay
+ * switch reads false and `globalDelaySeconds` is zero, so every delay quote
+ * answers zero and the queue is never touched. Nothing is held until the
+ * controller's owner arms the delay, which is a Safe transaction after these
+ * proposals, not part of them.
  *
  * Ten actions is the governor's cap, so the Zero side is Part 2. There is no
  * Part 3 — the subsidy a Part 3 would retire is already retired by the release
@@ -2908,6 +2953,17 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
 
     const protocol = await ethers.getContract("ISovryn");
     const protocolOwner = await protocol.owner();
+
+    /** The controller upgrade is a PRECONDITION of this part, not a follow-up
+     *  to it: the modules installed below quote a hold on every hooked exit and
+     *  fail closed when the controller cannot answer. */
+    const controllerAddress = await resolvePerimeterInput(
+        hre,
+        "ExitFeeController",
+        "PERIMETER_EXIT_FEE_CONTROLLER",
+        "ExitFeeController"
+    );
+    await assertControllerIsDelayBuild(hre, controllerAddress);
 
     const queueAddress = await resolvePerimeterInput(
         hre,
@@ -3162,6 +3218,10 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
                 "controller before the delay is installed."
         );
     }
+    /** Which controller both products point at is settled above; what it is
+     *  serving is the other half of the same precondition. Part 1's modules
+     *  are already quoting a hold against it by the time this part runs. */
+    await assertControllerIsDelayBuild(hre, controllerAddress);
 
     const targets = [];
     const values = [];
@@ -3299,4 +3359,5 @@ module.exports = {
     getArgsSipPerimeterPart3,
     getArgsSipPerimeterDelayPart1,
     getArgsSipPerimeterDelayPart2,
+    assertControllerIsDelayBuild,
 };
