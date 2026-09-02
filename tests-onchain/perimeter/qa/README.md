@@ -35,7 +35,7 @@ Options:
 
 | flag | meaning |
 | --- | --- |
-| `--delay <seconds>` | hold length to arm (default 120 on a fresh fork; omit it and a fork already in use keeps the hold it carries) |
+| `--delay <seconds>` | hold length to arm; omitted, a controller that already carries a hold keeps it, and one that carries none gets 120 |
 | `--fee on\|off` | `on` (default) also closes the charge switch; `off` arms the hold alone |
 | `--keep-threshold` | leave the multisig threshold alone instead of dropping it to 1 |
 | `--governance impersonate\|real` | `real` walks the proposals through actual governance instead, which jumps the chain clock days ahead and makes every countdown in the dapps meaningless |
@@ -43,6 +43,12 @@ Options:
 Run it again at any time. A node that already carries the release is attached
 to, not rebuilt: the addresses are re-read, the perimeter is re-armed if it was
 found disarmed, the state file is rewritten, and the command reports `attached`.
+
+Arming only ever moves a switch one way, which is what makes re-running safe.
+So `--fee off` means "do not turn the charge on" — it will **not** turn off a
+charge that is already enabled. To take an armed fork back to holds without a
+charge, call `setExitFeeEnabled(false)` on the controller yourself, or start a
+fresh node.
 
 ## The state file
 

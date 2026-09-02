@@ -134,21 +134,31 @@ const assertLocalQaFork = async (hre) => {
     }
 };
 
+/** Raise an account to a gas floor, never lower it. Balances on this fork are
+ *  balances the dapps display, so the only safe direction to move one is up. */
+const topUp = async (hre, provider, address, minimumEther) => {
+    const { ethers } = hre;
+    const floor = ethers.utils.parseEther(minimumEther);
+    const held = await ethers.provider.getBalance(address);
+    if (held.lt(floor)) {
+        await forkOps.setBalance(provider, address, ethers.utils.hexValue(floor));
+    }
+};
+
 /** Unlock an account and leave it able to pay for gas, without taking anything
  *  away from it. `forkOps.impersonate` writes a fixed float, which on a live
  *  account — the multisig and the timelocks all hold RBTC — would replace the
- *  balance the dapps display. The floor is applied after it, so the balance only
- *  ever goes up. No transaction runs in between. */
+ *  balance the dapps display. The balance is read before the unlock and restored
+ *  after it, so what the account held survives and the floor only ever raises
+ *  it. No transaction runs in between. */
 const impersonateSolvent = async (hre, provider, address, minimumEther) => {
     const { ethers } = hre;
     const held = await ethers.provider.getBalance(address);
-    const floor = ethers.utils.parseEther(minimumEther);
     const signer = await forkOps.impersonate(provider, address);
-    await forkOps.setBalance(
-        provider,
-        address,
-        ethers.utils.hexValue(held.gt(floor) ? held : floor)
-    );
+    if (held.gt(await ethers.provider.getBalance(address))) {
+        await forkOps.setBalance(provider, address, ethers.utils.hexValue(held));
+    }
+    await topUp(hre, provider, address, minimumEther);
     return signer;
 };
 
@@ -842,12 +852,10 @@ const bootstrapQa = async (hre, opts = {}) => {
         recordedGovernance = "real";
     } else {
         log("perimeter QA: installing the delay release by impersonation");
+        // The deployer is a key this node already manages, so it needs the gas
+        // floor and no unlock.
         const deployerSigner = (await ethers.getSigners())[0];
-        await forkOps.setBalance(
-            provider,
-            deployerSigner.address,
-            ethers.utils.hexValue(ethers.utils.parseEther(IMPERSONATED_FUNDING))
-        );
+        await topUp(hre, provider, deployerSigner.address, IMPERSONATED_FUNDING);
 
         const preceding = await settlePrecedingRelease(hre, provider, deployerSigner, log);
         const installedNow = await installDelayRelease(
@@ -867,8 +875,14 @@ const bootstrapQa = async (hre, opts = {}) => {
 
     // Arming is the same act on every path, so it happens in one place: an
     // installed fork and an attached one then agree, and so do the two
-    // governance modes — the one that walks real proposals arms its own
-    // defaults, and this brings it back to what was asked for.
+    // governance modes.
+    //
+    // A hold nobody asked to change is left alone, whatever put it there. The
+    // fork may be one a tester is watching a countdown on, or one the real
+    // governance mode armed with its own figure; retiming it because this run
+    // did not name a number would be the surprise, not the courtesy. The
+    // default is for a controller that carries no hold at all — which is every
+    // freshly upgraded one, since the upgrade leaves both delay scalars off.
     const controller = new ethers.Contract(
         controllerAddress,
         controllerFixture.abi,
@@ -885,7 +899,7 @@ const bootstrapQa = async (hre, opts = {}) => {
     const delaySeconds =
         requestedDelay !== null
             ? requestedDelay
-            : how === "attached" && foundDelay > 0
+            : foundDelay > 0
               ? foundDelay
               : DEFAULT_DELAY_SECONDS;
     const exchequerSigner = await impersonateSolvent(
