@@ -51,12 +51,19 @@ describe("QA bootstrap", () => {
         expect(Number(await qa.multisig.required())).to.equal(1);
 
         // ── Zero serves the delay-hooked implementation this run deployed ──
+        // The record is the independent witness: reading the proxy and then
+        // comparing it to a value read off the same proxy would pass against
+        // any implementation at all.
+        const deployedImpl = ethers.utils.getAddress(
+            (await hre.deployments.get("BorrowerOperationsPerimeter")).address
+        );
         const zeroProxy = new ethers.Contract(
             state.borrowerOperations,
             ["function getImplementation() view returns (address)"],
             ethers.provider
         );
-        expect(await zeroProxy.getImplementation()).to.equal(state.borrowerOperationsImpl);
+        expect(await zeroProxy.getImplementation()).to.equal(deployedImpl);
+        expect(state.borrowerOperationsImpl).to.equal(deployedImpl);
         expect(await qa.borrowerOperations.exitDelayQueue()).to.equal(state.queue);
 
         // ── The preceding release is finished ──────────────────────────────
@@ -67,9 +74,10 @@ describe("QA bootstrap", () => {
         );
         expect((await communityIssuance.APR()).toString()).to.equal("0");
 
-        // ── The fee stream is where it always was ──────────────────────────
-        // Nothing in this release redirects the protocol's own collector, so a
-        // moved pointer means the fork carries something else as well.
+        // ── The protocol's own fee stream is where it always was ───────────
+        // Nothing in this release redirects it, so a moved pointer means the
+        // fork carries something else as well. The perimeter's own charge lands
+        // somewhere different, and that separation is the point.
         const feesPointer = new ethers.Contract(
             state.protocol,
             ["function feesController() view returns (address)"],
@@ -78,9 +86,17 @@ describe("QA bootstrap", () => {
         expect((await feesPointer.feesController()).toLowerCase()).to.equal(
             (await hre.deployments.get("FeeSharingCollector_Proxy")).address.toLowerCase()
         );
-        expect(state.collector.toLowerCase()).to.equal(
+        expect(state.feesController.toLowerCase()).to.equal(
             (await feesPointer.feesController()).toLowerCase()
         );
+        expect(state.feeReceiver.toLowerCase()).to.equal(
+            (await qa.controller.feeReceiver()).toLowerCase()
+        );
+        expect(state.feeReceiver.toLowerCase()).to.not.equal(state.feesController.toLowerCase());
+
+        // ── The charge is armed alongside the hold ─────────────────────────
+        expect(await qa.controller.exitFeeEnabled()).to.equal(state.feeEnabled);
+        expect(state.feeEnabled).to.be.true;
 
         // ── The imported key can pay for what it does ──────────────────────
         expect(
@@ -103,7 +119,8 @@ describe("QA bootstrap", () => {
         for (const address of [
             onDisk.queue,
             onDisk.controller,
-            onDisk.collector,
+            onDisk.feesController,
+            onDisk.feeReceiver,
             onDisk.multisig,
             onDisk.protocol,
             onDisk.borrowerOperations,
@@ -122,6 +139,8 @@ describe("QA bootstrap", () => {
             ethers.utils.getAddress((await hre.deployments.get("LoanToken_iXUSD")).address)
         );
         expect(onDisk.delaySeconds).to.equal(Number(await qa.controller.globalDelaySeconds()));
+        expect(onDisk.feeEnabled).to.equal(await qa.controller.exitFeeEnabled());
+        expect(onDisk.queue).to.equal(ethers.utils.getAddress(await qa.protocol.exitDelayQueue()));
         expect(onDisk.governance).to.be.oneOf(["impersonate", "real"]);
         expect(onDisk.suspects.length).to.equal(3);
         const settled = [

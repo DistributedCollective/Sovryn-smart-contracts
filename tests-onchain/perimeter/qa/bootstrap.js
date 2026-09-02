@@ -93,6 +93,7 @@ const PRE_EXISTING = {
 const PROTOCOL_POINTERS_ABI = [
     "function exitDelayQueue() view returns (address)",
     "function exitFeeController() view returns (address)",
+    "function borrowerExitPerimeterOps() view returns (address)",
     "function feesController() view returns (address)",
 ];
 const PROXY_ABI = [
@@ -119,7 +120,43 @@ const assertLocalQaFork = async (hre) => {
                 "pass --network rskForkedMainnetQa."
         );
     }
+    // The tag says what the config INTENDS; the node itself says what is really
+    // answering. Only a local hardhat or anvil process accepts the impersonation
+    // and balance writes below, and a hosted fork would take them as a shared,
+    // durable environment rather than a throwaway one.
+    const kind = await forkOps.detectForkKind(hre.ethers.provider);
+    if (kind !== "hardhat" && kind !== "anvil") {
+        throw new Error(
+            `perimeter QA: the node at ${hre.network.config.url} reports as "${kind}", not a ` +
+                "local hardhat or anvil fork. This bootstrap impersonates accounts and rewrites " +
+                "balances, which belongs on a throwaway node only."
+        );
+    }
 };
+
+/** Unlock an account and leave it able to pay for gas, without taking anything
+ *  away from it. `forkOps.impersonate` writes a fixed float, which on a live
+ *  account — the multisig and the timelocks all hold RBTC — would replace the
+ *  balance the dapps display. The floor is applied after it, so the balance only
+ *  ever goes up. No transaction runs in between. */
+const impersonateSolvent = async (hre, provider, address, minimumEther) => {
+    const { ethers } = hre;
+    const held = await ethers.provider.getBalance(address);
+    const floor = ethers.utils.parseEther(minimumEther);
+    const signer = await forkOps.impersonate(provider, address);
+    await forkOps.setBalance(
+        provider,
+        address,
+        ethers.utils.hexValue(held.gt(floor) ? held : floor)
+    );
+    return signer;
+};
+
+const missingProposal = (label) =>
+    new Error(
+        `perimeter QA: ${label} is not on this fork. This bootstrap replays the proposals ` +
+            "that exist on chain, it never creates them — re-fork at a block where they do."
+    );
 
 /** One action list, whether it came off a governor or out of a proposal
  *  builder. `getActions` answers positionally and the builders answer with a
@@ -183,21 +220,27 @@ const executeActionsFromTimelock = async (hre, timelockSigner, actions, label) =
  *  there first. A proposal the voters rejected is refused rather than replayed:
  *  this environment reproduces a release that is going live, not one that is
  *  not. */
-const replayProposal = async (hre, governor, timelockSigner, proposalId, label) => {
-    if (proposalId === null) {
-        throw new Error(
-            `perimeter QA: ${label} is not on this fork. This bootstrap replays the proposals ` +
-                "that exist on chain, it never creates them — re-fork at a block where they do."
-        );
-    }
+const replayProposal = async (hre, governor, timelockSigner, proposalId, label, log) => {
+    if (proposalId === null) throw missingProposal(label);
     const state = Number(await governor.state(proposalId));
     if (state === STATE.Executed) {
         return { proposalId, how: "executed-on-chain" };
     }
-    if (state === STATE.Canceled || state === STATE.Defeated) {
+    if (state === STATE.Canceled || state === STATE.Defeated || state === STATE.Expired) {
         throw new Error(
-            `perimeter QA: ${label} (proposal ${proposalId}) is canceled or defeated — refusing ` +
-                "to install a release the voters did not approve"
+            `perimeter QA: ${label} (proposal ${proposalId}) is in state ${state} — canceled, ` +
+                "defeated or expired. Refusing to install a release that governance did not " +
+                "carry to an executable proposal."
+        );
+    }
+    if (state === STATE.Pending || state === STATE.Active) {
+        // Replaying a proposal still open for votes installs a release the
+        // voters have not approved. That is what this environment is for, and
+        // it is exactly the thing nobody should discover later from a state
+        // file, so it is said out loud here.
+        log(
+            `  WARNING: ${label} (proposal ${proposalId}) is still open for votes — replaying it ` +
+                "anyway; this fork carries a release governance has not approved"
         );
     }
     const actions = toActions(await governor.getActions(proposalId));
@@ -221,13 +264,17 @@ const settlePrecedingRelease = async (hre, provider, deployerSigner, log) => {
         "GovernorAlpha",
         (await get("GovernorAdmin")).address
     );
-    const timelockOwnerSigner = await forkOps.impersonate(
+    const timelockOwnerSigner = await impersonateSolvent(
+        hre,
         provider,
-        (await get("TimelockOwner")).address
+        (await get("TimelockOwner")).address,
+        IMPERSONATED_FUNDING
     );
-    const timelockAdminSigner = await forkOps.impersonate(
+    const timelockAdminSigner = await impersonateSolvent(
+        hre,
         provider,
-        (await get("TimelockAdmin")).address
+        (await get("TimelockAdmin")).address,
+        IMPERSONATED_FUNDING
     );
 
     const beacons = [
@@ -264,10 +311,28 @@ const settlePrecedingRelease = async (hre, provider, deployerSigner, log) => {
     // Part 2 must follow Part 1: the protocol selector it calls is registered by
     // the admin module Part 1 installs. Part 3 is on the other governor pair and
     // touches nothing the other two do.
-    const part1 = await replayProposal(hre, governorOwner, timelockOwnerSigner, part1Id, "part 1");
+    const part1 = await replayProposal(
+        hre,
+        governorOwner,
+        timelockOwnerSigner,
+        part1Id,
+        "part 1",
+        log
+    );
     log(`  preceding release part 1: proposal ${part1.proposalId} ${part1.how}`);
-    const part2 = await replayProposal(hre, governorOwner, timelockOwnerSigner, part2Id, "part 2");
+    const part2 = await replayProposal(
+        hre,
+        governorOwner,
+        timelockOwnerSigner,
+        part2Id,
+        "part 2",
+        log
+    );
     log(`  preceding release part 2: proposal ${part2.proposalId} ${part2.how}`);
+    // Nothing is rotated for a part that is not there to run: the feed swap
+    // below is a side effect, and it must not be left behind by a run that was
+    // always going to refuse.
+    if (part3Id === null) throw missingProposal("part 3");
     // Part 3 settles the subsidy accrued so far before it zeroes the rate, and
     // that settlement prices ZUSD in SOV through a feed this fork cannot keep
     // fresh — the upstream oracle stopped publishing at the fork block. The
@@ -275,10 +340,17 @@ const settlePrecedingRelease = async (hre, provider, deployerSigner, log) => {
     // is the authority that would rotate a feed in production. The swap stays:
     // anything that triggers issuance later needs a feed that does not expire
     // either.
-    if (part3Id === null || Number(await governorAdmin.state(part3Id)) !== STATE.Executed) {
+    if (Number(await governorAdmin.state(part3Id)) !== STATE.Executed) {
         await useSettableCommunityIssuanceFeed({ deployerSigner });
     }
-    const part3 = await replayProposal(hre, governorAdmin, timelockAdminSigner, part3Id, "part 3");
+    const part3 = await replayProposal(
+        hre,
+        governorAdmin,
+        timelockAdminSigner,
+        part3Id,
+        "part 3",
+        log
+    );
     log(`  preceding release part 3: proposal ${part3.proposalId} ${part3.how}`);
 
     // What the parts were for, asserted on the chain rather than on the
@@ -323,6 +395,58 @@ const settlePrecedingRelease = async (hre, provider, deployerSigner, log) => {
     };
 };
 
+/**
+ * Prove the release actually landed, before anything writes it down.
+ *
+ * A timelock swallows nothing here — every action was sent as its own
+ * transaction and a revert would already have thrown — but `replaceContract` is
+ * a raw delegatecall and the pointer setters live on modules this same release
+ * installs, so "the transactions succeeded" is not by itself "the pointers
+ * moved". Both products have to name the queue that was just deployed, and the
+ * protocol has to name the settlement companion that was just deployed;
+ * anything else is a fork that looks released and holds nothing.
+ */
+const assertReleaseLanded = async (hre, release) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const queue = ethers.utils.getAddress(release.queue.address);
+    const ops = ethers.utils.getAddress(release.lending.BorrowerExitPerimeterOps.address);
+
+    const protocol = new ethers.Contract(
+        (await get("SovrynProtocol")).address,
+        PROTOCOL_POINTERS_ABI,
+        ethers.provider
+    );
+    const borrowerOperations = new ethers.Contract(
+        (await get("BorrowerOperations_Proxy")).address,
+        ["function exitDelayQueue() view returns (address)"],
+        ethers.provider
+    );
+
+    const found = {
+        "the protocol's queue pointer": await protocol.exitDelayQueue(),
+        "Zero's queue pointer": await borrowerOperations.exitDelayQueue(),
+    };
+    for (const [what, address] of Object.entries(found)) {
+        if (ethers.utils.getAddress(address) !== queue) {
+            throw new Error(
+                `perimeter QA: ${what} is ${address}, not the queue this run deployed (${queue}) ` +
+                    "— the release did not land"
+            );
+        }
+    }
+    const pinnedOps = await protocol.borrowerExitPerimeterOps();
+    if (ethers.utils.getAddress(pinnedOps) !== ops) {
+        throw new Error(
+            `perimeter QA: the protocol's borrower settlement companion is ${pinnedOps}, not the ` +
+                `one this run deployed (${ops}) — the release did not land`
+        );
+    }
+    return queue;
+};
+
 /** Deploy the delay release and execute its two proposals from the owner
  *  timelock, in the order the release itself requires. */
 const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerSigner, log) => {
@@ -348,11 +472,11 @@ const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerS
     // The delay proposals both refuse to build against a controller that cannot
     // answer the delay views, and this upgrade is the only thing that lifts the
     // refusal. It is the owner's own transaction, never a governance action.
-    const exchequerSigner = await forkOps.impersonate(provider, EXCHEQUER);
-    await forkOps.setBalance(
+    const exchequerSigner = await impersonateSolvent(
+        hre,
         provider,
         EXCHEQUER,
-        ethers.utils.hexValue(ethers.utils.parseEther(IMPERSONATED_FUNDING))
+        IMPERSONATED_FUNDING
     );
     const upgrade = await upgradeControllerToDelayBuild(stack.controller.address, exchequerSigner);
     log(`  controller ${stack.controller.address} now serves ${upgrade.implementation}`);
@@ -362,6 +486,13 @@ const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerS
     process.env.PERIMETER_EXIT_FEE_CONTROLLER_CODEHASH = ethers.utils.keccak256(
         await ethers.provider.getCode(stack.controller.address)
     );
+
+    // Deploying the release rotates Zero's price feed, and that rotation is the
+    // feed proxy owner's own transaction — the same timelock that is about to
+    // send every action below, whose float the rotation resets to what one call
+    // needs. Restore it here rather than meeting it as an out-of-gas failure
+    // part way through a release.
+    await impersonateSolvent(hre, provider, timelockOwnerSigner.address, IMPERSONATED_FUNDING);
 
     // Never a hardcoded count — the Zero part drops its pool upgrade when the
     // pool's bytes do not change, and the state file records what was built.
@@ -382,11 +513,12 @@ const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerS
     );
     log(`  delay part 2: ${count2} actions executed`);
 
+    await assertReleaseLanded(hre, release);
+
     return {
         release,
         stack,
         upgrade,
-        exchequerSigner,
         phase2: {
             part1: { actions: count1, how: "impersonated" },
             part2: { actions: count2, how: "impersonated" },
@@ -394,15 +526,29 @@ const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerS
     };
 };
 
-/** Turn the delay on. Both scalars are the controller owner's and admin's act,
- *  and on this chain one account holds both roles. */
-const armDelay = async (hre, controller, exchequerSigner, delaySeconds) => {
+/**
+ * Arm the perimeter: the hold, the switch that makes it bite, and the charge.
+ *
+ * All three are the controller owner's and admin's act, and on this chain one
+ * account holds both roles. The charge is armed too, and by default: a fork
+ * that holds a withdrawal but quotes no fee shows the operator half of what a
+ * released chain does. `fee: false` leaves the switch alone for the case where
+ * a hold is what is being looked at.
+ *
+ * Every leg is conditional, so this is safe to run against a fork that is
+ * already armed — which is what makes the installed and attached paths converge
+ * on the same state.
+ */
+const armDelay = async (controller, exchequerSigner, { delaySeconds, fee }) => {
     const armed = controller.connect(exchequerSigner);
     if (Number(await controller.globalDelaySeconds()) !== delaySeconds) {
         await (await armed.setGlobalDelaySeconds(delaySeconds)).wait();
     }
     if (!(await controller.securityPerimeterEnabled())) {
         await (await armed.setSecurityPerimeterEnabled(true)).wait();
+    }
+    if (fee && !(await controller.exitFeeEnabled())) {
+        await (await armed.setExitFeeEnabled(true)).wait();
     }
 };
 
@@ -415,13 +561,12 @@ const armDelay = async (hre, controller, exchequerSigner, delaySeconds) => {
  * of its signers.
  */
 const ensureOperator = async (hre, provider, multisig, keepThreshold) => {
-    const { ethers } = hre;
-    await forkOps.setBalance(
+    const walletSigner = await impersonateSolvent(
+        hre,
         provider,
         multisig.address,
-        ethers.utils.hexValue(ethers.utils.parseEther(IMPERSONATED_FUNDING))
+        IMPERSONATED_FUNDING
     );
-    const walletSigner = await forkOps.impersonate(provider, multisig.address);
 
     // The real owners keep their seats: an operator drill is only worth
     // anything against the wallet the release actually ships with.
@@ -469,12 +614,7 @@ const fundQaAccounts = async (hre, provider, accounts) => {
     const poolBefore = await xusd.balanceOf(poolAddress);
 
     const minter = await xusd.owner();
-    await forkOps.setBalance(
-        provider,
-        minter,
-        ethers.utils.hexValue(ethers.utils.parseEther(IMPERSONATED_FUNDING))
-    );
-    const minterSigner = await forkOps.impersonate(provider, minter);
+    const minterSigner = await impersonateSolvent(hre, provider, minter, IMPERSONATED_FUNDING);
     const target = ethers.utils.parseEther(XUSD_PER_ACCOUNT);
     for (const account of accounts) {
         const held = await xusd.balanceOf(account);
@@ -516,7 +656,7 @@ const writeState = (state) => {
 };
 
 /** Everything the state file records that can be read back off the chain. */
-const readChainFacts = async (hre, queueAddress, controllerAddress) => {
+const readChainFacts = async (hre, controllerAddress) => {
     const {
         ethers,
         deployments: { get },
@@ -528,13 +668,21 @@ const readChainFacts = async (hre, queueAddress, controllerAddress) => {
         controllerFixture.abi,
         ethers.provider
     );
+    const protocol = new ethers.Contract(protocolAddress, PROTOCOL_POINTERS_ABI, ethers.provider);
     return {
         rpc: hre.network.config.url,
         chainId: CHAIN_ID,
         forkBlock: await readForkBlock(hre),
-        queue: ethers.utils.getAddress(queueAddress),
+        // Taken off the protocol, not off the deploy that produced it: the
+        // address the products actually route to is the only one worth handing
+        // to anything downstream.
+        queue: ethers.utils.getAddress(await protocol.exitDelayQueue()),
         controller: ethers.utils.getAddress(controllerAddress),
-        collector: ethers.utils.getAddress((await get("FeeSharingCollector_Proxy")).address),
+        // Where the CHARGE lands — the perimeter's own vault.
+        feeReceiver: ethers.utils.getAddress(await controller.feeReceiver()),
+        // Where the protocol's ordinary fee stream lands, which this release
+        // does not touch. Recorded so that "untouched" can be checked.
+        feesController: ethers.utils.getAddress((await get("FeeSharingCollector_Proxy")).address),
         multisig: ethers.utils.getAddress((await get("MultiSigWallet")).address),
         protocol: ethers.utils.getAddress(protocolAddress),
         borrowerOperations: ethers.utils.getAddress(boProxyAddress),
@@ -556,6 +704,7 @@ const readChainFacts = async (hre, queueAddress, controllerAddress) => {
         // attached node keeps whatever it was armed with, and a state file that
         // claimed otherwise would mis-time every countdown the dapp draws.
         delaySeconds: Number(await controller.globalDelaySeconds()),
+        feeEnabled: await controller.exitFeeEnabled(),
     };
 };
 
@@ -584,6 +733,11 @@ const findInstalledRelease = async (hre) => {
     if (queue === ethers.constants.AddressZero || controller === ethers.constants.AddressZero) {
         return null;
     }
+    // A pointer is not a queue. A node restarted under a state file, or one
+    // forked before the queue was deployed, answers with an address that has
+    // nothing behind it — attaching to that would look installed and hold
+    // nothing.
+    if ((await ethers.provider.getCode(queue)) === "0x") return null;
     if (!(await servesDelayBuild(controller))) return null;
     return { queue, controller };
 };
@@ -598,24 +752,31 @@ const findInstalledRelease = async (hre) => {
  *       far more faithful drill but jumps the clock days ahead, so the dapps'
  *       countdowns are then meaningless.
  *
+ * `opts.fee` (default true) also closes the charge switch. `opts.delaySeconds`
+ * left undefined keeps whatever an attached fork is already armed with.
+ *
  * Idempotent: a node that already carries the release is attached to, its
- * addresses re-read, and its state file rewritten. Nothing is redeployed.
+ * addresses re-read, and its state file rewritten. Nothing is redeployed, and
+ * arming runs on every path so the result does not depend on which one ran.
  */
 const bootstrapQa = async (hre, opts = {}) => {
     /* eslint-disable no-console */
     const log = opts.log === undefined ? console.log : opts.log;
     /* eslint-enable no-console */
     const keepThreshold = Boolean(opts.keepThreshold);
+    const fee = opts.fee === undefined ? true : Boolean(opts.fee);
     const governance = opts.governance || "impersonate";
     if (governance !== "impersonate" && governance !== "real") {
         throw new Error(
             `perimeter QA: unknown governance mode "${governance}" — use "impersonate" or "real"`
         );
     }
-    const requestedDelay = Number(
-        opts.delaySeconds ?? process.env.PERIMETER_QA_DELAY_SECONDS ?? DEFAULT_DELAY_SECONDS
-    );
-    if (!Number.isInteger(requestedDelay) || requestedDelay <= 0) {
+    // Left null when nobody asked, so that a bare re-run against a fork already
+    // in use keeps the hold it was armed with instead of silently retiming
+    // every countdown a tester is watching.
+    const asked = opts.delaySeconds ?? process.env.PERIMETER_QA_DELAY_SECONDS;
+    const requestedDelay = asked === undefined || asked === null ? null : Number(asked);
+    if (requestedDelay !== null && (!Number.isInteger(requestedDelay) || requestedDelay <= 0)) {
         throw new Error("perimeter QA: --delay must be a positive whole number of seconds");
     }
 
@@ -650,7 +811,6 @@ const bootstrapQa = async (hre, opts = {}) => {
     let recordedGovernance = history ? history.governance : governance;
     let phase1 = history ? history.phase1 : PRE_EXISTING.phase1;
     let phase2 = history ? history.phase2 : PRE_EXISTING.phase2;
-    let queueAddress = installed && installed.queue;
     let controllerAddress = installed && installed.controller;
 
     if (installed) {
@@ -658,7 +818,6 @@ const bootstrapQa = async (hre, opts = {}) => {
     } else if (governance === "real") {
         log("perimeter QA: installing the delay release through real governance");
         const stack = await setupPhase2Stack();
-        queueAddress = stack.queue.address;
         controllerAddress = stack.stack.controller.address;
         phase1 = {
             part1: { proposalId: stack.phase1.part1.proposalId, how: stack.phase1.part1.action },
@@ -698,20 +857,44 @@ const bootstrapQa = async (hre, opts = {}) => {
             preceding.timelockOwnerSigner,
             log
         );
-        await armDelay(
-            hre,
-            installedNow.stack.controller,
-            installedNow.exchequerSigner,
-            requestedDelay
-        );
 
-        queueAddress = installedNow.release.queue.address;
         controllerAddress = installedNow.stack.controller.address;
         phase1 = preceding.parts;
         phase2 = installedNow.phase2;
         how = "installed";
         recordedGovernance = "impersonate";
     }
+
+    // Arming is the same act on every path, so it happens in one place: an
+    // installed fork and an attached one then agree, and so do the two
+    // governance modes — the one that walks real proposals arms its own
+    // defaults, and this brings it back to what was asked for.
+    const controller = new ethers.Contract(
+        controllerAddress,
+        controllerFixture.abi,
+        ethers.provider
+    );
+    const foundArmed = await controller.securityPerimeterEnabled();
+    const foundDelay = Number(await controller.globalDelaySeconds());
+    if (how === "attached" && (!foundArmed || foundDelay === 0)) {
+        log(
+            `  WARNING: this node was found disarmed (perimeter ${foundArmed}, hold ${foundDelay}s)` +
+                " — arming it now; a fork left disarmed holds nothing and would test nothing"
+        );
+    }
+    const delaySeconds =
+        requestedDelay !== null
+            ? requestedDelay
+            : how === "attached" && foundDelay > 0
+              ? foundDelay
+              : DEFAULT_DELAY_SECONDS;
+    const exchequerSigner = await impersonateSolvent(
+        hre,
+        provider,
+        EXCHEQUER,
+        IMPERSONATED_FUNDING
+    );
+    await armDelay(controller, exchequerSigner, { delaySeconds, fee });
 
     const accounts = [TEST_KEY.address, ...SUSPECTS];
     const operator = await ensureOperator(hre, provider, multisig, keepThreshold);
@@ -722,13 +905,7 @@ const bootstrapQa = async (hre, opts = {}) => {
             `${funding.perAccount} XUSD`
     );
 
-    const facts = await readChainFacts(hre, queueAddress, controllerAddress);
-    if (how !== "installed" && facts.delaySeconds !== requestedDelay) {
-        log(
-            `  note: this node is armed at ${facts.delaySeconds}s, not the ${requestedDelay}s ` +
-                "asked for — an installed release is attached to, never re-armed"
-        );
-    }
+    const facts = await readChainFacts(hre, controllerAddress);
     const state = {
         ...facts,
         governance: recordedGovernance,

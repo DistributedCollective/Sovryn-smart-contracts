@@ -38,16 +38,26 @@ task("perimeter:qa", "Bring a local QA fork to the released, armed withdrawal-de
         "impersonate",
         types.string
     )
+    .addOptionalParam(
+        "fee",
+        "'on' (default) also closes the charge switch on the controller; 'off' arms the hold " +
+            "alone",
+        "on",
+        types.string
+    )
     .addFlag(
         "keepThreshold",
         "Leave the multisig's signature threshold as it is instead of dropping it to 1"
     )
-    .setAction(async ({ subcommand, delay, governance, keepThreshold }, hre) => {
+    .setAction(async ({ subcommand, delay, governance, fee, keepThreshold }, hre) => {
         if (!SUBCOMMANDS.includes(subcommand)) {
             throw new Error(
                 `perimeter:qa: unknown subcommand '${subcommand}' — expected one of: ` +
                     SUBCOMMANDS.join(", ")
             );
+        }
+        if (fee !== "on" && fee !== "off") {
+            throw new Error(`perimeter:qa: --fee takes 'on' or 'off', not '${fee}'`);
         }
         // The guard is repeated inside the bootstrap, where the sends happen.
         // Here it is so the operator learns about a wrong --network before the
@@ -63,6 +73,7 @@ task("perimeter:qa", "Bring a local QA fork to the released, armed withdrawal-de
         const state = await bootstrapQa(hre, {
             delaySeconds: delay,
             governance,
+            fee: fee === "on",
             keepThreshold,
         });
 
@@ -76,6 +87,8 @@ task("perimeter:qa", "Bring a local QA fork to the released, armed withdrawal-de
         row("multisig", state.multisig);
         row("test key", state.testKey.address);
         row("delay", `${state.delaySeconds}s`);
+        row("charge", state.feeEnabled ? "on" : "off");
+        row("fee receiver", state.feeReceiver);
         row("governance", state.governance);
         if (state.warning) row("warning", state.warning);
         console.log("");
@@ -85,6 +98,9 @@ task("perimeter:qa", "Bring a local QA fork to the released, armed withdrawal-de
                 `real network`
         );
         if (delay === undefined && state.delaySeconds !== DEFAULT_DELAY_SECONDS) {
-            console.log(`  (--delay was not given; ${DEFAULT_DELAY_SECONDS}s is the default)`);
+            console.log(
+                `  (--delay was not given, so the hold this fork already carried was kept; ` +
+                    `${DEFAULT_DELAY_SECONDS}s is the default for a fresh one)`
+            );
         }
     });
