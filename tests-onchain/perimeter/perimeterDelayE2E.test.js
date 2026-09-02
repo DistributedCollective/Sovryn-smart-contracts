@@ -152,6 +152,8 @@ const gasSpent = (receipt) => receipt.gasUsed.mul(receipt.effectiveGasPrice);
 describe("Withdrawal-delay perimeter — the operator's levers on a fork", () => {
     let s;
     let wrbtcAddress;
+    /** The protocol's own price feed, put back by the `after` below. */
+    let originalPriceFeeds;
     /** Every scenario's fresh actors, impersonated and funded once. */
     const signers = {};
 
@@ -242,12 +244,13 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
         const protocolAddress = (await get("SovrynProtocol")).address;
         const xusdAddress = (await get("XUSD")).address;
         const liveWrbtcAddress = (await get("WRBTC")).address;
+        originalPriceFeeds = await new ethers.Contract(
+            protocolAddress,
+            ["function priceFeeds() view returns (address)"],
+            ethers.provider
+        ).priceFeeds();
         const liveFeeds = new ethers.Contract(
-            await new ethers.Contract(
-                protocolAddress,
-                ["function priceFeeds() view returns (address)"],
-                ethers.provider
-            ).priceFeeds(),
+            originalPriceFeeds,
             ["function queryRate(address,address) view returns (uint256 rate, uint256 precision)"],
             ethers.provider
         );
@@ -271,6 +274,18 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
         // Nothing is escrowed before the first scenario queues anything.
         expect(await s.queue.totalEscrowed(wrbtcAddress)).to.equal(0);
         expect(await s.queue.totalEscrowed(ZERO_ADDRESS)).to.equal(0);
+    });
+
+    /** Hand the real price feeds back. The settable one installed above is
+     *  seeded with a single pair, so anything else that runs on the same node
+     *  would inherit a protocol that quotes nothing for every other token. */
+    after(async () => {
+        if (!s || !originalPriceFeeds) return;
+        await (
+            await s.protocol
+                .connect(s.ctx.timelockOwnerSigner)
+                .setPriceFeedContract(originalPriceFeeds)
+        ).wait();
     });
 
     it("S1: holds and releases a withdrawal on every delayed surface", async () => {
