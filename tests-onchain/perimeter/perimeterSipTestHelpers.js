@@ -345,12 +345,20 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
  *  here is fail-CLOSED: the record reverts with UnregisteredSource, which is
  *  exactly what the rehearsal should catch rather than discover on mainnet.
  *
+ *  `owner` may add routes and resolve a held exit to an arbitrary destination;
+ *  `admin` is the incident guardian (block, unblock, pause, kill-switch). Both
+ *  default to the deployer, which is what a stack built and driven by one test
+ *  wants; a rehearsal of the activated perimeter passes the multisig that holds
+ *  those roles in production, so the deployer keeps none of them.
+ *
  *  Saves the "ExitDelayQueue" record the aggregate proposal builders resolve. */
 const deployExitDelayQueue = async (
     deployerSigner,
     wrbtcAddress,
     minDelaySeconds,
-    allowedSources
+    allowedSources,
+    owner = deployerSigner.address,
+    admin = deployerSigner.address
 ) => {
     const proxyFactory = new ethers.ContractFactory(
         erc1967ProxyFixture.abi,
@@ -365,8 +373,8 @@ const deployExitDelayQueue = async (
     await impl.deployed();
 
     const initData = impl.interface.encodeFunctionData("initialize", [
-        deployerSigner.address, // owner — the Exchequer takes it over at handover
-        deployerSigner.address, // admin  — the incident guardian
+        owner,
+        admin,
         wrbtcAddress,
         minDelaySeconds,
         allowedSources,
@@ -710,4 +718,5 @@ module.exports = {
     setupGovernanceContext,
     countPerimeterEvents,
     getSingleExitFeeApplied,
+    forkOps: require("./forkOps"),
 };
