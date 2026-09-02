@@ -27,21 +27,23 @@
 # supplied as PERIMETER_DEPLOYER and wired into setupGovernanceContext's
 # caller (phase2Stack.js) in place of ctx.deployerSigner.
 set -euo pipefail
-cd "$(dirname "$0")/../.."
-
-export NVM_DIR="$HOME/.nvm"
-# shellcheck source=/dev/null
-. "$NVM_DIR/nvm.sh" >/dev/null
-nvm use 20.19.0 >/dev/null
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR/../.."
 
 KIND="${PERIMETER_FORK_KIND:-hardhat}"
 RPC="${PERIMETER_FORK_RPC:-https://mainnet-dev.sovryn.app/rpc}"
 NETWORK=rskForkedMainnet
 LOG="${PERIMETER_REHEARSAL_LOG:-/tmp/perimeter-dress-rehearsal.log}"
 PORT=8545
-RPC_URL="http://127.0.0.1:$PORT"
-NODE_START_TIMEOUT=120
-PORT_FREE_TIMEOUT=30
+
+export __decryptionAlreadyDone__=TRUE
+
+# shellcheck source=/dev/null
+. "$SCRIPT_DIR/fork-node.lib.sh"
+
+# Overrides the lib's plain-echo default so every message also lands in the
+# run's log file, not just the terminal.
+log() { echo "$@" | tee -a "$LOG"; }
 
 case "$KIND" in
     hardhat)
@@ -67,8 +69,6 @@ case "$KIND" in
 esac
 
 : >"$LOG"
-log() { echo "$@" | tee -a "$LOG"; }
-
 log "== $(date -u +%FT%TZ) kind=$KIND network=$NETWORK rpc=$RPC =="
 
 FILES=(
@@ -78,142 +78,14 @@ FILES=(
     "tests-onchain/perimeter/perimeterDelayE2E.test.js"
 )
 
-NODE_PID=""
-NODE_LOG=""
-
-# The eth_chainId probe the dispatch specifies: any answer at all means the
-# JSON-RPC server is up, regardless of node kind.
-rpc_is_up() {
-    curl -s -m 2 -X POST \
-        -d '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' \
-        -H 'content-type: application/json' \
-        "$RPC_URL" 2>/dev/null | grep -q result
-}
-
-rpc_block_number() {
-    local hex
-    hex=$(
-        curl -s -m 5 -X POST \
-            -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' \
-            -H 'content-type: application/json' \
-            "$RPC_URL" 2>/dev/null | sed -n 's/.*"result":"0x\([0-9a-fA-F]*\)".*/\1/p'
-    )
-    [ -n "$hex" ] && echo $((16#$hex))
-}
-
-wait_for_rpc_up() {
-    local waited=0
-    while [ "$waited" -lt "$NODE_START_TIMEOUT" ]; do
-        rpc_is_up && return 0
-        if [ -n "$NODE_PID" ] && ! kill -0 "$NODE_PID" 2>/dev/null; then
-            return 1 # the node process exited before it ever answered
-        fi
-        sleep 1
-        waited=$((waited + 1))
-    done
-    return 1
-}
-
-wait_for_rpc_down() {
-    local waited=0
-    while [ "$waited" -lt "$PORT_FREE_TIMEOUT" ]; do
-        rpc_is_up || return 0
-        sleep 1
-        waited=$((waited + 1))
-    done
-    return 1
-}
-
-# Whatever is LISTENING on the port. The recorded PID is npx's, and killing npx
-# does not always take the hardhat process it spawned with it — so the port is
-# the authority on what has to die, not the process tree.
-node_listeners() {
-    lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true
-}
-
-# Best effort teardown: the recorded process, then anything still holding the
-# port, escalating to SIGKILL. Non-zero when the port is still answering.
-shutdown_node() {
-    local pids
-    pids="$(node_listeners)"
-    if [ -n "$NODE_PID" ]; then
-        kill "$NODE_PID" 2>/dev/null || true
-    fi
-    if [ -n "$pids" ]; then
-        # shellcheck disable=SC2086
-        kill $pids 2>/dev/null || true
-    fi
-    if [ -n "$NODE_PID" ]; then
-        wait "$NODE_PID" 2>/dev/null || true
-    fi
-    NODE_PID=""
-
-    if wait_for_rpc_down; then
-        return 0
-    fi
-    pids="$(node_listeners)"
-    if [ -n "$pids" ]; then
-        # shellcheck disable=SC2086
-        kill -9 $pids 2>/dev/null || true
-    fi
-    wait_for_rpc_down
-}
-
-# A node that outlives its own teardown is fatal, and deliberately so. The next
-# file's node cannot bind a port that is still held, while the readiness probe
-# answers happily against the OLD one — so the run would continue on the
-# previous fork's state and the failure would be reported against a test file
-# that is perfectly fine.
-stop_node_or_die() {
-    if ! shutdown_node; then
-        log "FATAL: $RPC_URL is still answering after the fork node was told to stop." \
-            "The next file would run against the previous fork's state." \
-            "Stop it by hand (lsof -tiTCP:$PORT -sTCP:LISTEN) and re-run."
-        exit 3
-    fi
-}
-
-# Nothing may be serving the port at the moment a node is spawned: a spawn that
-# cannot bind is silent, and the readiness probe would pass against whatever is
-# already there.
-require_port_free() {
-    if rpc_is_up || [ -n "$(node_listeners)" ]; then
-        log "FATAL: something is already serving $RPC_URL before this run's node was started." \
-            "Stop it by hand (lsof -tiTCP:$PORT -sTCP:LISTEN) and re-run."
-        exit 3
-    fi
-}
-
-# Starts the fork node once, retrying a single time if it dies with a
-# transient connect-timeout while it is dialing the fork RPC.
-start_node() {
+# Starts this rehearsal's fork node via the shared start_node, with the
+# --fork-block-number override applied when PERIMETER_FORK_BLOCK is set.
+start_rehearsal_node() {
     local block_args=()
     if [ -n "${PERIMETER_FORK_BLOCK:-}" ]; then
         block_args=(--fork-block-number "$PERIMETER_FORK_BLOCK")
     fi
-
-    local attempt
-    for attempt in 1 2; do
-        require_port_free
-
-        NODE_LOG="$(mktemp -t perimeter-hh-node)"
-        __decryptionAlreadyDone__=TRUE npx hardhat node --fork "$RPC" --no-deploy \
-            "${block_args[@]+"${block_args[@]}"}" >"$NODE_LOG" 2>&1 &
-        NODE_PID=$!
-
-        if wait_for_rpc_up; then
-            return 0
-        fi
-
-        stop_node_or_die
-
-        if [ "$attempt" -eq 1 ] && grep -q "HH604" "$NODE_LOG" 2>/dev/null; then
-            log "   node did not come up (HH604 connect timeout) — retrying once"
-            continue
-        fi
-        return 1
-    done
-    return 1
+    start_node npx hardhat node --fork "$RPC" --no-deploy "${block_args[@]+"${block_args[@]}"}"
 }
 
 trap 'shutdown_node || true' EXIT
@@ -225,7 +97,7 @@ OVERALL_FAILED=0
 for file in "${FILES[@]}"; do
     name="$(basename "$file" .test.js)"
 
-    if ! start_node; then
+    if ! start_rehearsal_node; then
         log "$name: NODE FAILED TO START"
         [ -n "$NODE_LOG" ] && cat "$NODE_LOG" 2>/dev/null | tee -a "$LOG"
         OVERALL_FAILED=1
