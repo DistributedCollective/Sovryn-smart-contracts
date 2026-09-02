@@ -77,14 +77,37 @@ const findProposalByActions = async (governor, signatures, targets = [], matches
     return null;
 };
 
-/** True when the action list carries `signature` on `target` — the pair, not
- *  the two independently. A proposal that touches the same address for another
- *  reason, or runs the same signature against a different address, does not
- *  count. */
-const hasAction = (actions, signature, target) =>
+/** True when ONE action carries `signature` against `target`, and — when
+ *  `dataMatches` is given — carries calldata that predicate accepts. Every
+ *  clause is judged on the same action index on purpose: a proposal that
+ *  touches the address for another reason, runs the signature against a
+ *  different address, or puts the interesting argument on a different action
+ *  does not count. */
+const hasAction = (actions, signature, target, dataMatches = null) =>
     actions.signatures.some(
         (candidate, i) =>
-            candidate === signature && actions.targets[i].toLowerCase() === target.toLowerCase()
+            candidate === signature &&
+            actions.targets[i].toLowerCase() === target.toLowerCase() &&
+            (dataMatches === null || dataMatches(actions.datas[i]))
+    );
+
+/** SIP-0094 Part 1's shape: the two beacon module registrations, the
+ *  BorrowerOperations implementation swap, and that proxy's own controller
+ *  pin. The registrations alone are ordinary maintenance and the Phase 2
+ *  release emits them too; the controller pin against the same proxy is what
+ *  only this part carries. */
+const rewiresLendingAndZero = (actions, beacons) =>
+    beacons.every((beacon) => hasAction(actions, "registerLoanTokenModule(address)", beacon)) &&
+    hasAction(actions, "setImplementation(address)", BO_PROXY) &&
+    hasAction(actions, "setExitFeeController(address)", BO_PROXY);
+
+/** SIP-0094 Part 3's shape: one action that sets the rate to zero on the
+ *  CommunityIssuance. Signature, target and the zero argument have to be the
+ *  same action — a part that zeroes something else, or sets a nonzero rate
+ *  here, is not this one. */
+const retiresTheSubsidy = (actions, communityIssuance) =>
+    hasAction(actions, "setAPR(uint256)", communityIssuance, (data) =>
+        abiCoder.decode(["uint256"], data)[0].isZero()
     );
 
 /** The Succeeded predicate of GovernorAlpha.state, evaluated off chain: the
@@ -248,23 +271,20 @@ const settlePart = async (ctx, governorKey, proposalId, argsFunc) => {
 const ensurePhase1Executed = async (ctx) => {
     const result = {};
 
-    // Part 1: owner-side wiring. Neither half identifies it alone — the part
-    // swaps implementations on two different proxies, and re-registering a
-    // beacon module is ordinary maintenance — so it is the beacon
-    // registrations AND the BorrowerOperations swap together, each pinned to
-    // the address it must run against.
+    // Part 1: owner-side wiring, identified by its whole shape.
     const beacons = [
         (await deployments.get("LoanTokenLogicBeaconLM")).address,
         (await deployments.get("LoanTokenLogicBeaconWrbtc")).address,
     ];
-    const rewiresBothBeaconsAndTheProxy = (actions) =>
-        hasAction(actions, "setImplementation(address)", BO_PROXY) &&
-        beacons.every((beacon) => hasAction(actions, "registerLoanTokenModule(address)", beacon));
     const part1Id = await findProposalByActions(
         ctx.governorOwner,
-        ["setImplementation(address)", "registerLoanTokenModule(address)"],
+        [
+            "registerLoanTokenModule(address)",
+            "setImplementation(address)",
+            "setExitFeeController(address)",
+        ],
         [BO_PROXY, ...beacons],
-        rewiresBothBeaconsAndTheProxy
+        (actions) => rewiresLendingAndZero(actions, beacons)
     );
     result.part1 = await settlePart(ctx, "governorOwner", part1Id, "getArgsSip0094Part1");
 
@@ -283,18 +303,11 @@ const ensurePhase1Executed = async (ctx) => {
 
     // Part 3: admin-side subsidy rate to zero on the CommunityIssuance.
     const communityIssuanceAddress = (await deployments.get("ZeroCommunityIssuance")).address;
-    const zeroesTheRate = (actions) =>
-        hasAction(actions, "setAPR(uint256)", communityIssuanceAddress) &&
-        actions.signatures.some(
-            (signature, i) =>
-                signature === "setAPR(uint256)" &&
-                abiCoder.decode(["uint256"], actions.datas[i])[0].isZero()
-        );
     const part3Id = await findProposalByActions(
         ctx.governorAdmin,
         ["setAPR(uint256)"],
         [communityIssuanceAddress],
-        zeroesTheRate
+        (actions) => retiresTheSubsidy(actions, communityIssuanceAddress)
     );
     const part3Done =
         part3Id !== null && Number(await ctx.governorAdmin.state(part3Id)) === STATE.Executed;
@@ -308,6 +321,8 @@ module.exports = {
     ensurePhase1Executed,
     findProposalByActions,
     hasAction,
+    rewiresLendingAndZero,
+    retiresTheSubsidy,
     finishProposal,
     collectStakerCandidates,
     winsTheVote,
