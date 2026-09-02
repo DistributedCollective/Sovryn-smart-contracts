@@ -2276,33 +2276,11 @@ const getArgsSip0094Part3 = async (hre) => {
 };
 
 /**
- * Perimeter aggregate release — shared input resolution.
- *
- * The controller, the vault behind it and the ExitDelayQueue are deployed from
- * the `Sovryn-perimeter` repo (Foundry, 0.8.20, Exchequer-owned) — their
- * addresses are INPUTS to these proposals, not deployments of this repo. Same
- * for the two Zero implementations and the Zero settlement companion, which are
- * built in `zero-contracts`. Resolution order per input:
- *   1. a hardhat-deploy record of the given name (the fork tests save one after
- *      deploying the stack in their setup);
- *   2. the given env var (mainnet proposal creation).
- * A record and an env var that disagree is an error, not a silent preference:
- * a stale record must never shadow the address the operator exported.
- *
- * `PERIMETER_EXIT_FEE_CONTROLLER` is read by both this release shape and the
- * frozen SIP-0094 builders, on purpose: it names the one ExitFeeController
- * contract that is live in both phases, so there is nothing to disambiguate.
- *
- * The two Zero implementation inputs are different: SIP-0094 (frozen) and
- * this release resolve to DIFFERENT deployed implementations — the Phase-1
- * hooked contracts versus the Phase-2 ones — so this release reads
- * `PERIMETER_DELAY_ZERO_BORROWER_OPERATIONS` /
- * `PERIMETER_DELAY_ZERO_COLL_SURPLUS_POOL` while SIP-0094 keeps
- * `PERIMETER_ZERO_BORROWER_OPERATIONS` / `PERIMETER_ZERO_COLL_SURPLUS_POOL`.
- * The two release shapes are alternatives that are never run together, and
- * giving their Zero inputs separate names means a shell still holding one
- * shape's addresses fails loudly instead of resolving the other phase's
- * implementation under the wrong release.
+ * Resolve a perimeter input address: a hardhat-deploy record of the given
+ * name if one exists, else the given env var — disagreement between the two
+ * is an error. Requires the resolved address to have contract code, and
+ * checks its codehash against `${envVar}_CODEHASH` when that is set.
+ * The delay proposals are SIP-0095, the Phase 2 continuation of SIP-0094.
  */
 const resolvePerimeterInput = async (hre, recordName, envVar, label) => {
     const {
@@ -2332,23 +2310,14 @@ const resolvePerimeterInput = async (hre, recordName, envVar, label) => {
 };
 
 /**
- * Perimeter aggregate release (shape B) — the whole security perimeter, fee and
- * delay together, in ONE release instead of Phase 1 followed by Phase 2.
+ * Perimeter aggregate release (shape B): activates the whole security
+ * perimeter — fee and delay together — in one release.
  *
- * WHY IT IS CHEAPER THAN IT LOOKS. Sequenced, every protocol module is
- * deployed and registered twice (the delay changes all of them again), Zero's
- * BorrowerOperations and CollSurplusPool are each upgraded twice, and the
- * surface-id rename becomes a live migration. Aggregated, each of those happens
- * once and the rename is ordinary setup on a controller nothing points at yet.
- *
- * WHAT IS AND IS NOT A PROPOSAL ACTION. Only the contracts governance owns need
- * a proposal — the beacons, the protocol modules and pointers, the two Zero
- * proxies, and the treasury legs, all TimelockOwner-owned. The controller,
- * vault and queue are Exchequer-owned, so every rate, delay, bypass, recovery
- * route and allowed source is a Safe transaction and never touches the
- * ten-action budget. In particular the queue's `addAllowedSource` for the
- * protocol and the Zero ActivePool, and `setSecurityPerimeterEnabled(true)`
- * itself, are Safe actions that follow these proposals.
+ * Only the contracts governance owns need a proposal action here — the
+ * beacons, the protocol modules and pointers, the two Zero proxies, and the
+ * treasury legs. The controller, vault and queue are Exchequer-owned, so
+ * every rate, delay, bypass, recovery route and allowed source is a Safe
+ * transaction outside this ledger.
  *
  * ACTION LEDGER — 18 owner-governor actions across two parts, plus one
  * admin-governor action:
@@ -2816,11 +2785,6 @@ const getArgsSipPerimeterPart2 = async (hre) => {
  * at the OLD rate rather than retroactively repriced. That settlement prices
  * ZUSD in SOV through the CommunityIssuance's own PriceFeeds pointer, so the
  * feed has to be healthy when the timelock executes.
- *
- * This duplicates the frozen SIP-0094 Part 3 rather than sharing a body with
- * it. The two release shapes are alternatives, and the frozen builder's text is
- * pinned by sha256 to an approved document — refactoring its internals to save
- * thirty lines would put that pin at risk for no operational gain.
  */
 const getArgsSipPerimeterPart3 = async (hre) => {
     const { ethers } = hre;
