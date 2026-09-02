@@ -349,6 +349,7 @@ const ensurePhase1Executed = async (ctx) => {
 
 module.exports = {
     ensurePhase1Executed,
+    useSettableCommunityIssuanceFeed,
     settlePart,
     findProposalByActions,
     hasAction,

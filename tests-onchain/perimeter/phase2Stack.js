@@ -15,19 +15,13 @@ const { get } = deployments;
 
 const {
     setupGovernanceContext,
-    deployLendingReleaseContracts,
     deployPerimeterStack,
-    deployHookedBorrowerOperationsImpl,
-    deployCollSurplusPoolImpl,
-    deployBorrowerOperationsPerimeterOps,
-    stubOutZeroPriceFeed,
-    deployExitDelayQueue,
+    deployPhase2Release,
     upgradeControllerToDelayBuild,
     assertDelayVintageControllerFixture,
     createAndQueueGovernorOwnerSip,
     executeQueuedGovernorOwnerSip,
     borrowerOperationsFixture,
-    collSurplusPoolFixture,
     forkOps,
 } = require("./perimeterSipTestHelpers");
 const { ensurePhase1Executed } = require("./phase1Preflight");
@@ -41,15 +35,6 @@ const SUBMISSION_TOPIC = ethers.utils.id("Submission(uint256)");
  *  put behind one multisig confirmation, and what every operator action here is
  *  sent with. See `viaMultisig` for why this is stated rather than estimated. */
 const OPERATOR_CALL_GAS = 6800000;
-
-const LOAN_TOKENS = [
-    "LoanToken_iRBTC",
-    "LoanToken_iXUSD",
-    "LoanToken_iDOC",
-    "LoanToken_iDLLR",
-    "LoanToken_iUSDT",
-    "LoanToken_iBPRO",
-];
 
 /** Attach to the live perimeter stack instead of deploying one, and to nothing
  *  else. The lending modules and the Zero implementations MUST be deployed
@@ -90,43 +75,11 @@ const setupPhase2Stack = async () => {
     // of the same actions.
     const phase1 = await ensurePhase1Executed(ctx);
 
-    await deployLendingReleaseContracts(ctx.deployerSigner);
-    const boImpl = await deployHookedBorrowerOperationsImpl(ctx.deployerSigner);
-    const poolImpl = await deployCollSurplusPoolImpl(ctx.deployerSigner);
-    await deployBorrowerOperationsPerimeterOps(ctx.deployerSigner);
-
-    // The Zero implementations resolve under their own record names in this
-    // release, so that a shell still holding the previous release's addresses
-    // cannot quietly supply them here.
-    await deployments.save("BorrowerOperationsPerimeter", {
-        address: boImpl.address,
-        abi: borrowerOperationsFixture.abi,
+    const { queue } = await deployPhase2Release(ctx.deployerSigner, {
+        minDelay: MIN_DELAY_SECONDS,
+        owner: EXCHEQUER,
+        admin: EXCHEQUER,
     });
-    await deployments.save("CollSurplusPoolPerimeter", {
-        address: poolImpl.address,
-        abi: collSurplusPoolFixture.abi,
-    });
-
-    // Governance jumps the clock far past any oracle update, and the production
-    // feed enforces freshness on every Zero operation.
-    await stubOutZeroPriceFeed(ctx.deployerSigner);
-
-    // Every contract that RECORDS an exit has to be an allowed source, and that
-    // is not one address per product: borrower exits record from the protocol
-    // singleton, each iToken pool records its own lender exits, and Zero records
-    // from BorrowerOperations. A source left out is fail-closed.
-    const sources = [(await get("SovrynProtocol")).address];
-    for (const name of LOAN_TOKENS) sources.push((await get(name)).address);
-    sources.push((await get("BorrowerOperations_Proxy")).address);
-
-    const queue = await deployExitDelayQueue(
-        ctx.deployerSigner,
-        (await get("WRBTC")).address,
-        MIN_DELAY_SECONDS,
-        sources,
-        EXCHEQUER,
-        EXCHEQUER
-    );
 
     const stack = await deployPerimeterStack(ctx.deployerSigner);
     if ((await stack.controller.owner()).toLowerCase() !== EXCHEQUER.toLowerCase()) {
@@ -280,4 +233,11 @@ const setupPhase2Stack = async () => {
     };
 };
 
-module.exports = { setupPhase2Stack, DELAY_SECONDS, MIN_DELAY_SECONDS, EXCHEQUER };
+module.exports = {
+    setupPhase2Stack,
+    useAttachedStack,
+    ATTACHED_STACK,
+    DELAY_SECONDS,
+    MIN_DELAY_SECONDS,
+    EXCHEQUER,
+};

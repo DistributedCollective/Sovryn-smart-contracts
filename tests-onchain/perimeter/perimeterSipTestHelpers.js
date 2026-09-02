@@ -63,10 +63,17 @@ const perimeterEventsInterface = new ethers.utils.Interface([
  *  an external `hardhat node` process, whose in-process HD-wallet wrapper
  *  refuses eth_sendTransaction for accounts it does not manage (HH103) even
  *  after hardhat_impersonateAccount — so sends must bypass it. The address is
- *  attached as `.address` for parity with hre signers. */
+ *  attached as `.address` for parity with hre signers.
+ *
+ *  The raw provider MUST be built from the selected network's own url. A fixed
+ *  endpoint would unlock accounts on, and send transactions to, whatever node
+ *  happens to be listening there — which is not necessarily the node the rest
+ *  of the run is talking to. */
 const getImpersonatedSigner = async (addressToImpersonate) => {
     await impersonateAccount(addressToImpersonate);
-    const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
+    const provider = new ethers.providers.JsonRpcProvider(
+        hre.network.config.url || "http://127.0.0.1:8545"
+    );
     await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
     const signer = provider.getSigner(addressToImpersonate);
     signer.address = ethers.utils.getAddress(addressToImpersonate);
@@ -613,6 +620,81 @@ const stubOutZeroPriceFeed = async (deployerSigner) => {
     return { stubbedFeed, lastGoodPrice };
 };
 
+/** Every iToken pool whose lender exits are recorded into the queue. Each one
+ *  records its OWN exits, so a pool missing from the allowed sources is
+ *  fail-closed: the record reverts and the withdrawal cannot complete. */
+const LOAN_TOKENS = [
+    "LoanToken_iRBTC",
+    "LoanToken_iXUSD",
+    "LoanToken_iDOC",
+    "LoanToken_iDLLR",
+    "LoanToken_iUSDT",
+    "LoanToken_iBPRO",
+];
+
+/** Deploy everything the delay release installs, plus the queue it installs,
+ *  and save the hardhat-deploy records the delay proposal builders resolve.
+ *
+ *  The lending modules and the Zero implementations are ALWAYS deployed fresh:
+ *  the ones on chain are the previous release's, which is exactly what this
+ *  release replaces. Only the perimeter stack itself is attachable, and that is
+ *  `deployPerimeterStack`'s business, not this function's.
+ *
+ *  `owner` may add routes on the queue and resolve a held exit; `admin` is the
+ *  incident guardian. Pass the multisig for both to reproduce the live roles.
+ *
+ *  The queue is deployed LAST because its allowed-source list has to name every
+ *  contract that records an exit, and that is not one address per product: the
+ *  protocol singleton records borrower exits, each iToken pool records its own
+ *  lender exits, and Zero records from BorrowerOperations. */
+const deployPhase2Release = async (deployerSigner, { minDelay, owner, admin }) => {
+    const lending = await deployLendingReleaseContracts(deployerSigner);
+    const borrowerOperationsImpl = await deployHookedBorrowerOperationsImpl(deployerSigner);
+    const collSurplusPoolImpl = await deployCollSurplusPoolImpl(deployerSigner);
+    const perimeterOps = await deployBorrowerOperationsPerimeterOps(deployerSigner);
+
+    // The Zero implementations resolve under their own record names in this
+    // release, so that a shell still holding the previous release's addresses
+    // cannot quietly supply them here.
+    await deployments.save("BorrowerOperationsPerimeter", {
+        address: borrowerOperationsImpl.address,
+        abi: borrowerOperationsFixture.abi,
+    });
+    await deployments.save("CollSurplusPoolPerimeter", {
+        address: collSurplusPoolImpl.address,
+        abi: collSurplusPoolFixture.abi,
+    });
+
+    // The production feed enforces oracle freshness on every Zero operation and
+    // neither caller can keep it fresh: governance jumps the clock past any
+    // update, and on a long-lived fork the upstream oracle stopped updating at
+    // the fork block.
+    const priceFeed = await stubOutZeroPriceFeed(deployerSigner);
+
+    const sources = [(await deployments.get("SovrynProtocol")).address];
+    for (const name of LOAN_TOKENS) sources.push((await deployments.get(name)).address);
+    sources.push((await deployments.get("BorrowerOperations_Proxy")).address);
+
+    const queue = await deployExitDelayQueue(
+        deployerSigner,
+        (await deployments.get("WRBTC")).address,
+        minDelay,
+        sources,
+        owner,
+        admin
+    );
+
+    return {
+        lending,
+        borrowerOperationsImpl,
+        collSurplusPoolImpl,
+        perimeterOps,
+        priceFeed,
+        sources,
+        queue,
+    };
+};
+
 /** Stake a fresh SOV whale (once per context — subsequent calls reuse it). */
 const ensureWhaleStake = async (ctx) => {
     if (ctx.whaleStaked) return;
@@ -878,6 +960,8 @@ module.exports = {
     deployExitDelayQueue,
     deployBorrowerOperationsPerimeterOps,
     stubOutZeroPriceFeed,
+    deployPhase2Release,
+    LOAN_TOKENS,
     createAndQueueSip,
     executeQueuedSip,
     createAndQueueGovernorOwnerSip,
