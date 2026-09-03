@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// ─────────────────────────────────────────────────────────────────────────────
 // Range pragma is intentional: this file is consumed under Solidity 0.5.17
 // (Sovryn-smart-contracts), 0.6.11 (zero-contracts), and 0.8.20 (this repo).
 // aderyn-ignore-next-line(unspecific-solidity-pragma)

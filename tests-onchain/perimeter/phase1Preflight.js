@@ -32,6 +32,9 @@ const STATE = {
     Expired: 6,
     Executed: 7,
 };
+/** The same names the governor's own enum carries, for anything that has to
+ *  write down which one a proposal was found in. */
+const STATE_NAMES = Object.keys(STATE);
 const BO_PROXY = "0x5B9dB4B8bdeF3e57323187a9AC2639C5DEe5FD39";
 const LOOKBACK = 20;
 const MAX_WHALES = 60;
@@ -280,12 +283,22 @@ const settlePart = async (ctx, governorKey, proposalId, argsFunc, { label, creat
         const created = await createAndQueueSip(ctx, argsFunc, governorKey);
         const id = Number(created.proposalId);
         await executeQueuedSip(ctx, id, governorKey);
-        return { proposalId: id, governor: governorKey, action: "created-and-executed" };
+        return {
+            proposalId: id,
+            governor: governorKey,
+            action: "created-and-executed",
+            stateAtFork: "Absent",
+        };
     }
+    // Read BEFORE the proposal is finished: afterwards every one of them is
+    // Executed, and which of them the voters had actually finished with is the
+    // thing that is no longer visible.
+    const stateAtFork = STATE_NAMES[Number(await ctx[governorKey].state(proposalId))] || "unknown";
     return {
         proposalId,
         governor: governorKey,
         action: await finishProposal(ctx, governorKey, proposalId),
+        stateAtFork,
     };
 };
 
@@ -359,4 +372,5 @@ module.exports = {
     collectStakerCandidates,
     winsTheVote,
     STATE,
+    STATE_NAMES,
 };

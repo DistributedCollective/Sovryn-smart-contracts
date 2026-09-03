@@ -276,6 +276,49 @@ const servesDelayBuild = async (controllerAddress) => {
     }
 };
 
+/** Minimal read surface for the installed-release question — never a fixture
+ *  ABI, so the answer is about the bytes the protocol actually points at rather
+ *  than about what a build happens to expect. */
+const PROTOCOL_POINTERS_ABI = [
+    "function exitDelayQueue() view returns (address)",
+    "function exitFeeController() view returns (address)",
+];
+
+/**
+ * The delay release already on this node, or null.
+ *
+ * It is installed when the protocol carries a queue pointer, that pointer has
+ * code behind it, and the controller the protocol names serves the delay build.
+ * All three are read off the chain: a pointer is not a queue — a node forked
+ * before the queue was deployed, or restarted under a state file, answers with
+ * an address that has nothing behind it, and attaching to that would look
+ * installed and hold nothing.
+ *
+ * One predicate for every caller, so the fixture that rehearses the release and
+ * the bootstrap that replays it can never disagree about whether it is there.
+ */
+const findInstalledPhase2Release = async (hre) => {
+    const protocolAddress = (await hre.deployments.get("SovrynProtocol")).address;
+    const protocol = new hre.ethers.Contract(
+        protocolAddress,
+        PROTOCOL_POINTERS_ABI,
+        hre.ethers.provider
+    );
+    let queue;
+    let controller;
+    try {
+        queue = await protocol.exitDelayQueue();
+        controller = await protocol.exitFeeController();
+    } catch (error) {
+        return null;
+    }
+    const zero = hre.ethers.constants.AddressZero;
+    if (queue === zero || controller === zero) return null;
+    if ((await hre.ethers.provider.getCode(queue)) === "0x") return null;
+    if (!(await servesDelayBuild(controller))) return null;
+    return { queue, controller };
+};
+
 /** Move the live controller proxy onto the delay-vintage implementation, the
  *  way its owner does in production: deploy the implementation, then call
  *  `upgradeTo` from the owner. Nothing is written to storage by hand — the
@@ -953,6 +996,7 @@ module.exports = {
     upgradeControllerToDelayBuild,
     assertDelayVintageControllerFixture,
     servesDelayBuild,
+    findInstalledPhase2Release,
     ERC1967_IMPL_SLOT,
     deployHookedBorrowerOperationsImpl,
     deployCollSurplusPoolImpl,

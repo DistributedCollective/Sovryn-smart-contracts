@@ -10,7 +10,8 @@ driven against it by hand with MetaMask.
 PERIMETER_QA_PORT=8547 scripts/perimeter/qa-node.sh --detach
 ```
 
-Logs go to `qa/node.log`, the pid to `qa/node.pid`. `--status` reports the
+Logs go to `qa/node.<port>.log`, the pid to `qa/node.<port>.pid` — one pair per
+port, so two nodes never overwrite each other's record. `--status` reports the
 current block, `--stop` kills only the pid it recorded. Default port is 8545;
 pick another when that one is in use, and export the matching RPC so the
 `rskForkedMainnetQa` network points at it:
@@ -56,8 +57,10 @@ fresh node.
 the RPC and fork block; the queue, controller, multisig, protocol and Zero
 addresses and the iRBTC/iXUSD pools; `feeReceiver`, where the perimeter's charge
 lands, beside `feesController`, the protocol's own fee stream that this release
-leaves alone; the armed `delaySeconds` and `feeEnabled`; and how each proposal
-was settled.
+leaves alone; the armed `delaySeconds` and `feeEnabled`; and, per proposal,
+`how` it was settled beside the `stateAtFork` the governor reported when this
+bootstrap found it — `Pending`, `Active`, `Queued`, `Executed` and so on, so a
+fork carrying a release the voters had not finished says so after the fact.
 
 > **The state file contains a private key in clear.** It is hardhat's published
 > mnemonic account 0 — `0xf39Fd…2266` — together with accounts 1-3 as the
@@ -66,6 +69,12 @@ was settled.
 > any of them on a real network.
 
 Each of the four accounts is funded with 100 RBTC and 50,000 XUSD.
+
+Accounts this impersonates — the timelocks, the multisig, the Exchequer — are
+topped up to a modest gas floor and only when they are short of it, never down
+to it. A live account that already holds more keeps what it holds, so the
+console shows a plausible Exchequer balance rather than a figure this bootstrap
+invented.
 
 ## Drive the queue
 
@@ -92,7 +101,7 @@ the dapps draw wrong for the rest of the session.
 | `pause` / `unpause` | stops and restarts every payout; ingress and blocking keep working while paused | `perimeter:qa pause` |
 | `kill` | the controller's switch: `off` makes new withdrawals pass straight through, `on` re-arms the hold. Requests already queued keep their own unlock either way | `perimeter:qa kill off` |
 | `route` | registers a recovery route for a surface — `topup` back into the pool the exit came from, or `address` to a named destination | `perimeter:qa route lender topup` |
-| `refund` | sends blacklisted escrow away: `--to pool` along the registered route, `--to <address>` by the owner's own lever | `perimeter:qa refund 6 --to pool` |
+| `refund` | sends escrow away from its receiver, with a different reach per leg. `--to pool` walks the registered route and needs the originator or the owner **blacklisted** — a freeze does not do it, and a blacklisted receiver does not either. `--to <address>` is the owner's catch-all and takes any request whose originator, owner or receiver is frozen or blacklisted, or that sits in a paused queue, or that is still inside its hold; only an unlocked request with nobody blocked and the queue unpaused is out of its reach | `perimeter:qa refund 6 --to pool` |
 | `confirm` | adds confirmations from the wallet's real owners to a pending multisig transaction (only needed after `up --keep-threshold`) | `perimeter:qa confirm 2231` |
 | `snapshot` / `revert` | takes a chain snapshot and rewinds to it | `perimeter:qa snapshot` then `perimeter:qa revert 0x1f` |
 

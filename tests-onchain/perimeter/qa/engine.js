@@ -28,7 +28,7 @@ const {
     PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     forkOps,
 } = require("../perimeterSipTestHelpers");
-const { assertLocalQaFork } = require("./bootstrap");
+const { assertLocalQaFork } = require("./guard");
 const drivers = require("./drivers");
 
 const { STATUS, BLOCK } = drivers;
@@ -783,9 +783,18 @@ const balanceReader = (token) =>
         : (who) => new ethers.Contract(token, drivers.ERC20_ABI, ethers.provider).balanceOf(who);
 
 /**
- * Send blacklisted escrow away from its receiver — back into the pool it came
- * from along a pre-approved route, or to a named address by the owner's own
- * lever. Both are refused on anything that is not blacklisted.
+ * Send escrow away from its receiver. The two legs do NOT have the same reach.
+ *
+ * `--to pool` walks the pre-approved route, and the queue admits a request only
+ * when its originator or its owner is BLACKLISTED — a freeze is not enough, and
+ * a blacklisted receiver never authorizes it. The route must also match the
+ * request's own surface, sub-product and token.
+ *
+ * `--to <address>` is the owner's catch-all, and it is wider: the queue admits
+ * any request whose originator, owner or receiver is blocked in either degree
+ * (frozen or blacklisted), OR that is sitting in a paused queue, OR that is
+ * still inside its delay window. Only a request past its unlock time with no
+ * party blocked and the queue unpaused is out of its reach.
  */
 const refund = async (s, ids, to, opts = {}) => {
     const numeric = ids.map((id) => Number(id));

@@ -2864,6 +2864,36 @@ const assertControllerIsDelayBuild = async (hre, controllerAddress) => {
 };
 
 /**
+ * Perimeter delay — refuse an implementation that is not the delay vintage.
+ *
+ * The delay inputs are resolved from the same deployment record names and the
+ * same env vars the release that precedes this one reads. A name left over
+ * from that release therefore resolves here to a build that carries the charge
+ * but knows nothing of the hold, and the address alone cannot tell the two
+ * apart: every implementation is deployed fresh per release, so the address is
+ * always new whatever the bytes are.
+ *
+ * The entry point can tell them apart. Each signature passed here exists only
+ * on the build the delay introduces, so its selector is in the runtime code of
+ * a delay-vintage implementation and in no other. A match on the raw four
+ * bytes is what a Solidity dispatcher always carries.
+ */
+const assertDelayVintageImplementation = async (hre, address, sourceName, label, signature) => {
+    const { ethers } = hre;
+    const selector = ethers.utils.id(signature).slice(2, 10);
+    const code = (await ethers.provider.getCode(address)).toLowerCase();
+    if (!code.includes(selector)) {
+        throw new Error(
+            `Perimeter: ${sourceName} resolved the ${label} to ${address}, whose code carries ` +
+                `no ${signature} (0x${selector}). That entry point exists only on the delay ` +
+                "build, so this address is the vintage that predates it. The preceding release " +
+                `reads ${sourceName} too — point it at the delay build, by re-exporting the env ` +
+                "var or by re-saving the deployment record, whichever is stale."
+        );
+    }
+};
+
+/**
  * Sequenced delay release — Part 1 (GovernorOwner, 10 actions).
  *
  * The lending half of the delay, laid over a perimeter that is already live.
@@ -2941,6 +2971,16 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
             `Perimeter: no contract code at BorrowerExitPerimeterOps ${opsDeployment.address}`
         );
     }
+    /** The settlement companion is saved under the same record name by the
+     *  release this one follows, and that build charges but never escrows, so
+     *  the record is checked for the entry point only the delay build has. */
+    await assertDelayVintageImplementation(
+        hre,
+        opsDeployment.address,
+        "BorrowerExitPerimeterOps",
+        "borrower settlement companion",
+        "escrowBorrowerExit(address,address,address,uint256,uint32,address,address)"
+    );
 
     const targets = [];
     const values = [];
@@ -3013,7 +3053,21 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
                     `${moduleDeployment.address} — this release has already been installed`
             );
         }
-        if (module.moduleName === "ExitFeeModule") exitFeeModuleIndex = targets.length;
+        if (module.moduleName === "ExitFeeModule") {
+            // The admin module is the one protocol input with a vintage marker:
+            // the queue pointer setter action 10 calls is registered by this
+            // module and exists nowhere in the build that predates the delay.
+            // The other five differ only inside, so a stale record of one of
+            // them is caught by the routing check above and by nothing finer.
+            await assertDelayVintageImplementation(
+                hre,
+                moduleDeployment.address,
+                "ExitFeeModule",
+                "ExitFeeModule",
+                "setExitDelayQueue(address)"
+            );
+            exitFeeModuleIndex = targets.length;
+        }
         targets.push(protocol.address);
         values.push(0);
         signatures.push("replaceContract(address)");
@@ -3132,6 +3186,28 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
         "BorrowerOperationsPerimeterOps",
         "PERIMETER_ZERO_BORROWER_OPERATIONS_OPS",
         "BorrowerOperations settlement companion"
+    );
+
+    /** Both Zero implementations must be the delay vintage, checked on their
+     *  code rather than trusted from the name that resolved them. The pool is
+     *  the one that fails quietly: its upgrade is built only where the runtime
+     *  code differs from what the proxy already serves, so a stale address that
+     *  happens to match the live implementation makes `poolChanges` false and
+     *  drops the action altogether — a proposal that reads complete and ships
+     *  without the pool the delay-vintage BorrowerOperations settles through. */
+    await assertDelayVintageImplementation(
+        hre,
+        poolImplAddress,
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
+        "CollSurplusPool implementation",
+        "claimCollWithFeeTo(address,address,uint256,address)"
+    );
+    await assertDelayVintageImplementation(
+        hre,
+        boImplAddress,
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
+        "BorrowerOperations implementation",
+        "setExitDelayQueue(address)"
     );
 
     /** The earlier release is a precondition, not an assumption: the protocol

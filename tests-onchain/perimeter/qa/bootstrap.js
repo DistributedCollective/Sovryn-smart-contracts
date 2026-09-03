@@ -12,8 +12,9 @@
  * operator's wall clock, so a fork pushed forward shows timers that never
  * expire, and one pushed back shows holds that are already over.
  *
- * Every write goes to a LOCAL fork and nowhere else: each entry point re-checks
- * chain id 30 and the network's "qa" tag before anything is sent.
+ * Every write goes to a LOCAL fork and nowhere else: each entry point re-runs
+ * the guard in qa/guard.js — loopback host, local client, chain id 30, "qa"
+ * tag — before anything is sent.
  *
  * The state file this writes carries a private key in clear. That is
  * deliberate — it is one of hardhat's published mnemonic accounts, it is there
@@ -27,7 +28,7 @@ const {
     deployPerimeterStack,
     deployPhase2Release,
     upgradeControllerToDelayBuild,
-    servesDelayBuild,
+    findInstalledPhase2Release,
     borrowerOperationsFixture,
 } = require("../perimeterSipTestHelpers");
 const {
@@ -37,6 +38,7 @@ const {
     retiresTheSubsidy,
     useSettableCommunityIssuanceFeed,
     STATE,
+    STATE_NAMES,
 } = require("../phase1Preflight");
 const {
     setupPhase2Stack,
@@ -44,6 +46,7 @@ const {
     EXCHEQUER,
     MIN_DELAY_SECONDS,
 } = require("../phase2Stack");
+const { assertLocalQaFork } = require("./guard");
 const {
     getArgsSipPerimeterDelayPart1,
     getArgsSipPerimeterDelayPart2,
@@ -58,9 +61,12 @@ const STATE_FILE = path.join(__dirname, "..", "..", "..", "qa", "perimeter-qa.js
 const DEFAULT_DELAY_SECONDS = 120;
 const RBTC_PER_ACCOUNT = "100";
 const XUSD_PER_ACCOUNT = "50000";
-/** Gas float for the accounts this impersonates. They pay for deploys and for
- *  every replayed proposal action, so the figure is generous on purpose. */
-const IMPERSONATED_FUNDING = "10000";
+/** Gas floor for the accounts this impersonates. They pay for deploys and for
+ *  every replayed proposal action, so it is comfortably above what any of that
+ *  costs — and no further, because these are live accounts whose balances the
+ *  dapps and the operator console display. It is a floor, never a setting: an
+ *  account already above it is left exactly as the fork found it. */
+const IMPERSONATED_FUNDING = "50";
 
 /** Hardhat's published mnemonic accounts 0-3. These are test keys with no
  *  secrecy at all — account 0 is the one the operator imports into MetaMask,
@@ -78,12 +84,12 @@ const SUSPECTS = [
 
 /** What the release ledger says when a node is attached to without a state file
  *  that describes it: the release is on chain, and how it got there is not this
- *  run's to claim. */
+ *  run's to claim — nor is the state its proposals were in when it happened. */
 const PRE_EXISTING = {
     phase1: {
-        part1: { how: "pre-existing" },
-        part2: { how: "pre-existing" },
-        part3: { how: "pre-existing" },
+        part1: { how: "pre-existing", stateAtFork: "unknown" },
+        part2: { how: "pre-existing", stateAtFork: "unknown" },
+        part3: { how: "pre-existing", stateAtFork: "unknown" },
     },
     phase2: { part1: { how: "pre-existing" }, part2: { how: "pre-existing" } },
 };
@@ -106,33 +112,6 @@ const XUSD_ABI = [
     "function mint(address,uint256) returns (bool)",
 ];
 const COMMUNITY_ISSUANCE_ABI = ["function APR() view returns (uint256)"];
-
-/** Refuse to send anything anywhere but a local QA fork. Chain id alone is not
- *  enough — real RSK reports 30 too — so the network's own "qa" tag has to
- *  agree, and only `rskForkedMainnetQa` carries it. */
-const assertLocalQaFork = async (hre) => {
-    const { chainId } = await hre.ethers.provider.getNetwork();
-    if (chainId !== CHAIN_ID || !hre.network.tags.qa) {
-        throw new Error(
-            `perimeter QA: refusing to run against chain id ${chainId} on network ` +
-                `"${hre.network.name}". This writes to a local fork only and expects chain id ` +
-                `${CHAIN_ID} on a network tagged "qa" — boot scripts/perimeter/qa-node.sh and ` +
-                "pass --network rskForkedMainnetQa."
-        );
-    }
-    // The tag says what the config INTENDS; the node itself says what is really
-    // answering. Only a local hardhat or anvil process accepts the impersonation
-    // and balance writes below, and a hosted fork would take them as a shared,
-    // durable environment rather than a throwaway one.
-    const kind = await forkOps.detectForkKind(hre.ethers.provider);
-    if (kind !== "hardhat" && kind !== "anvil") {
-        throw new Error(
-            `perimeter QA: the node at ${hre.network.config.url} reports as "${kind}", not a ` +
-                "local hardhat or anvil fork. This bootstrap impersonates accounts and rewrites " +
-                "balances, which belongs on a throwaway node only."
-        );
-    }
-};
 
 /** Raise an account to a gas floor, never lower it. Balances on this fork are
  *  balances the dapps display, so the only safe direction to move one is up. */
@@ -233,8 +212,12 @@ const executeActionsFromTimelock = async (hre, timelockSigner, actions, label) =
 const replayProposal = async (hre, governor, timelockSigner, proposalId, label, log) => {
     if (proposalId === null) throw missingProposal(label);
     const state = Number(await governor.state(proposalId));
+    // Recorded whatever happens next: "impersonated" says this run pushed the
+    // proposal through, and only the state it was found in says whether the
+    // voters had finished with it.
+    const stateAtFork = STATE_NAMES[state] || String(state);
     if (state === STATE.Executed) {
-        return { proposalId, how: "executed-on-chain" };
+        return { proposalId, how: "executed-on-chain", stateAtFork };
     }
     if (state === STATE.Canceled || state === STATE.Defeated || state === STATE.Expired) {
         throw new Error(
@@ -255,7 +238,7 @@ const replayProposal = async (hre, governor, timelockSigner, proposalId, label, 
     }
     const actions = toActions(await governor.getActions(proposalId));
     const count = await executeActionsFromTimelock(hre, timelockSigner, actions, label);
-    return { proposalId, how: "impersonated", actions: count };
+    return { proposalId, how: "impersonated", actions: count, stateAtFork };
 };
 
 /** Find and settle the three parts of the release that precedes the delay,
@@ -718,40 +701,6 @@ const readChainFacts = async (hre, controllerAddress) => {
     };
 };
 
-/** The delay release is already installed on this node when the protocol
- *  carries a queue pointer and the controller it points at serves the delay
- *  build. Read off the chain, never off the state file: the file is an output
- *  of this bootstrap, and a node that was restarted under it would make it lie. */
-const findInstalledRelease = async (hre) => {
-    const {
-        ethers,
-        deployments: { get },
-    } = hre;
-    const protocol = new ethers.Contract(
-        (await get("SovrynProtocol")).address,
-        PROTOCOL_POINTERS_ABI,
-        ethers.provider
-    );
-    let queue;
-    let controller;
-    try {
-        queue = await protocol.exitDelayQueue();
-        controller = await protocol.exitFeeController();
-    } catch (error) {
-        return null;
-    }
-    if (queue === ethers.constants.AddressZero || controller === ethers.constants.AddressZero) {
-        return null;
-    }
-    // A pointer is not a queue. A node restarted under a state file, or one
-    // forked before the queue was deployed, answers with an address that has
-    // nothing behind it — attaching to that would look installed and hold
-    // nothing.
-    if ((await ethers.provider.getCode(queue)) === "0x") return null;
-    if (!(await servesDelayBuild(controller))) return null;
-    return { queue, controller };
-};
-
 /**
  * Bring the fork to the released, armed, operator-ready state and record it.
  *
@@ -809,7 +758,7 @@ const bootstrapQa = async (hre, opts = {}) => {
     }
 
     const previous = readState();
-    const installed = await findInstalledRelease(hre);
+    const installed = await findInstalledPhase2Release(hre);
     // A state file only describes THIS node while it names the queue this node
     // actually serves. One left behind by an earlier fork is history, not a
     // record of what is running, so nothing is carried over from it.
@@ -829,11 +778,16 @@ const bootstrapQa = async (hre, opts = {}) => {
         log("perimeter QA: installing the delay release through real governance");
         const stack = await setupPhase2Stack();
         controllerAddress = stack.stack.controller.address;
-        phase1 = {
-            part1: { proposalId: stack.phase1.part1.proposalId, how: stack.phase1.part1.action },
-            part2: { proposalId: stack.phase1.part2.proposalId, how: stack.phase1.part2.action },
-            part3: { proposalId: stack.phase1.part3.proposalId, how: stack.phase1.part3.action },
-        };
+        phase1 = Object.fromEntries(
+            ["part1", "part2", "part3"].map((part) => [
+                part,
+                {
+                    proposalId: stack.phase1[part].proposalId,
+                    how: stack.phase1[part].action,
+                    stateAtFork: stack.phase1[part].stateAtFork,
+                },
+            ])
+        );
         phase2 = {
             part1: {
                 proposalId: Number(stack.proposals.part1),

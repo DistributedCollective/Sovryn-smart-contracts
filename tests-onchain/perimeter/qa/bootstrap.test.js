@@ -152,8 +152,28 @@ describe("QA bootstrap", () => {
             "created-and-executed",
             "pre-existing",
         ];
+        // The state a Phase 1 proposal was found in is recorded beside how it
+        // was settled: "impersonated" alone hides whether the voters had
+        // finished with it, and that is the one thing nobody should have to
+        // reconstruct later.
+        const governorStates = [
+            "Pending",
+            "Active",
+            "Canceled",
+            "Defeated",
+            "Succeeded",
+            "Queued",
+            "Expired",
+            "Executed",
+            "Absent",
+            "unknown",
+        ];
         for (const part of ["part1", "part2", "part3"]) {
             expect(onDisk.phase1[part].how).to.be.oneOf(settled);
+            expect(onDisk.phase1[part], `phase1.${part} records no stateAtFork`).to.have.property(
+                "stateAtFork"
+            );
+            expect(onDisk.phase1[part].stateAtFork).to.be.oneOf(governorStates);
         }
         for (const part of ["part1", "part2"]) {
             expect(onDisk.phase2[part].how).to.be.oneOf(settled.concat("governance"));

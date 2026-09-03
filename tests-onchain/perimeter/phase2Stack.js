@@ -7,7 +7,8 @@
  * Built once and shared by every scenario, and re-entrant on one node: the
  * delay proposals refuse to install over targets that already carry them, so a
  * second call attaches to what the first one installed instead of repeating it
- * (see `findInstalledPhase2Release` and `attachToInstalledPhase2Stack` below).
+ * (see `findInstalledPhase2Release` in perimeterSipTestHelpers.js and
+ * `attachToInstalledPhase2Stack` below).
  */
 const hre = require("hardhat");
 const path = require("path");
@@ -20,7 +21,7 @@ const {
     deployPhase2Release,
     upgradeControllerToDelayBuild,
     assertDelayVintageControllerFixture,
-    servesDelayBuild,
+    findInstalledPhase2Release,
     createAndQueueGovernorOwnerSip,
     executeQueuedGovernorOwnerSip,
     borrowerOperationsFixture,
@@ -66,37 +67,6 @@ const useAttachedStack = () => {
                 "there, so it is clear which contracts the rehearsal exercises."
         );
     }
-};
-
-/** Minimal read surface used only to decide whether the release is already
- *  installed — never the fixture ABI, so this answers about the bytes the
- *  protocol actually points at rather than what a build happens to expect. */
-const PROTOCOL_POINTERS_ABI = [
-    "function exitDelayQueue() view returns (address)",
-    "function exitFeeController() view returns (address)",
-];
-
-/** The delay release is already installed on this node when the protocol
- *  carries a queue pointer and the controller it points at serves the delay
- *  build. Read off the chain, never assumed: the same reads the QA bootstrap's
- *  own attach predicate uses (`findInstalledRelease` in qa/bootstrap.js), kept
- *  independent here so this fixture never depends on the QA module. */
-const findInstalledPhase2Release = async (protocolAddress) => {
-    const protocol = new ethers.Contract(protocolAddress, PROTOCOL_POINTERS_ABI, ethers.provider);
-    let queue;
-    let controller;
-    try {
-        queue = await protocol.exitDelayQueue();
-        controller = await protocol.exitFeeController();
-    } catch (error) {
-        return null;
-    }
-    if (queue === ethers.constants.AddressZero || controller === ethers.constants.AddressZero) {
-        return null;
-    }
-    if ((await ethers.provider.getCode(queue)) === "0x") return null;
-    if (!(await servesDelayBuild(controller))) return null;
-    return { queue, controller };
 };
 
 /** The two delay proposals, found by the actions they carry rather than by id
@@ -270,7 +240,7 @@ const setupPhase2Stack = async () => {
 
     const protocolAddress = (await get("SovrynProtocol")).address;
     const boProxyAddress = (await get("BorrowerOperations_Proxy")).address;
-    const installed = await findInstalledPhase2Release(protocolAddress);
+    const installed = await findInstalledPhase2Release(hre);
     if (installed) {
         return await attachToInstalledPhase2Stack(
             ctx,
