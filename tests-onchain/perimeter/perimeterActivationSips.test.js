@@ -62,6 +62,7 @@ const {
     stubOutZeroPriceFeed,
     deployLendingReleaseContracts,
     createAndQueueGovernorOwnerSip,
+    adoptQueuedSip,
     executeQueuedGovernorOwnerSip,
     setupGovernanceContext,
     countPerimeterEvents,
@@ -74,6 +75,16 @@ const {
 } = hre;
 
 const FORK_BLOCK = forkBlock(9056400);
+
+/**
+ * Proposal ids to adopt instead of building, e.g. PERIMETER_QUEUED_PROPOSALS="54,55".
+ *
+ * Unset (the default) the run builds both parts from the args builders, which
+ * is the only thing possible before the proposals exist. Set, it drives the
+ * real queued ones, so the whole spec below measures the transactions that
+ * will actually execute rather than a faithful reconstruction of them.
+ */
+const QUEUED_PROPOSALS = process.env.PERIMETER_QUEUED_PROPOSALS;
 // The real PriceFeeds.queryRate(XUSD, WRBTC) at block 9056400. The production
 // WRBTC feed (PriceFeedsMoC) reads a MoC medianizer whose values expire, and
 // the fallback oracle was deactivated by SIP-0084 — so on a fork, live-feed
@@ -128,6 +139,17 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             throw new Error(
                 "perimeterActivationSips must run on a forked mainnet (rskForkedMainnet); " +
                     "no fork tag on this network"
+            );
+        }
+        // The on-chain proposals encode the DEPLOYED addresses. Adopting them
+        // while this run deploys a fresh stack would point the proposals at
+        // contracts nothing here is holding, and the failures would read as
+        // wiring bugs rather than as a mis-invocation. Refuse instead.
+        if (QUEUED_PROPOSALS && !process.env.PERIMETER_DEPLOYED_ADDRESSES) {
+            throw new Error(
+                "PERIMETER_QUEUED_PROPOSALS needs PERIMETER_DEPLOYED_ADDRESSES: the queued " +
+                    "proposals act on the deployed release, so the run must attach to it " +
+                    "rather than deploy its own stack"
             );
         }
         await hre.network.provider.request({
@@ -216,14 +238,27 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // GovernorAlpha's one-live-proposal rule blocks only Pending/Active —
         // this is the real Phase C sequencing (create → vote → queue Part 1,
         // then create Part 2).
-        const { proposalId: part1Id } = await createAndQueueGovernorOwnerSip(
-            ctx,
-            "getArgsSip0094Part1"
-        );
-        const { proposalId: part2Id } = await createAndQueueGovernorOwnerSip(
-            ctx,
-            "getArgsSip0094Part2"
-        );
+        //
+        // With PERIMETER_QUEUED_PROPOSALS set, the run adopts the proposals
+        // already queued on chain instead. Same assertions, different subject:
+        // built proposals prove the args builders are right, adopted ones prove
+        // the transactions in the timelock are — and only the second is what
+        // execution day actually runs.
+        let part1Id, part2Id;
+        if (QUEUED_PROPOSALS) {
+            const [queuedPart1, queuedPart2] = QUEUED_PROPOSALS.split(",").map((s) => s.trim());
+            ({ proposalId: part1Id } = await adoptQueuedSip(ctx, queuedPart1));
+            ({ proposalId: part2Id } = await adoptQueuedSip(ctx, queuedPart2));
+        } else {
+            ({ proposalId: part1Id } = await createAndQueueGovernorOwnerSip(
+                ctx,
+                "getArgsSip0094Part1"
+            ));
+            ({ proposalId: part2Id } = await createAndQueueGovernorOwnerSip(
+                ctx,
+                "getArgsSip0094Part2"
+            ));
+        }
 
         // ── The proposals' own action tables ───────────────────────────────
         // Read back from GovernorAlpha storage, so every assertion below binds

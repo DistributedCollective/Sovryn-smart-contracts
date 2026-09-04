@@ -381,6 +381,47 @@ const executeQueuedSip = async (ctx, proposalId, governorKey = "governorOwner") 
     return { proposalId, executionReceipt };
 };
 
+/**
+ * Adopt a proposal that is ALREADY Queued on chain, instead of creating one.
+ *
+ * Building the proposal here proves the args builders emit the right actions;
+ * it says nothing about the transactions actually sitting in the timelock.
+ * Once the real proposals exist, pointing the same assertions at their ids
+ * closes that gap — every check downstream then binds to the calldata mainnet
+ * will execute, not to a rebuild of it.
+ *
+ * Queued is the only acceptable state: Pending/Active means the vote is not
+ * settled, and Executed means the fork is past the point this rehearsal is
+ * meant to start from. Both are configuration mistakes worth failing on
+ * rather than working around.
+ */
+const adoptQueuedSip = async (ctx, proposalId, governorKey = "governorOwner") => {
+    const governor = ctx[governorKey];
+    if (!governor) {
+        throw new Error(`adoptQueuedSip: no '${governorKey}' in the governance context`);
+    }
+    const id = ethers.BigNumber.from(proposalId);
+    const STATE = [
+        "Pending",
+        "Active",
+        "Canceled",
+        "Defeated",
+        "Succeeded",
+        "Queued",
+        "Expired",
+        "Executed",
+    ];
+    const state = await governor.state(id);
+    if (state !== 5) {
+        throw new Error(
+            `proposal ${id} on ${governorKey} is ${STATE[state] ?? state}, not Queued. ` +
+                `Adopting an on-chain proposal needs a fork block at which it is queued and ` +
+                `not yet executed — check COLFEE_FORK_BLOCK.`
+        );
+    }
+    return { proposalId: id };
+};
+
 const createAndQueueGovernorOwnerSip = (ctx, argsFunc) =>
     createAndQueueSip(ctx, argsFunc, "governorOwner");
 const executeQueuedGovernorOwnerSip = (ctx, proposalId) =>
@@ -604,6 +645,7 @@ module.exports = {
     perimeterEventsInterface,
     getImpersonatedSigner,
     getImpersonatedSignerFromJsonRpcProvider,
+    adoptQueuedSip,
     deployPerimeterStack,
     deployHookedBorrowerOperationsImpl,
     deployCollSurplusPoolImpl,

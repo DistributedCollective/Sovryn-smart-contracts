@@ -41,6 +41,7 @@ const {
     getImpersonatedSigner,
     stubOutZeroPriceFeed,
     createAndQueueSip,
+    adoptQueuedSip,
     executeQueuedSip,
     setupGovernanceContext,
 } = require("./perimeterSipTestHelpers");
@@ -51,6 +52,12 @@ const {
 } = hre;
 
 const FORK_BLOCK = forkBlock(9056400);
+
+/**
+ * Proposal id to adopt instead of building, e.g. PERIMETER_QUEUED_ADMIN_PROPOSAL=29.
+ * Unset, the run builds Part 3 from its args builder.
+ */
+const QUEUED_ADMIN_PROPOSAL = process.env.PERIMETER_QUEUED_ADMIN_PROPOSAL;
 // Tolerance for Zero's dynamic origination fee (raised well above the floor on
 // mainnet); test-only — the probe trove is funded from balance, not budgeted.
 const MAX_ZERO_FEE_PERCENTAGE = ethers.utils.parseEther("0.99");
@@ -184,11 +191,12 @@ describe("SIP-0094 Part 3 — disable the Zero Stability Pool SOV subsidy (Gover
             .true;
 
         // ── The proposal ───────────────────────────────────────────────────
-        const { proposalId } = await createAndQueueSip(
-            ctx,
-            "getArgsSip0094Part3",
-            "governorAdmin"
-        );
+        // PERIMETER_QUEUED_ADMIN_PROPOSAL adopts the proposal already queued on
+        // GovernorAdmin instead of building one, so the assertions below bind to
+        // the transaction in the timelock rather than to a rebuild of it.
+        const { proposalId } = QUEUED_ADMIN_PROPOSAL
+            ? await adoptQueuedSip(ctx, QUEUED_ADMIN_PROPOSAL, "governorAdmin")
+            : await createAndQueueSip(ctx, "getArgsSip0094Part3", "governorAdmin");
         // Positional destructuring, NOT `.values`: on an ethers Result the
         // `values` key is shadowed by Array.prototype.values.
         const [actionTargets, actionValues, actionSignatures, actionCalldatas] =
