@@ -395,7 +395,12 @@ const executeQueuedSip = async (ctx, proposalId, governorKey = "governorOwner") 
  * meant to start from. Both are configuration mistakes worth failing on
  * rather than working around.
  */
-const adoptQueuedSip = async (ctx, proposalId, governorKey = "governorOwner") => {
+const adoptQueuedSip = async (
+    ctx,
+    proposalId,
+    governorKey = "governorOwner",
+    expectedState = 5 // Queued; pass 7 to adopt a proposal that already executed
+) => {
     const governor = ctx[governorKey];
     if (!governor) {
         throw new Error(`adoptQueuedSip: no '${governorKey}' in the governance context`);
@@ -412,11 +417,11 @@ const adoptQueuedSip = async (ctx, proposalId, governorKey = "governorOwner") =>
         "Executed",
     ];
     const state = await governor.state(id);
-    if (state !== 5) {
+    if (state !== expectedState) {
         throw new Error(
-            `proposal ${id} on ${governorKey} is ${STATE[state] ?? state}, not Queued. ` +
-                `Adopting an on-chain proposal needs a fork block at which it is queued and ` +
-                `not yet executed — check COLFEE_FORK_BLOCK.`
+            `proposal ${id} on ${governorKey} is ${STATE[state] ?? state}, not ` +
+                `${STATE[expectedState]}. Adopting an on-chain proposal needs a fork block at ` +
+                `which it is in that state — check COLFEE_FORK_BLOCK.`
         );
     }
     return { proposalId: id };
