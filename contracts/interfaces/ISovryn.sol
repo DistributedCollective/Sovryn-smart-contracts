@@ -18,6 +18,7 @@ import "../events/FeesEvents.sol";
 import "../events/SwapsEvents.sol";
 import "../events/AffiliatesEvents.sol";
 import "../connectors/loantoken/lib/MarginTradeStructHelpers.sol";
+import "./perimeter/IPerimeterEvents.sol";
 
 contract ISovryn is
     State,
@@ -28,7 +29,8 @@ contract ISovryn is
     LoanClosingsEvents,
     SwapsEvents,
     AffiliatesEvents,
-    FeesEvents
+    FeesEvents,
+    IPerimeterEvents
 {
     /// Triggered whenever interest is paid to lender.
     event PayInterestTransfer(
@@ -266,6 +268,16 @@ contract ISovryn is
         bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
         bytes calldata loanDataBytes
     ) external returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken);
+
+    ////// Perimeter — controller + charge-hook pointer admin //////
+
+    function exitFeeController() external view returns (address);
+
+    function setExitFeeController(address ctrl) external;
+
+    function borrowerExitPerimeterOps() external view returns (address);
+
+    function setBorrowerExitPerimeterOps(address ops) external;
 
     ////// Loan Maintenance //////
 

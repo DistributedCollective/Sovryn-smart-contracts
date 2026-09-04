@@ -177,7 +177,7 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
         if (destTokenAmountReceived > interestAmountRequired) {
             // swap rest back to collateral, if the amount is big enough to cover gas cost
             if (
-                worthTheTransfer(
+                _worthTheTransfer(
                     loanParamsLocal.loanToken,
                     destTokenAmountReceived - interestAmountRequired
                 )
@@ -227,7 +227,8 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     loanLocal.collateral,
                     false,
                     "", // loanDataBytes
-                    false
+                    false,
+                    CloseOrigin.Rollover
                 );
             } else {
                 // pay out reward to caller
@@ -247,7 +248,8 @@ contract LoanClosingsRollover is LoanClosingsShared, LiquidationHelper {
                     loanLocal.collateral, // swap all collaterals
                     false,
                     "", /// loanDataBytes
-                    true
+                    true,
+                    CloseOrigin.Rollover
                 );
             } else {
                 (uint256 currentMargin, ) = IPriceFeeds(priceFeeds).getCurrentMargin(

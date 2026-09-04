@@ -117,6 +117,7 @@ def main():
 
     #getReleaseScheduleFromDevelopmentFund()
     #getReleaseScheduleFromAdoptionFund()
+    #withdrawDevFundTokensByLockedTokenOwner()
 
     # transferProtocolAdminRoleToGovernance()
 
@@ -341,6 +342,20 @@ def main():
     # withdrawSovFromMyntReserved(2000000000000000000000)
     # setupTorqueLoanParams(conf.contracts['iXUSD'], "0x0000000000000000000000000000000000000000", conf.contracts['SOV'], Wei("20 ether"), )
     # checkTx(1344)
+
+
+def setExitFeeEnabled(enabled):
+    exitFeeController = Contract.from_abi(
+        "ExitFeeController",
+        address=conf.contracts["ExitFeeController"],
+        abi=interface.IExitFeeController.abi,
+        owner=conf.acct,
+    )
+    data = exitFeeController.setExitFeeEnabled.encode_input(enabled)
+    sendWithMultisig(
+        conf.contracts["multisig"], exitFeeController.address, data, conf.acct
+    )
+
 
 def guardiansTransfer():
     ####################################################################

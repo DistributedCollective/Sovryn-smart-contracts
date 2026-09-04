@@ -1,0 +1,13 @@
+{
+    "LoanTokenLogicLM": "0x593DB96E61F59F1278068742486Fc85CDBe9D872",
+    "LoanTokenLogicWrbtcLM": "0x6c8f59D321560f4bEF84c99e83dd7FF31122e14f",
+    "LoanClosingsRollover": "0xdB4fF0a861bF0c714B31E678c919c2B7EfD05329",
+    "LoanClosingsWith": "0xa3FCC9F88De9A7f0258eda6cD8d6F7D39ef6fb8d",
+    "LoanMaintenance": "0xa87Bd1eF82FA2BE049473c73eAaa97d6AB9C4399",
+    "ExitFeeModule": "0x0562e396f5fF7e819c8e9CcF25DCb68e16A2672F",
+    "BorrowerExitPerimeterOps": "0xe533dc6D03Ae97977Da3357A98AA94b769738AB5",
+    "BorrowerOperations_Implementation": "0x020aAb1d84E38b619A4C49f48d472c3b9187ce93",
+    "CollSurplusPool_Implementation": "0xdd518C2aae5A83812883D4e350b88d3566792bE4",
+    "ExitFeeVault": "0xDDE75f75ff33Aa802f2316cCAe2bE77823fc6f9B",
+    "ExitFeeController": "0x99994b4522483DE17F31a5bC010c5901AdD3440E"
+}

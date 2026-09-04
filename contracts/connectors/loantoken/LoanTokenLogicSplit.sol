@@ -9,37 +9,21 @@ pragma experimental ABIEncoderV2;
 import "./LoanTokenLogicShared.sol";
 
 /**
- * @title Loan Token Logic Standard contract.
- * @notice This contract code comes from bZx. bZx is a protocol for tokenized margin
- * trading and lending https://bzx.network similar to the dYdX protocol.
+ * @title LoanTokenLogicSplit contract.
+ * @notice iToken logic module holding the lending entry points: `mint`
+ *         (deposit the underlying asset in exchange for iTokens) and `burn`
+ *         (redeem iTokens back for the underlying), together with their
+ *         LiquidityMining variants and the internal mint/burn helpers
+ *         (`_mintToken`, `_prepareMinting`, `_burnToken`, `_mintWithLM`,
+ *         `_burnFromLM`). iTokens represent a share of the lending pool and
+ *         accrue interest over time. On burn, the lender-exit Perimeter is
+ *         applied.
  *
- * Logic around loan tokens (iTokens) required to operate borrowing,
- * and margin trading financial processes.
- *
- * The user provides funds to the lending pool using the mint function and
- * withdraws funds from the lending pool using the burn function. Mint and
- * burn refer to minting and burning loan tokens. Loan tokens represent a
- * share of the pool and gather interest over time.
- *
- * Interest rates are determined by supply and demand. When a lender deposits
- * funds, the interest rates go down. When a trader borrows funds, the
- * interest rates go up. Fulcrum uses a simple linear interest rate formula
- * of the form y = mx + b. The interest rate starts at 1% when loans aren't
- * being utilized and scales up to 40% when all the funds in the loan pool
- * are being borrowed.
- *
- * The borrow rate is determined at the time of the loan and represents the
- * net contribution of each borrower. Each borrower's interest contribution
- * is determined by the utilization rate of the pool and is netted against
- * all prior borrows. This means that the total amount of interest flowing
- * into the lending pool is not directly changed by lenders entering or
- * exiting the pool. The entrance or exit of lenders only impacts how the
- * interest payments are split up.
- *
- * For example, if there are 2 lenders with equal holdings each earning
- * 5% APR, but one of the lenders leave, then the remaining lender will earn
- * 10% APR since the interest payments don't have to be split between two
- * individuals.
+ * @dev Carved out from its ERC20/transfer sibling `LoanTokenLogicStandard` so
+ *      that each deployed logic contract stays under the EVM 24 KB bytecode
+ *      limit (EIP-170). Both inherit the common `LoanTokenLogicShared` and are
+ *      attached to the iToken proxy through `LoanTokenLogicBeacon`, which
+ *      routes each function selector to the module that implements it.
  * */
 contract LoanTokenLogicSplit is LoanTokenLogicShared {
     using SafeMath for uint256;
@@ -81,7 +65,10 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
      * @param receiver The account getting the minted tokens.
      * @param burnAmount The amount of loan tokens to redeem.
      *
-     * @return The amount of underlying tokens payed to lender.
+     * @return The GROSS amount of underlying tokens redeemed. When a Perimeter
+     *         exit-fee policy is active the receiver is paid this amount minus
+     *         the fee (the split is published in `ExitFeeApplied`) — do not
+     *         treat the return value as the amount received.
      * */
     function burn(
         address receiver,
@@ -89,10 +76,9 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
     ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
         loanAmountPaid = _burnToken(burnAmount);
 
-        //this needs to be here and not in _burnTokens because of the WRBTC implementation
-        if (loanAmountPaid != 0) {
-            _safeTransfer(loanTokenAddress, receiver, loanAmountPaid, "5");
-        }
+        // Perimeter: charge the fee and pay the user the underlying ERC20.
+        // "5" is the user-leg revert reason.
+        _chargeExitFeeAndPay(receiver, loanAmountPaid, "5");
     }
 
     /**

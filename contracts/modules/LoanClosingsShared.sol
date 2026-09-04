@@ -12,7 +12,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../swaps/SwapsUser.sol";
 import "../mixins/RewardHelper.sol";
-import "../mixins/ModuleCommonFunctionalities.sol";
+import "../mixins/BorrowerExitPerimeter.sol";
 import "../interfaces/ILoanTokenModules.sol";
 
 interface IFeeSharingCollector {
@@ -31,7 +31,7 @@ contract LoanClosingsShared is
     InterestUser,
     SwapsUser,
     RewardHelper,
-    ModuleCommonFunctionalities
+    BorrowerExitPerimeter
 {
     uint256 internal constant MONTH = 365 days / 12;
     //0.00001 BTC, would be nicer in State.sol, but would require a redeploy of the complete protocol, so adding it here instead
@@ -52,6 +52,7 @@ contract LoanClosingsShared is
         bytes loanDataBytes;
         bool allowDonationOnFailure;
         address receiver;
+        CloseOrigin origin;
     }
 
     struct SwapResults {
@@ -67,6 +68,7 @@ contract LoanClosingsShared is
         bool returnTokenIsCollateral;
         bytes loanDataBytes;
         bool allowDonationOnFailure;
+        CloseOrigin origin;
     }
 
     /** modifier for invariant check */
@@ -189,7 +191,7 @@ contract LoanClosingsShared is
      * @param amount the amount to be transfered
      * @return True if the amount is bigger than the threshold
      * */
-    function worthTheTransfer(address asset, uint256 amount) internal returns (bool) {
+    function _worthTheTransfer(address asset, uint256 amount) internal returns (bool) {
         uint256 amountInRbtc = _getAmountInRbtc(asset, amount);
         emit swapExcess(
             amountInRbtc > paySwapExcessToBorrowerThreshold,
@@ -278,6 +280,33 @@ contract LoanClosingsShared is
                 vaultWithdraw(assetToken, receiver, assetAmount);
             }
         }
+    }
+
+    /**
+     * @notice Borrower-bound payout with the Perimeter gate in front: charges the
+     *         exit fee on a chargeable close, then pays the (net or full-gross)
+     *         residual via `_withdrawAsset`. The policy key (`subProduct`) is
+     *         the iToken pool, `loanLocal.lender`.
+     *
+     * @param origin                 Close origin; `Rollover`/`Liquidation` are exempt.
+     * @param loanLocal              The loan being closed.
+     * @param assetToken             The asset paid to the receiver.
+     * @param receiver               User payout recipient.
+     * @param assetAmount            Pre-fee borrower payout amount.
+     * @param allowDonationOnFailure Forwarded to `_withdrawAsset`.
+     * */
+    function _withdrawAssetChargingExitFee(
+        CloseOrigin origin,
+        Loan storage loanLocal,
+        address assetToken,
+        address receiver,
+        uint256 assetAmount,
+        bool allowDonationOnFailure
+    ) internal {
+        uint256 toUser = _exitFeeChargeable(origin, loanLocal)
+            ? _chargeExitFeeReturnNet(receiver, assetToken, loanLocal.lender, assetAmount)
+            : assetAmount;
+        _withdrawAsset(assetToken, receiver, toUser, allowDonationOnFailure);
     }
 
     /**
@@ -438,6 +467,7 @@ contract LoanClosingsShared is
      * @param returnTokenIsCollateral Defines if the remainder should be paid
      *   out in collateral tokens or underlying loan tokens.
      * @param allowDonationOnFailure Should be true on forced closings (liquidation, rollover) - if refund to the borrower reverts, it is donated to Sovryn stakers via FeeSharingCollector.
+     * @param origin Close origin used to gate the exit fee: VoluntaryClose at the public closeWithSwap entry, Rollover from the rollover paths.
      *
      * @return loanCloseAmount The amount of the collateral token of the loan.
      * @return withdrawAmount The withdraw amount in the collateral token.
@@ -449,7 +479,8 @@ contract LoanClosingsShared is
         uint256 swapAmount,
         bool returnTokenIsCollateral,
         bytes memory loanDataBytes,
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     ) internal returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken) {
         require(swapAmount != 0, "swapAmount == 0");
 
@@ -460,7 +491,8 @@ contract LoanClosingsShared is
             returnTokenIsCollateral: returnTokenIsCollateral,
             loanDataBytes: loanDataBytes,
             allowDonationOnFailure: allowDonationOnFailure,
-            receiver: receiver
+            receiver: receiver,
+            origin: origin
         });
 
         (loanCloseAmount, withdrawAmount, withdrawToken) = _executeSwapAndClose(
@@ -566,7 +598,8 @@ contract LoanClosingsShared is
             loanCloseAmountLessInterest,
             params.returnTokenIsCollateral,
             params.loanDataBytes,
-            params.allowDonationOnFailure
+            params.allowDonationOnFailure,
+            params.origin
         );
 
         // Handle post-swap calculations and finalization
@@ -629,7 +662,8 @@ contract LoanClosingsShared is
         uint256 loanCloseAmountLessInterest,
         bool returnTokenIsCollateral,
         bytes memory loanDataBytes,
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     )
         internal
         returns (
@@ -651,7 +685,8 @@ contract LoanClosingsShared is
             loanCloseAmountLessInterest,
             returnTokenIsCollateral,
             loanDataBytes,
-            allowDonationOnFailure
+            allowDonationOnFailure,
+            origin
         );
     }
 
@@ -727,9 +762,10 @@ contract LoanClosingsShared is
 
         // Withdraw to receiver
         if (withdrawAmount != 0) {
-            // allowDonationOnFailure here is following the arguments passed from the caller
-            // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-            _withdrawAsset(
+            // Perimeter: charge the borrower-exit fee on the post-swap residual.
+            _withdrawAssetChargingExitFee(
+                params.origin,
+                loanLocal,
                 withdrawToken,
                 params.receiver,
                 withdrawAmount,
@@ -835,6 +871,7 @@ contract LoanClosingsShared is
      * @param returnTokenIsCollateral Tells if the user wants to withdraw his
      *   remaining collateral + profit in collateral tokens.
      * @param allowDonationOnFailure If true, allow donation on failure for forced operations.
+     * @param origin Close origin used to gate the exit fee on the excess-collateral refund.
      *
      * @return coveredPrincipal The amount of principal that is covered.
      * @return usedCollateral The amount of collateral used.
@@ -842,13 +879,14 @@ contract LoanClosingsShared is
      * @return collateralToLoanSwapRate The swap rate of collateral.
      * */
     function _coverPrincipalWithSwap(
-        Loan memory loanLocal,
+        Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 swapAmount,
         uint256 principalNeeded,
         bool returnTokenIsCollateral,
         bytes memory loanDataBytes,
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     )
         internal
         returns (
@@ -863,14 +901,15 @@ contract LoanClosingsShared is
             principalNeeded: principalNeeded,
             returnTokenIsCollateral: returnTokenIsCollateral,
             loanDataBytes: loanDataBytes,
-            allowDonationOnFailure: allowDonationOnFailure
+            allowDonationOnFailure: allowDonationOnFailure,
+            origin: origin
         });
 
         return _executeCoverPrincipalWithSwap(loanLocal, loanParamsLocal, params);
     }
 
     function _executeCoverPrincipalWithSwap(
-        Loan memory loanLocal,
+        Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         CoverPrincipalParams memory params
     )
@@ -936,7 +975,7 @@ contract LoanClosingsShared is
             uint256 excess = destTokenAmountReceived - coveredPrincipal;
             /// Send excess to borrower if the amount is big enough to be
             /// worth the gas fees.
-            if (worthTheTransfer(loanParamsLocal.loanToken, excess)) {
+            if (_worthTheTransfer(loanParamsLocal.loanToken, excess)) {
                 // allowDonationOnFailure here is following the arguments passed from the caller
                 // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
                 _withdrawAsset(
@@ -957,8 +996,11 @@ contract LoanClosingsShared is
             : 0;
     }
 
+    /// @dev `loanLocal` is a live storage reference. Do not write
+    ///      `loanLocal.collateral` / `principal` here — `_finalizeSwapClose`
+    ///      consumes them after this returns.
     function _handleLoanTokenReturn(
-        Loan memory loanLocal,
+        Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         CoverPrincipalParams memory params,
         uint256 destTokenAmountReceived,
@@ -985,7 +1027,10 @@ contract LoanClosingsShared is
                 uint256 excessCollateral = loanLocal.collateral - sourceTokenAmountUsed;
                 // allowDonationOnFailure here is following the arguments passed from the caller
                 // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                _withdrawAsset(
+                // Perimeter: charge the borrower-exit fee on the excess-collateral refund.
+                _withdrawAssetChargingExitFee(
+                    params.origin,
+                    loanLocal,
                     loanParamsLocal.collateralToken,
                     loanLocal.borrower,
                     excessCollateral,

@@ -695,6 +695,11 @@ def withdrawDevFundTokensByUnlockedTokenOwner():
     data = developmentFund.withdrawTokensByUnlockedTokenOwner.encode_input(100000000e18)
     sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
 
+def withdrawDevFundTokensByLockedTokenOwner():
+    developmentFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['DevelopmentFund'], abi=DevelopmentFund.abi, owner=conf.acct)
+    data = developmentFund.transferTokensByLockedTokenOwner.encode_input(conf.contracts['multisig'])
+    sendWithMultisig(conf.contracts['multisig'], developmentFund.address, data, conf.acct)
+
 def withdrawAdoptionFundTokensByUnlockedTokenOwner():
     adoptionFund = Contract.from_abi("DevelopmentFund", address=conf.contracts['AdoptionFund'], abi=DevelopmentFund.abi, owner=acct)
     #trying to withdraw 100M SOV -> more than available -> should withdraw the max

@@ -1,0 +1,19 @@
+{
+    "python.linting.lintOnSave": false,
+    "python.formatting.provider": "none",
+    "python.analysis.autoImportCompletions": false,
+    "python.analysis.autoSearchPaths": false,
+    "python.linting.enabled": false,
+    "solidity.packageDefaultDependenciesContractsDirectory": "contracts",
+    "solidity.packageDefaultDependenciesDirectory": ["node_modules", "foundry/lib"],
+    "python.analysis.typeCheckingMode": "off",
+
+    "//": "Solidity MUST be formatted by prettier + the repo's pinned prettier-plugin-solidity (see .prettierrc). The Solidity extension otherwise formats with `forge fmt`, which reflows nearly every file under contracts/ and turns a one-line comment edit into a huge unrelated diff. The husky pre-commit hook runs `prettier --write .`, so anything forge formats gets rewritten at commit time anyway.",
+    "solidity.formatter": "prettier",
+    "[solidity]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "prettier.configPath": ".prettierrc",
+    "prettier.ignorePath": ".prettierignore",
+    "prettier.prettierPath": "node_modules/prettier"
+}

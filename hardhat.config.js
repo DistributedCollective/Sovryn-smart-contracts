@@ -31,6 +31,7 @@ const mainnetPKs = [
     process.env.MAINNET_DEPLOYER_PRIVATE_KEY ?? "",
     process.env.PROPOSAL_CREATOR_PRIVATE_KEY ?? "",
     process.env.TESTNET_DEPLOYER_PRIVATE_KEY ?? "", //mainnet signer2
+    process.env.DEPLOYER ?? "", //mainnet deployer
 ].filter((item, i, arr) => item !== "" && arr.indexOf(item) === i);
 const mainnetAccounts = mainnetPKs.length > 0 ? mainnetPKs : mnemonic;
 
@@ -143,10 +144,13 @@ module.exports = {
     namedAccounts: {
         deployer: {
             default: 0,
+            rskSovrynMainnet: 3, //deployer is the 4th account in the mainnetAccounts array, which is the 3rd index
+            rskMainnetTenderly: 3,
         },
         signer: {
             default: 1,
             rskSovrynMainnet: 0,
+            rskMainnetTenderly: 0,
         },
         signer2: {
             default: 2,
@@ -154,6 +158,7 @@ module.exports = {
         voter: {
             default: 1,
             rskForkedMainnet: 0,
+            rskMainnetTenderly: 0,
             rskMainnet: 0,
         },
         proposer2: {
@@ -243,7 +248,7 @@ module.exports = {
             accounts: mainnetAccounts,
             tags: ["mainnet"],
             //timeout: 20000, // increase if needed; 20000 is the default value
-            timeout: 100000,
+            timeout: 900000,
         },
         rskSovrynTestnet: {
             chainId: 31,
@@ -254,6 +259,13 @@ module.exports = {
             confirmations: 4,
             gasMultiplier: 1.25,
             tags: ["testnet"],
+            // Source verification target for `hardhat etherscan-verify` (hardhat-deploy):
+            // Rootstock Blockscout, etherscan-compatible API. The task submits the
+            // standard-JSON input stored in the deployment record; Blockscout accepts
+            // any non-empty --api-key value.
+            verify: {
+                etherscan: { apiUrl: "https://rootstock-testnet.blockscout.com" },
+            },
             //timeout: 20000, // increase if needed; 20000 is the default value
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
         },
@@ -264,7 +276,11 @@ module.exports = {
             gasPrice: 66000010,
             blockGasLimit: 6800000,
             tags: ["mainnet"],
-            timeout: 100000,
+            timeout: 900000,
+            // Source verification target for `hardhat etherscan-verify` (see testnet note).
+            verify: {
+                etherscan: { apiUrl: "https://rootstock.blockscout.com" },
+            },
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
         ethMainnet: {

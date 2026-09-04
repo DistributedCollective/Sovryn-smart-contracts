@@ -26,6 +26,7 @@ ignore
 coverage
 coverage.json
 .vscode
+!.vscode/settings.json
 yarn.lock
 solc-select
 artifacts

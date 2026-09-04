@@ -13,7 +13,7 @@ import "../mixins/VaultController.sol";
 import "../mixins/InterestUser.sol";
 import "../mixins/LiquidationHelper.sol";
 import "../swaps/SwapsUser.sol";
-import "../mixins/ModuleCommonFunctionalities.sol";
+import "../mixins/BorrowerExitPerimeter.sol";
 
 /**
  * @title Loan Maintenance contract.
@@ -31,7 +31,7 @@ contract LoanMaintenance is
     InterestUser,
     SwapsUser,
     LiquidationHelper,
-    ModuleCommonFunctionalities
+    BorrowerExitPerimeter
 {
     // Keep the old LoanReturnData for backward compatibility (especially for the watcher)
     struct LoanReturnData {
@@ -154,7 +154,9 @@ contract LoanMaintenance is
      * @param receiver The account getting the withdrawal.
      * @param withdrawAmount The amount to be withdrawn in collateral tokens.
      *
-     * @return actualWithdrawAmount The amount withdrawn taking into account drawdowns.
+     * @return actualWithdrawAmount The GROSS amount withdrawn taking into
+     *         account drawdowns; an active exit fee is deducted before the
+     *         receiver is paid.
      * */
     function withdrawCollateral(
         bytes32 loanId,
@@ -187,10 +189,20 @@ contract LoanMaintenance is
 
         loanLocal.collateral = loanLocal.collateral.sub(actualWithdrawAmount);
 
+        // Perimeter: charge the borrower-exit fee. Policy key (`subProduct`) is
+        // the iToken pool `loanLocal.lender`; the payout asset is the
+        // collateral token.
+        uint256 amountToUser = _chargeExitFeeReturnNet(
+            receiver,
+            loanParamsLocal.collateralToken,
+            loanLocal.lender,
+            actualWithdrawAmount
+        );
+
         if (loanParamsLocal.collateralToken == address(wrbtcToken)) {
-            vaultEtherWithdraw(receiver, actualWithdrawAmount);
+            vaultEtherWithdraw(receiver, amountToUser);
         } else {
-            vaultWithdraw(loanParamsLocal.collateralToken, receiver, actualWithdrawAmount);
+            vaultWithdraw(loanParamsLocal.collateralToken, receiver, amountToUser);
         }
     }
 

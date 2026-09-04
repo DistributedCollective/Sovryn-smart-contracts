@@ -19,6 +19,8 @@ const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
+const ExitFeeModule = artifacts.require("ExitFeeModule");
+const BorrowerExitPerimeterOps = artifacts.require("BorrowerExitPerimeterOps");
 
 const SwapsExternal = artifacts.require("SwapsExternal");
 const SwapsImplSovrynSwapModule = artifacts.require("SwapsImplSovrynSwapModule");
@@ -289,6 +291,12 @@ const getSovryn = async (WRBTC, SUSD, RBTC, priceFeeds) => {
     await sovryn.replaceContract((await LoanClosingsWith.new()).address);
     await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
     await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
+    // Perimeter admin module (the protocol-singleton controller + charge-hook pointers)
+    await sovryn.replaceContract((await ExitFeeModule.new()).address);
+    // Pin the borrower-exit charge hook (delegatecall target). Deployed once;
+    // patchable via setBorrowerExitPerimeterOps without redeploying the modules.
+    const borrowerExitPerimeterOps = await BorrowerExitPerimeterOps.new();
+    await sovryn.setBorrowerExitPerimeterOps(borrowerExitPerimeterOps.address);
 
     // affiliates
     await sovryn.replaceContract((await Affiliates.new()).address);

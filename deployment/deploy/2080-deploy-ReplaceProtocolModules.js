@@ -70,7 +70,32 @@ const func = async function (hre) {
             await sovrynProtocol.replaceContract(moduleDeployment.address);
         }
     }
+
+    // Pin the borrower-exit charge hook (BorrowerExitPerimeterOps) on the proxy.
+    // onlyOwner — on testnet/mainnet this must be bundled into the same
+    // multisig/SIP that registers ExitFeeModule (the setter selector only
+    // becomes reachable once ExitFeeModule is registered above); locally we
+    // call it directly. Until it is set, borrower exits fail-open to full gross.
+    const opsDeployment = await get("BorrowerExitPerimeterOps");
+    if (hre.network.tags["testnet"] || hre.network.tags["mainnet"]) {
+        log(
+            col.bgBlue(
+                `>>> Governance must also call setBorrowerExitPerimeterOps(${opsDeployment.address}) <<<`
+            )
+        );
+    } else {
+        const exitFeeModuleDeployment = await get("ExitFeeModule");
+        const proxyAsExitFee = new ethers.Contract(
+            sovrynProtocolDeployment.address,
+            exitFeeModuleDeployment.abi,
+            (await ethers.getSigners())[0]
+        );
+        if ((await proxyAsExitFee.borrowerExitPerimeterOps()) != opsDeployment.address) {
+            await proxyAsExitFee.setBorrowerExitPerimeterOps(opsDeployment.address);
+            log(col.bgYellow(`Pinned BorrowerExitPerimeterOps: ${opsDeployment.address}`));
+        }
+    }
 };
 func.tags = ["ReplaceProtocolModules"]; // getContractNameFromScriptFileName(path.basename(__filename))
-func.dependencies = ["ProtocolModules"];
+func.dependencies = ["ProtocolModules", "BorrowerExitPerimeterOps"];
 module.exports = func;

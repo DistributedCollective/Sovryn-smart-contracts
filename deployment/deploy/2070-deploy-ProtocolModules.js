@@ -19,11 +19,18 @@ const func = async function (hre) {
             sampleFunction: "setAffiliatesReferrer(address,address)",
             requireSwapsImplSovrynSwapLib: false,
         },*/
-        LoanClosingsLiquidation: {
+        // NOT deployed in this release. LoanClosingsLiquidation has no source
+        // change and calls no changed shared function, so its runtime bytecode
+        // (metadata trailer stripped) is byte-identical to the module already
+        // registered on the protocol. Deploying it would place a duplicate of
+        // live code at a fresh address that the activation never registers —
+        // and would inflate the "code at every new address" deploy check with
+        // an address that is never used.
+        /*LoanClosingsLiquidation: {
             moduleName: "LoanClosingsLiquidation",
             sampleFunction: "liquidate(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: false,
-        },
+        },*/
         LoanClosingsRollover: {
             moduleName: "LoanClosingsRollover",
             sampleFunction: "rollover(bytes32,bytes)",
@@ -34,14 +41,26 @@ const func = async function (hre) {
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
         },
-        /*LoanOpenings: {
-            moduleName: "LoanOpenings",
-            sampleFunction: "setDelegatedManager(bytes32,address,bool)",
-            requireSwapsImplSovrynSwapLib: true,
+        // Perimeter admin module: the protocol-singleton controller pointer
+        // (exitFeeController / setExitFeeController). UIs quote fees via
+        // eth_call of the live exits — no on-chain previews.
+        ExitFeeModule: {
+            moduleName: "ExitFeeModule",
+            sampleFunction: "setExitFeeController(address)",
+            requireSwapsImplSovrynSwapLib: false,
         },
+        // Redeployed in this release: withdrawCollateral now charges the
+        // borrower-exit fee through the Perimeter hook. initialize() registers no
+        // Perimeter selectors — the pointer admin lives in ExitFeeModule and
+        // there are no on-chain preview selectors anywhere in the release.
         LoanMaintenance: {
             moduleName: "LoanMaintenance",
             sampleFunction: "getActiveLoans(uint256,uint256,bool)",
+            requireSwapsImplSovrynSwapLib: true,
+        },
+        /*LoanOpenings: {
+            moduleName: "LoanOpenings",
+            sampleFunction: "setDelegatedManager(bytes32,address,bool)",
             requireSwapsImplSovrynSwapLib: true,
         },
         LoanSettings: {
@@ -79,9 +98,7 @@ const func = async function (hre) {
         const module = deployModules[protocolModulesName[i]];
 
         if (module.requireSwapsImplSovrynSwapLib) {
-            libraries = {
-                SwapsImplSovrynSwapLib: swapsImplSovrynSwapLibDeployment.address,
-            };
+            libraries.SwapsImplSovrynSwapLib = swapsImplSovrynSwapLibDeployment.address;
         }
         const tx = await deploy(module.moduleName, {
             from: deployer,

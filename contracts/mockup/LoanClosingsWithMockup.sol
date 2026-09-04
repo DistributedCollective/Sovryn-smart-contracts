@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "../modules/LoanClosingsWith.sol";
 
 contract LoanClosingsWithMockup is LoanClosingsWith {
-    function worthTheTransfer(address, uint256) internal returns (bool) {
+    function _worthTheTransfer(address, uint256) internal returns (bool) {
         return true;
     }
 

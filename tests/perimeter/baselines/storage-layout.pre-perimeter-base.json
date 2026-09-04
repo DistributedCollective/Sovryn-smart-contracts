@@ -1,0 +1,602 @@
+{
+    "_meta": {
+        "purpose": "Storage-layout zero-diff baseline for the Perimeter lending-side security perimeter.",
+        "baseRef": "83871cd0 (\"add how-to integration docs\") — the upstream base of sovryn-perimeter-fee, i.e. the layout the LIVE mainnet sovrynProtocol and iToken proxies hold today.",
+        "capturedOn": "2026-08-02",
+        "solc": "0.5.17+commit.d19bba13 (optimizer enabled, runs 200 — hardhat.config.js)",
+        "normalization": "solc storageLayout entries reduced to {label, slot, offset, type}, sorted by slot/offset/label, with AST node-id suffixes after a \")\" stripped from type strings (they shift with the compilation set and are not a layout change).",
+        "groups": {
+            "protocol": "Storage of contracts/core/State.sol — the layout every module registered on the sovrynProtocol proxy delegatecalls into.",
+            "iTokenBeacon": "Storage of the iToken logic chain (LoanTokenBase → AdvancedTokenStorage → LoanTokenLogicStorage) — the layout every beacon logic contract delegatecalls into inside an iToken proxy."
+        },
+        "newContractsNote": "ExitFeeModule and BorrowerExitPerimeterOps do not exist at the base ref; they are Perimeter additions that run by delegatecall in the protocol proxy. Their baseline is therefore the base-ref protocol layout itself — the invariant is that they add no state to the live proxy.",
+        "regenerate": "Only on an INTENTIONAL, reviewed layout change. See the header of tests/perimeter/StorageLayout.zerodiff.test.js.",
+        "consumers": [
+            "tests/perimeter/StorageLayout.zerodiff.test.js",
+            "tests/perimeter/utils/storageLayout.js"
+        ]
+    },
+    "layouts": {
+        "protocol": [
+            {
+                "label": "reentrancyLock",
+                "slot": "0",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "_owner",
+                "slot": "1",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "priceFeeds",
+                "slot": "2",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "swapsImpl",
+                "slot": "3",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "sovrynSwapContractRegistryAddress",
+                "slot": "4",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "logicTargets",
+                "slot": "5",
+                "offset": 0,
+                "type": "t_mapping(t_bytes4,t_address)"
+            },
+            {
+                "label": "loans",
+                "slot": "6",
+                "offset": 0,
+                "type": "t_mapping(t_bytes32,t_struct(Loan)_storage)"
+            },
+            {
+                "label": "loanParams",
+                "slot": "7",
+                "offset": 0,
+                "type": "t_mapping(t_bytes32,t_struct(LoanParams)_storage)"
+            },
+            {
+                "label": "lenderOrders",
+                "slot": "8",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_mapping(t_bytes32,t_struct(Order)_storage))"
+            },
+            {
+                "label": "borrowerOrders",
+                "slot": "9",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_mapping(t_bytes32,t_struct(Order)_storage))"
+            },
+            {
+                "label": "delegatedManagers",
+                "slot": "10",
+                "offset": 0,
+                "type": "t_mapping(t_bytes32,t_mapping(t_address,t_bool))"
+            },
+            {
+                "label": "lenderInterest",
+                "slot": "11",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_mapping(t_address,t_struct(LenderInterest)_storage))"
+            },
+            {
+                "label": "loanInterest",
+                "slot": "12",
+                "offset": 0,
+                "type": "t_mapping(t_bytes32,t_struct(LoanInterest)_storage)"
+            },
+            {
+                "label": "logicTargetsSet",
+                "slot": "13",
+                "offset": 0,
+                "type": "t_struct(Bytes32Set)_storage"
+            },
+            {
+                "label": "activeLoansSet",
+                "slot": "15",
+                "offset": 0,
+                "type": "t_struct(Bytes32Set)_storage"
+            },
+            {
+                "label": "lenderLoanSets",
+                "slot": "17",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_struct(Bytes32Set)_storage)"
+            },
+            {
+                "label": "borrowerLoanSets",
+                "slot": "18",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_struct(Bytes32Set)_storage)"
+            },
+            {
+                "label": "userLoanParamSets",
+                "slot": "19",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_struct(Bytes32Set)_storage)"
+            },
+            {
+                "label": "feesController",
+                "slot": "20",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "lendingFeePercent",
+                "slot": "21",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "lendingFeeTokensHeld",
+                "slot": "22",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "lendingFeeTokensPaid",
+                "slot": "23",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "tradingFeePercent",
+                "slot": "24",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "tradingFeeTokensHeld",
+                "slot": "25",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "tradingFeeTokensPaid",
+                "slot": "26",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "borrowingFeePercent",
+                "slot": "27",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "borrowingFeeTokensHeld",
+                "slot": "28",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "borrowingFeeTokensPaid",
+                "slot": "29",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "protocolTokenHeld",
+                "slot": "30",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "protocolTokenPaid",
+                "slot": "31",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "affiliateFeePercent",
+                "slot": "32",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "liquidationIncentivePercent",
+                "slot": "33",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "loanPoolToUnderlying",
+                "slot": "34",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_address)"
+            },
+            {
+                "label": "underlyingToLoanPool",
+                "slot": "35",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_address)"
+            },
+            {
+                "label": "loanPoolsSet",
+                "slot": "36",
+                "offset": 0,
+                "type": "t_struct(Bytes32Set)_storage"
+            },
+            {
+                "label": "supportedTokens",
+                "slot": "38",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "label": "maxDisagreement",
+                "slot": "39",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "sourceBuffer",
+                "slot": "40",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "maxSwapSize",
+                "slot": "41",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "borrowerNonce",
+                "slot": "42",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "rolloverBaseReward",
+                "slot": "43",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "rolloverFlexFeePercent",
+                "slot": "44",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "wrbtcToken",
+                "slot": "45",
+                "offset": 0,
+                "type": "t_contract(IWrbtcERC20)"
+            },
+            {
+                "label": "protocolTokenAddress",
+                "slot": "46",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "feeRebatePercent",
+                "slot": "47",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "admin",
+                "slot": "48",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "protocolAddress",
+                "slot": "49",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "userNotFirstTradeFlag",
+                "slot": "50",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_bool)"
+            },
+            {
+                "label": "affiliatesUserReferrer",
+                "slot": "51",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_address)"
+            },
+            {
+                "label": "referralsList",
+                "slot": "52",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_struct(AddressSet)_storage)"
+            },
+            {
+                "label": "minReferralsToPayout",
+                "slot": "53",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "affiliateRewardsHeld",
+                "slot": "54",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "sovTokenAddress",
+                "slot": "55",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "lockedSOVAddress",
+                "slot": "56",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "affiliateTradingTokenFeePercent",
+                "slot": "57",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "affiliatesReferrerTokensList",
+                "slot": "58",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_struct(AddressSet)_storage)"
+            },
+            {
+                "label": "affiliatesReferrerBalances",
+                "slot": "59",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+            },
+            {
+                "label": "specialRebates",
+                "slot": "60",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+            },
+            {
+                "label": "pause",
+                "slot": "61",
+                "offset": 0,
+                "type": "t_bool"
+            },
+            {
+                "label": "swapExtrernalFeePercent",
+                "slot": "62",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "tradingRebateRewardsBasisPoint",
+                "slot": "63",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "defaultPathConversion",
+                "slot": "64",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_mapping(t_address,t_array(t_contract(IERC20))dyn_storage))"
+            },
+            {
+                "label": "pauser",
+                "slot": "65",
+                "offset": 0,
+                "type": "t_address"
+            }
+        ],
+        "iTokenBeacon": [
+            {
+                "label": "reentrancyLock",
+                "slot": "0",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "_owner",
+                "slot": "1",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "name",
+                "slot": "2",
+                "offset": 0,
+                "type": "t_string_storage"
+            },
+            {
+                "label": "symbol",
+                "slot": "3",
+                "offset": 0,
+                "type": "t_string_storage"
+            },
+            {
+                "label": "decimals",
+                "slot": "4",
+                "offset": 0,
+                "type": "t_uint8"
+            },
+            {
+                "label": "loanTokenAddress",
+                "slot": "4",
+                "offset": 1,
+                "type": "t_address"
+            },
+            {
+                "label": "baseRate",
+                "slot": "5",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "rateMultiplier",
+                "slot": "6",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "lowUtilBaseRate",
+                "slot": "7",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "lowUtilRateMultiplier",
+                "slot": "8",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "targetLevel",
+                "slot": "9",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "kinkLevel",
+                "slot": "10",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "maxScaleRate",
+                "slot": "11",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "_flTotalAssetSupply",
+                "slot": "12",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "checkpointSupply",
+                "slot": "13",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "initialPrice",
+                "slot": "14",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "lastSettleTime_",
+                "slot": "15",
+                "offset": 0,
+                "type": "t_uint88"
+            },
+            {
+                "label": "loanParamsIds",
+                "slot": "16",
+                "offset": 0,
+                "type": "t_mapping(t_uint256,t_bytes32)"
+            },
+            {
+                "label": "checkpointPrices_",
+                "slot": "17",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "transactionLimit",
+                "slot": "18",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "balances",
+                "slot": "19",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_uint256)"
+            },
+            {
+                "label": "allowed",
+                "slot": "20",
+                "offset": 0,
+                "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))"
+            },
+            {
+                "label": "totalSupply_",
+                "slot": "21",
+                "offset": 0,
+                "type": "t_uint256"
+            },
+            {
+                "label": "sovrynContractAddress",
+                "slot": "22",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "wrbtcTokenAddress",
+                "slot": "23",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "target_",
+                "slot": "24",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "admin",
+                "slot": "25",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "earlyAccessToken",
+                "slot": "26",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "pauser",
+                "slot": "27",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "liquidityMiningAddress",
+                "slot": "28",
+                "offset": 0,
+                "type": "t_address"
+            },
+            {
+                "label": "stakingContractAddress",
+                "slot": "29",
+                "offset": 0,
+                "type": "t_address"
+            }
+        ]
+    },
+    "targets": {
+        "contracts/core/State.sol:State": "protocol",
+        "contracts/modules/LoanClosingsShared.sol:LoanClosingsShared": "protocol",
+        "contracts/modules/LoanClosingsWith.sol:LoanClosingsWith": "protocol",
+        "contracts/modules/LoanClosingsRollover.sol:LoanClosingsRollover": "protocol",
+        "contracts/modules/LoanClosingsLiquidation.sol:LoanClosingsLiquidation": "protocol",
+        "contracts/modules/LoanMaintenance.sol:LoanMaintenance": "protocol",
+        "contracts/modules/ExitFeeModule.sol:ExitFeeModule": "protocol",
+        "contracts/utils/BorrowerExitPerimeterOps.sol:BorrowerExitPerimeterOps": "protocol",
+        "contracts/connectors/loantoken/LoanTokenLogicShared.sol:LoanTokenLogicShared": "iTokenBeacon",
+        "contracts/connectors/loantoken/modules/beaconLogicLM/LoanTokenLogicLM.sol:LoanTokenLogicLM": "iTokenBeacon",
+        "contracts/connectors/loantoken/modules/beaconLogicWRBTC/LoanTokenLogicWrbtcLM.sol:LoanTokenLogicWrbtcLM": "iTokenBeacon"
+    }
+}
