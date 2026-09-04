@@ -45,7 +45,7 @@ contract ILoanTokenModules is IPerimeterEvents {
 
     /** INTERFACE */
 
-    /** PERIMETER — controller view */
+    /** Perimeter — controller view */
     function exitFeeController() external view returns (address);
 
     /** START LOAN TOKEN SETTINGS LOWER ADMIN */

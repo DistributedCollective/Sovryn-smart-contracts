@@ -36,6 +36,7 @@ const {
     replaceStakingModule,
     getStakingModulesObject,
     getStakingModulesAddressList,
+    linkIfUsed,
 } = require("./Utils/initializer");
 
 const TestToken = artifacts.require("TestToken");
@@ -50,10 +51,12 @@ const Affiliates = artifacts.require("Affiliates");
 const Protocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
+const LoanMaintenanceViews = artifacts.require("LoanMaintenanceViews");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
+const LoanClosingsWithSwap = artifacts.require("LoanClosingsWithSwap");
 
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
@@ -141,11 +144,13 @@ contract("FeeSharingCollector:", (accounts) => {
         try {
             /** Deploy SwapsImplSovrynSwapLib */
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
-            await SwapsExternal.link(swapsImplSovrynSwapLib);
-            await LoanClosingsWith.link(swapsImplSovrynSwapLib);
-            await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
-            await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenanceViews, swapsImplSovrynSwapLib);
+            await linkIfUsed(SwapsExternal, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsWith, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsWithSwap, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsRollover, swapsImplSovrynSwapLib);
+            await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
         } catch (err) {}
     });
 
@@ -196,11 +201,16 @@ contract("FeeSharingCollector:", (accounts) => {
         await sovryn.replaceContract((await ProtocolSettings.new()).address);
         await sovryn.replaceContract((await LoanSettings.new()).address);
         await sovryn.replaceContract((await LoanMaintenance.new()).address);
+        // The loan views split out of LoanMaintenance; without this every
+        // view below reads as an inactive target.
+        await sovryn.replaceContract((await LoanMaintenanceViews.new()).address);
         await sovryn.replaceContract((await SwapsExternal.new()).address);
 
         await sovryn.setWrbtcToken(WRBTC.address);
 
         await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+        // closeWithSwap split out of LoanClosingsWith.
+        await sovryn.replaceContract((await LoanClosingsWithSwap.new()).address);
         await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
         await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
 

@@ -69,6 +69,10 @@ const getProtocolModules = () => {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
         },
+        LoanClosingsWithSwap: {
+            moduleName: "LoanClosingsWithSwap",
+            sampleFunction: "closeWithSwap(bytes32,address,uint256,bool,bytes)",
+        },
         ExitFeeModule: {
             moduleName: "ExitFeeModule",
             sampleFunction: "setExitFeeController(address)",
@@ -79,6 +83,13 @@ const getProtocolModules = () => {
         },
         LoanMaintenance: {
             moduleName: "LoanMaintenance",
+            // getActiveLoans now lives in LoanMaintenanceViews; this must name a
+            // selector LoanMaintenance itself still registers, or the
+            // registration check reads the wrong module.
+            sampleFunction: "withdrawCollateral(bytes32,address,uint256)",
+        },
+        LoanMaintenanceViews: {
+            moduleName: "LoanMaintenanceViews",
             sampleFunction: "getActiveLoans(uint256,uint256,bool)",
         },
         LoanSettings: {

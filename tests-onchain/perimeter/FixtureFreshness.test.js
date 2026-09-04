@@ -42,12 +42,16 @@ const STALE_MARKERS = [
     "sovryn.colFeeBorrowerExitOps",
 ];
 
+/// The surplus claim is settled by the delegatecall companion rather than by
+/// BorrowerOperations itself, so the surface it quotes is embedded in the
+/// companion's bytecode; BorrowerOperations keeps the collateral-withdrawal
+/// surface and the controller slot.
 const REQUIRED = {
     "BorrowerOperationsPerimeter.json": [
         "PERIMETER_SURFACE_ZERO_WITHDRAW_COLL",
-        "PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS",
         "sovryn.perimeterExitFeeController",
     ],
+    "BorrowerOperationsPerimeterOps.json": ["PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS"],
 };
 
 contract("Perimeter — rehearsal fixtures are current", () => {

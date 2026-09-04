@@ -19,6 +19,10 @@ const FeesEvents = artifacts.require("FeesEvents");
 const LoanOpenings = artifacts.require("LoanOpenings");
 const LoanClosingsWithMockup = artifacts.require("LoanClosingsWithMockup");
 const LoanClosingsWithoutInvariantCheck = artifacts.require("LoanClosingsWithoutInvariantCheck");
+const LoanClosingsWithSwapMockup = artifacts.require("LoanClosingsWithSwapMockup");
+const LoanClosingsWithSwapWithoutInvariantCheck = artifacts.require(
+    "LoanClosingsWithSwapWithoutInvariantCheck"
+);
 const TestCrossReentrancyRBTC = artifacts.require("TestCrossReentrancyRBTC");
 const TestCrossReentrancyERC777 = artifacts.require("TestCrossReentrancyERC777");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -47,6 +51,7 @@ const {
     getMockLoanToken,
 } = require("../Utils/initializer.js");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -84,8 +89,10 @@ contract("LoanTokenBorrowing", (accounts) => {
     before(async () => {
         [owner, account1] = accounts;
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await LoanClosingsWithoutInvariantCheck.link(swapsImplSovrynSwapLib);
-        await LoanClosingsWithMockup.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanClosingsWithoutInvariantCheck, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanClosingsWithMockup, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanClosingsWithSwapMockup, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanClosingsWithSwapWithoutInvariantCheck, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {
@@ -1247,6 +1254,9 @@ contract("LoanTokenBorrowing", (accounts) => {
             await set_demand_curve(loanTokenWRBTC);
 
             await sovryn.replaceContract((await LoanClosingsWithMockup.new()).address);
+            // closeWithSwap is its own module now — the probe closes with a swap,
+            // so without this it runs the real implementation.
+            await sovryn.replaceContract((await LoanClosingsWithSwapMockup.new()).address);
 
             // Lend to pool
             const lender = accounts[1];
@@ -1298,6 +1308,9 @@ contract("LoanTokenBorrowing", (accounts) => {
             await set_demand_curve(loanTokenWRBTC);
 
             await sovryn.replaceContract((await LoanClosingsWithoutInvariantCheck.new()).address);
+            await sovryn.replaceContract(
+                (await LoanClosingsWithSwapWithoutInvariantCheck.new()).address
+            );
 
             // Lend to pool
             const lender = accounts[1];
@@ -1372,6 +1385,9 @@ contract("LoanTokenBorrowing", (accounts) => {
             await lend_to_pool(loanToken, TestERC777, owner);
 
             await sovryn.replaceContract((await LoanClosingsWithMockup.new()).address);
+            // closeWithSwap is its own module now — the probe closes with a swap,
+            // so without this it runs the real implementation.
+            await sovryn.replaceContract((await LoanClosingsWithSwapMockup.new()).address);
 
             const withdrawAmount = new BN(wei("500000", "ether"));
 
@@ -1432,6 +1448,9 @@ contract("LoanTokenBorrowing", (accounts) => {
             await lend_to_pool(loanToken, TestERC777, owner);
 
             await sovryn.replaceContract((await LoanClosingsWithoutInvariantCheck.new()).address);
+            await sovryn.replaceContract(
+                (await LoanClosingsWithSwapWithoutInvariantCheck.new()).address
+            );
 
             const withdrawAmount = new BN(wei("500000", "ether"));
 

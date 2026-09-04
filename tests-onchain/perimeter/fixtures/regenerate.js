@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Regenerate the six externally-built Perimeter rehearsal fixtures from the
+ * Regenerate the eight externally-built Perimeter rehearsal fixtures from the
  * build artifacts of their source repos (runbook P11: fixtures must be
  * rebuilt at the frozen commits and their _provenance updated).
  *
@@ -56,6 +56,7 @@ const FIXTURES = [
     // [fixture file, artifact path relative to its repo root, repo root]
     ["ExitFeeController.json", "out/ExitFeeController.sol/ExitFeeController.json", perimeterRoot],
     ["ExitFeeVault.json", "out/ExitFeeVault.sol/ExitFeeVault.json", perimeterRoot],
+    ["ExitDelayQueue.json", "out/ExitDelayQueue.sol/ExitDelayQueue.json", perimeterRoot],
     ["ERC1967Proxy.json", "out/ERC1967Proxy.sol/ERC1967Proxy.json", perimeterRoot],
     [
         "BorrowerOperationsPerimeter.json",
@@ -65,6 +66,11 @@ const FIXTURES = [
     [
         "CollSurplusPoolPerimeter.json",
         "artifacts/contracts/CollSurplusPool.sol/CollSurplusPool.json",
+        zeroRoot,
+    ],
+    [
+        "BorrowerOperationsPerimeterOps.json",
+        "artifacts/contracts/Dependencies/BorrowerOperationsPerimeterOps.sol/BorrowerOperationsPerimeterOps.json",
         zeroRoot,
     ],
     [
@@ -102,4 +108,4 @@ for (const [fixtureFile, artifactRel, repoRoot] of FIXTURES) {
     if (before !== after) changed++;
     console.log(`${fixtureFile}: ${delta} (commit ${fixture._provenance.commit})`);
 }
-console.log(`done: 6 fixtures written, ${changed} with new bytes`);
+console.log(`done: 8 fixtures written, ${changed} with new bytes`);

@@ -21,4 +21,25 @@ contract MockMalformedExitFeeController {
             return(0, 192)
         }
     }
+
+    /// @notice The security-perimeter delay leg is fail-CLOSED, so the delay
+    ///         quote MUST be answered cleanly by any controller a product pins —
+    ///         a real deployed `ExitFeeController` always implements it. This
+    ///         double is malformed ONLY on the FEE quote (the fallback above);
+    ///         the delay quote reports a healthy, DISABLED perimeter (`d = 0`,
+    ///         raw identities) so the test isolates the fee leg's fail-open
+    ///         defensive decode without the delay leg fail-closing the exit.
+    function quoteExitDelayFor(
+        address rawOriginator,
+        address owner,
+        address /* receiver */,
+        bytes32 /* surfaceId */,
+        address /* subProduct */
+    ) external pure returns (uint32 d, address effOrig, address effOwner) {
+        return (0, rawOriginator, owner);
+    }
+
+    function securityPerimeterEnabled() external pure returns (bool) {
+        return false;
+    }
 }

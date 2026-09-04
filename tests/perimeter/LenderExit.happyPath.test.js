@@ -48,6 +48,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -159,7 +160,7 @@ contract("Perimeter — lender-exit happy path (Phase 2 / Task 2.2)", (accounts)
         [lender, user, feeReceiver, ...accounts] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

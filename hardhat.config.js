@@ -167,7 +167,9 @@ module.exports = {
     },
     networks: {
         hardhat: {
-            chainId: 31337,
+            chainId: process.env.PERIMETER_QA_CHAIN_ID
+                ? Number(process.env.PERIMETER_QA_CHAIN_ID)
+                : 31337,
             allowUnlimitedContractSize: true,
             accounts: { mnemonic: "test test test test test test test test test test test junk" },
             initialBaseFeePerGas: 0,
@@ -212,11 +214,25 @@ module.exports = {
         rskForkedMainnet: {
             chainId: 31337,
             accounts: mainnetAccounts,
-            url: "http://127.0.0.1:8545",
+            url: process.env.PERIMETER_FORK_RPC_URL || "http://127.0.0.1:8545",
             blockGasLimit: 6800000,
             gasPrice: 66000010,
             live: true,
             tags: ["mainnet", "forked"],
+            timeout: 1000000,
+        },
+        // Same fork as rskForkedMainnet, but reporting RSK's real chain id (30)
+        // so MetaMask and dapps that gate on chain id accept it during manual
+        // QA. Boot it with scripts/perimeter/qa-node.sh.
+        rskForkedMainnetQa: {
+            chainId: 30,
+            accounts: mainnetAccounts,
+            url: process.env.PERIMETER_QA_RPC || "http://127.0.0.1:8545",
+            blockGasLimit: 6800000,
+            gasPrice: 66000010,
+            live: true,
+            tags: ["mainnet", "forked", "qa"],
+            saveDeployments: true,
             timeout: 1000000,
         },
         /*localhost: {
@@ -373,6 +389,11 @@ module.exports = {
                 "deployment/deployments/rskSovrynMainnet",
             ],
             rskForkedMainnet: [
+                "external/deployments/rskMainnet",
+                "deployment/deployments/rskSovrynMainnet",
+                "external/deployments/rskForkedMainnet",
+            ],
+            rskForkedMainnetQa: [
                 "external/deployments/rskMainnet",
                 "deployment/deployments/rskSovrynMainnet",
                 "external/deployments/rskForkedMainnet",

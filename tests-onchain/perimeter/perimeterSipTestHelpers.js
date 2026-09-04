@@ -23,10 +23,12 @@ const ONE_RBTC = ethers.utils.parseEther("1.0");
 const MAX_DURATION = ethers.BigNumber.from(24 * 60 * 60).mul(1092);
 
 // Fork source for hardhat_reset. Override when mainnet-dev is unavailable,
-// e.g. COLFEE_FORK_RPC=https://public-node.rsk.co COLFEE_FORK_BLOCK=<recent>.
-const FORK_URL = process.env.COLFEE_FORK_RPC || "https://mainnet-dev.sovryn.app/rpc";
+// e.g. PERIMETER_FORK_RPC=https://public-node.rsk.co PERIMETER_FORK_BLOCK=<recent>.
+const FORK_URL = process.env.PERIMETER_FORK_RPC || "https://mainnet-dev.sovryn.app/rpc";
 const forkBlock = (defaultBlock) =>
-    process.env.COLFEE_FORK_BLOCK ? parseInt(process.env.COLFEE_FORK_BLOCK, 10) : defaultBlock;
+    process.env.PERIMETER_FORK_BLOCK
+        ? parseInt(process.env.PERIMETER_FORK_BLOCK, 10)
+        : defaultBlock;
 
 const PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes("PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW")
@@ -46,6 +48,8 @@ const vaultFixture = require("./fixtures/ExitFeeVault.json");
 const erc1967ProxyFixture = require("./fixtures/ERC1967Proxy.json");
 const borrowerOperationsFixture = require("./fixtures/BorrowerOperationsPerimeter.json");
 const collSurplusPoolFixture = require("./fixtures/CollSurplusPoolPerimeter.json");
+const queueFixture = require("./fixtures/ExitDelayQueue.json");
+const borrowerOperationsOpsFixture = require("./fixtures/BorrowerOperationsPerimeterOps.json");
 const priceFeedTestnetFixture = require("./fixtures/PriceFeedTestnet.json");
 
 const perimeterEventsInterface = new ethers.utils.Interface([
@@ -59,10 +63,17 @@ const perimeterEventsInterface = new ethers.utils.Interface([
  *  an external `hardhat node` process, whose in-process HD-wallet wrapper
  *  refuses eth_sendTransaction for accounts it does not manage (HH103) even
  *  after hardhat_impersonateAccount — so sends must bypass it. The address is
- *  attached as `.address` for parity with hre signers. */
+ *  attached as `.address` for parity with hre signers.
+ *
+ *  The raw provider MUST be built from the selected network's own url. A fixed
+ *  endpoint would unlock accounts on, and send transactions to, whatever node
+ *  happens to be listening there — which is not necessarily the node the rest
+ *  of the run is talking to. */
 const getImpersonatedSigner = async (addressToImpersonate) => {
     await impersonateAccount(addressToImpersonate);
-    const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545");
+    const provider = new ethers.providers.JsonRpcProvider(
+        hre.network.config.url || "http://127.0.0.1:8545"
+    );
     await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
     const signer = provider.getSigner(addressToImpersonate);
     signer.address = ethers.utils.getAddress(addressToImpersonate);
@@ -211,6 +222,212 @@ const attachedOperator = async (controller) => {
     return signer;
 };
 
+/** ERC1967 implementation slot — where a UUPS proxy keeps its implementation
+ *  pointer, read directly so the upgrade can be shown to have moved it. */
+const ERC1967_IMPL_SLOT = "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
+
+const PERIMETER_SURFACES = {
+    LENDING_LENDER_WITHDRAW: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+    LENDING_BORROWER_WITHDRAW: PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+    ZERO_WITHDRAW_COLL: PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+    ZERO_CLAIM_SURPLUS: PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
+};
+
+/** Refuse to rehearse the delay against a controller build that has none.
+ *
+ *  The committed fixture is the only controller build these tests deploy. When
+ *  it predates the delay the whole rehearsal still runs and still passes its
+ *  wiring assertions, while quoting no hold at all — so the check is worth more
+ *  loud and early than as a puzzling revert later. */
+const assertDelayVintageControllerFixture = () => {
+    const names = controllerFixture.abi.filter((e) => e.type === "function").map((e) => e.name);
+    const missing = [
+        "securityPerimeterEnabled",
+        "globalDelaySeconds",
+        "setGlobalDelaySeconds",
+    ].filter((n) => !names.includes(n));
+    if (missing.length > 0) {
+        throw new Error(
+            `fixtures/ExitFeeController.json has no ${missing.join("/")} — it was built before ` +
+                "the delay. Rebuild the source repo and re-run fixtures/regenerate.js."
+        );
+    }
+};
+
+/** True when the proxy already answers the delay views — i.e. it is serving an
+ *  implementation that carries the delay. Read through a minimal interface, so
+ *  the answer is about the bytes behind the proxy and not about the fixture ABI
+ *  this file happens to hold. */
+const servesDelayBuild = async (controllerAddress) => {
+    const probe = new ethers.Contract(
+        controllerAddress,
+        [
+            "function globalDelaySeconds() view returns (uint32)",
+            "function securityPerimeterEnabled() view returns (bool)",
+        ],
+        ethers.provider
+    );
+    try {
+        await probe.globalDelaySeconds();
+        await probe.securityPerimeterEnabled();
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
+
+/** Minimal read surface for the installed-release question — never a fixture
+ *  ABI, so the answer is about the bytes the protocol actually points at rather
+ *  than about what a build happens to expect. */
+const PROTOCOL_POINTERS_ABI = [
+    "function exitDelayQueue() view returns (address)",
+    "function exitFeeController() view returns (address)",
+];
+
+/**
+ * The delay release already on this node, or null.
+ *
+ * It is installed when the protocol carries a queue pointer, that pointer has
+ * code behind it, and the controller the protocol names serves the delay build.
+ * All three are read off the chain: a pointer is not a queue — a node forked
+ * before the queue was deployed, or restarted under a state file, answers with
+ * an address that has nothing behind it, and attaching to that would look
+ * installed and hold nothing.
+ *
+ * One predicate for every caller, so the fixture that rehearses the release and
+ * the bootstrap that replays it can never disagree about whether it is there.
+ */
+const findInstalledPhase2Release = async (hre) => {
+    const protocolAddress = (await hre.deployments.get("SovrynProtocol")).address;
+    const protocol = new hre.ethers.Contract(
+        protocolAddress,
+        PROTOCOL_POINTERS_ABI,
+        hre.ethers.provider
+    );
+    let queue;
+    let controller;
+    try {
+        queue = await protocol.exitDelayQueue();
+        controller = await protocol.exitFeeController();
+    } catch (error) {
+        return null;
+    }
+    const zero = hre.ethers.constants.AddressZero;
+    if (queue === zero || controller === zero) return null;
+    if ((await hre.ethers.provider.getCode(queue)) === "0x") return null;
+    if (!(await servesDelayBuild(controller))) return null;
+    return { queue, controller };
+};
+
+/** Move the live controller proxy onto the delay-vintage implementation, the
+ *  way its owner does in production: deploy the implementation, then call
+ *  `upgradeTo` from the owner. Nothing is written to storage by hand — the
+ *  proxy's own authorization is what admits the change, so an owner that could
+ *  not do this on mainnet cannot do it here either.
+ *
+ *  Everything the proxy already holds must survive: ownership, the incident
+ *  admin, the receiver, the charge switch and every registered surface policy.
+ *  Those are asserted rather than assumed, because a layout-incompatible
+ *  implementation would keep answering — with other variables' bytes.
+ *
+ *  The two delay scalars must read as disabled afterwards; arming them is a
+ *  separate, deliberate act. */
+const upgradeControllerToDelayBuild = async (controllerAddress, ownerSigner) => {
+    assertDelayVintageControllerFixture();
+
+    // A proxy that already answers the delay views has been through this once.
+    // Deploying a second implementation over it would leave the assertions
+    // below passing against an upgrade that changed nothing that mattered, so
+    // the re-run stops here instead.
+    if (await servesDelayBuild(controllerAddress)) {
+        throw new Error(
+            `controller ${controllerAddress} already serves an implementation that carries the ` +
+                "delay — it is already where this fixture is trying to take it. Each build needs " +
+                "a fresh fork node."
+        );
+    }
+
+    const before = new ethers.Contract(controllerAddress, controllerFixture.abi, ownerSigner);
+    const owner = await before.owner();
+    if (owner.toLowerCase() !== ownerSigner.address.toLowerCase()) {
+        throw new Error(
+            `controller ${controllerAddress} is owned by ${owner}, not by the signer ` +
+                `${ownerSigner.address} — only the owner may upgrade it`
+        );
+    }
+    const kept = {
+        admin: await before.admin(),
+        feeReceiver: await before.feeReceiver(),
+        exitFeeEnabled: await before.exitFeeEnabled(),
+    };
+    const policies = {};
+    for (const [label, surfaceId] of Object.entries(PERIMETER_SURFACES)) {
+        const policy = await before.surfacePolicy(surfaceId);
+        policies[label] = { active: policy.active, rateBps: policy.rateBps };
+    }
+    const previousImplementation = ethers.utils.getAddress(
+        "0x" + (await ethers.provider.getStorageAt(controllerAddress, ERC1967_IMPL_SLOT)).slice(26)
+    );
+
+    const implementation = await new ethers.ContractFactory(
+        controllerFixture.abi,
+        controllerFixture.bytecode,
+        ownerSigner
+    ).deploy();
+    await implementation.deployed();
+
+    await (await before.upgradeTo(implementation.address)).wait();
+
+    const active = ethers.utils.getAddress(
+        "0x" + (await ethers.provider.getStorageAt(controllerAddress, ERC1967_IMPL_SLOT)).slice(26)
+    );
+    if (active.toLowerCase() !== implementation.address.toLowerCase()) {
+        throw new Error(
+            `controller still serves ${active} after the upgrade, expected ${implementation.address}`
+        );
+    }
+
+    const after = new ethers.Contract(controllerAddress, controllerFixture.abi, ownerSigner);
+    const now = {
+        owner: await after.owner(),
+        admin: await after.admin(),
+        feeReceiver: await after.feeReceiver(),
+        exitFeeEnabled: await after.exitFeeEnabled(),
+    };
+    for (const [field, was] of Object.entries({ owner, ...kept })) {
+        const is = now[field];
+        const same =
+            typeof was === "string" ? was.toLowerCase() === String(is).toLowerCase() : was === is;
+        if (!same) {
+            throw new Error(
+                `controller ${field} changed across the upgrade: ${was} became ${is} — the new ` +
+                    "implementation does not share the deployed storage layout"
+            );
+        }
+    }
+    for (const [label, was] of Object.entries(policies)) {
+        const is = await after.surfacePolicy(PERIMETER_SURFACES[label]);
+        if (is.active !== was.active || is.rateBps !== was.rateBps) {
+            throw new Error(
+                `controller policy ${label} changed across the upgrade: ` +
+                    `active ${was.active}->${is.active}, rate ${was.rateBps}->${is.rateBps}`
+            );
+        }
+    }
+    if ((await after.securityPerimeterEnabled()) !== false) {
+        throw new Error("the perimeter switched itself on during the upgrade");
+    }
+    if (!ethers.BigNumber.from(await after.globalDelaySeconds()).isZero()) {
+        throw new Error("a delay appeared during the upgrade");
+    }
+
+    return {
+        implementation: implementation.address,
+        previousImplementation,
+        preserved: { owner, ...kept, policies },
+    };
+};
+
 /** Deploy the hooked Zero BorrowerOperations implementation (built from
  *  zero-contracts-perimeter @ private/perimeter) and save the
  *  "BorrowerOperations_Implementation" record the sipArgs Part 1 entry resolves.
@@ -272,6 +489,146 @@ const deployCollSurplusPoolImpl = async (deployerSigner) => {
     return impl;
 };
 
+/** Deploy every lending-side contract the aggregate release registers, and
+ *  save the hardhat-deploy records the proposal builders resolve.
+ *
+ *  Deliberately NOT `deployments.fixture([...tags])`. Those scripts compare
+ *  against the PREVIOUS mainnet deployment, which means fetching its deploy
+ *  transaction — and no public RSK endpoint serves one that old, so the fixture
+ *  dies with "cannot get the transaction for <X>'s previous deployment". A
+ *  rehearsal wants fresh deploys anyway, so it builds them straight from local
+ *  artifacts and records them itself.
+ *
+ *  The modules that use the swap library are linked against a freshly deployed
+ *  copy; the ones that no longer use it are left alone, because linking a
+ *  library into an artifact that does not reference it throws. */
+const deployLendingReleaseContracts = async (deployerSigner) => {
+    const swapsLib = await (
+        await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
+    ).deploy();
+    await swapsLib.deployed();
+
+    const deployed = {};
+    const names = [
+        "LoanTokenLogicLM",
+        "LoanTokenLogicWrbtcLM",
+        "LoanClosingsRollover",
+        "LoanClosingsWith",
+        "LoanClosingsWithSwap",
+        "LoanClosingsLiquidation",
+        "LoanMaintenance",
+        "LoanMaintenanceViews",
+        "ExitFeeModule",
+        "BorrowerExitPerimeterOps",
+    ];
+    const overrides = deployedAddressOverrides();
+    for (const name of names) {
+        const artifact = await hre.artifacts.readArtifact(name);
+        if (overrides[name]) {
+            deployed[name] = await attachDeployed(
+                name,
+                overrides[name],
+                artifact.abi,
+                deployerSigner
+            );
+            continue;
+        }
+        const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
+        const factory = needsLib
+            ? await ethers.getContractFactory(name, {
+                  libraries: { SwapsImplSovrynSwapLib: swapsLib.address },
+                  signer: deployerSigner,
+              })
+            : await ethers.getContractFactory(name, deployerSigner);
+        const contract = await factory.deploy();
+        await contract.deployed();
+        await deployments.save(name, { address: contract.address, abi: artifact.abi });
+        deployed[name] = contract;
+    }
+    return { swapsLib, ...deployed };
+};
+
+/** Deploy the ExitDelayQueue behind its proxy and register the sources that
+ *  record exits into it.
+ *
+ *  The queue is the contract that CUSTODIES delayed withdrawals, so the
+ *  rehearsal deploys the real one rather than a mock. `allowedSources` are the
+ *  contracts permitted to record — the protocol singleton for the lending
+ *  surfaces and Zero's BorrowerOperations for the CDP ones. A source missing
+ *  here is fail-CLOSED: the record reverts with UnregisteredSource, which is
+ *  exactly what the rehearsal should catch rather than discover on mainnet.
+ *
+ *  `owner` may add routes and resolve a held exit to an arbitrary destination;
+ *  `admin` is the incident guardian (block, unblock, pause, kill-switch). Both
+ *  default to the deployer, which is what a stack built and driven by one test
+ *  wants; a rehearsal of the activated perimeter passes the multisig that holds
+ *  those roles in production, so the deployer keeps none of them.
+ *
+ *  Saves the "ExitDelayQueue" record the aggregate proposal builders resolve. */
+const deployExitDelayQueue = async (
+    deployerSigner,
+    wrbtcAddress,
+    minDelaySeconds,
+    allowedSources,
+    owner = deployerSigner.address,
+    admin = deployerSigner.address
+) => {
+    const proxyFactory = new ethers.ContractFactory(
+        erc1967ProxyFixture.abi,
+        erc1967ProxyFixture.bytecode,
+        deployerSigner
+    );
+    const impl = await new ethers.ContractFactory(
+        queueFixture.abi,
+        queueFixture.bytecode,
+        deployerSigner
+    ).deploy();
+    await impl.deployed();
+
+    const initData = impl.interface.encodeFunctionData("initialize", [
+        owner,
+        admin,
+        wrbtcAddress,
+        minDelaySeconds,
+        allowedSources,
+    ]);
+    const proxy = await proxyFactory.deploy(impl.address, initData);
+    await proxy.deployed();
+
+    const queue = new ethers.Contract(proxy.address, queueFixture.abi, deployerSigner);
+    if (await queue.securityPerimeterPaused()) {
+        throw new Error("ExitDelayQueue must deploy unpaused");
+    }
+    for (const src of allowedSources) {
+        if (!(await queue.isAllowedSource(src))) {
+            throw new Error(`ExitDelayQueue did not register source ${src}`);
+        }
+    }
+
+    await deployments.save("ExitDelayQueue", { address: queue.address, abi: queueFixture.abi });
+    return queue;
+};
+
+/** Deploy Zero's delegatecall settlement companion and save the
+ *  "BorrowerOperationsPerimeterOps" record the aggregate Part 2 resolves.
+ *
+ *  Not to be confused with the LENDING companion `BorrowerExitPerimeterOps`,
+ *  which is a deployment of this repo and comes from its own hardhat-deploy
+ *  tag. Same pattern, different product, similar name. */
+const deployBorrowerOperationsPerimeterOps = async (deployerSigner) => {
+    const ops = await new ethers.ContractFactory(
+        borrowerOperationsOpsFixture.abi,
+        borrowerOperationsOpsFixture.bytecode,
+        deployerSigner
+    ).deploy();
+    await ops.deployed();
+    await deployments.save("BorrowerOperationsPerimeterOps", {
+        address: ops.address,
+        abi: borrowerOperationsOpsFixture.abi,
+    });
+    return ops;
+};
+
 /** Swap Zero's price feed proxy to the settable PriceFeedTestnet stub, seeded
  *  with the production feed's lastGoodPrice. Needed on a fork because the
  *  real ZeroPriceFeed enforces oracle freshness and the governance voting/
@@ -304,6 +661,81 @@ const stubOutZeroPriceFeed = async (deployerSigner) => {
     );
     await (await stubbedFeed.setPrice(lastGoodPrice)).wait();
     return { stubbedFeed, lastGoodPrice };
+};
+
+/** Every iToken pool whose lender exits are recorded into the queue. Each one
+ *  records its OWN exits, so a pool missing from the allowed sources is
+ *  fail-closed: the record reverts and the withdrawal cannot complete. */
+const LOAN_TOKENS = [
+    "LoanToken_iRBTC",
+    "LoanToken_iXUSD",
+    "LoanToken_iDOC",
+    "LoanToken_iDLLR",
+    "LoanToken_iUSDT",
+    "LoanToken_iBPRO",
+];
+
+/** Deploy everything the delay release installs, plus the queue it installs,
+ *  and save the hardhat-deploy records the delay proposal builders resolve.
+ *
+ *  The lending modules and the Zero implementations are ALWAYS deployed fresh:
+ *  the ones on chain are the previous release's, which is exactly what this
+ *  release replaces. Only the perimeter stack itself is attachable, and that is
+ *  `deployPerimeterStack`'s business, not this function's.
+ *
+ *  `owner` may add routes on the queue and resolve a held exit; `admin` is the
+ *  incident guardian. Pass the multisig for both to reproduce the live roles.
+ *
+ *  The queue is deployed LAST because its allowed-source list has to name every
+ *  contract that records an exit, and that is not one address per product: the
+ *  protocol singleton records borrower exits, each iToken pool records its own
+ *  lender exits, and Zero records from BorrowerOperations. */
+const deployPhase2Release = async (deployerSigner, { minDelay, owner, admin }) => {
+    const lending = await deployLendingReleaseContracts(deployerSigner);
+    const borrowerOperationsImpl = await deployHookedBorrowerOperationsImpl(deployerSigner);
+    const collSurplusPoolImpl = await deployCollSurplusPoolImpl(deployerSigner);
+    const perimeterOps = await deployBorrowerOperationsPerimeterOps(deployerSigner);
+
+    // The Zero implementations resolve under their own record names in this
+    // release, so that a shell still holding the previous release's addresses
+    // cannot quietly supply them here.
+    await deployments.save("BorrowerOperationsPerimeter", {
+        address: borrowerOperationsImpl.address,
+        abi: borrowerOperationsFixture.abi,
+    });
+    await deployments.save("CollSurplusPoolPerimeter", {
+        address: collSurplusPoolImpl.address,
+        abi: collSurplusPoolFixture.abi,
+    });
+
+    // The production feed enforces oracle freshness on every Zero operation and
+    // neither caller can keep it fresh: governance jumps the clock past any
+    // update, and on a long-lived fork the upstream oracle stopped updating at
+    // the fork block.
+    const priceFeed = await stubOutZeroPriceFeed(deployerSigner);
+
+    const sources = [(await deployments.get("SovrynProtocol")).address];
+    for (const name of LOAN_TOKENS) sources.push((await deployments.get(name)).address);
+    sources.push((await deployments.get("BorrowerOperations_Proxy")).address);
+
+    const queue = await deployExitDelayQueue(
+        deployerSigner,
+        (await deployments.get("WRBTC")).address,
+        minDelay,
+        sources,
+        owner,
+        admin
+    );
+
+    return {
+        lending,
+        borrowerOperationsImpl,
+        collSurplusPoolImpl,
+        perimeterOps,
+        priceFeed,
+        sources,
+        queue,
+    };
 };
 
 /** Stake a fresh SOV whale (once per context — subsequent calls reuse it). */
@@ -590,51 +1022,7 @@ const attachDeployed = async (name, address, abi, signer) => {
     return new ethers.Contract(checksummed, abi, signer);
 };
 
-const deployLendingReleaseContracts = async (deployerSigner) => {
-    const swapsLib = await (
-        await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
-    ).deploy();
-    await swapsLib.deployed();
-
-    const deployed = {};
-    const names = [
-        "LoanTokenLogicLM",
-        "LoanTokenLogicWrbtcLM",
-        "LoanClosingsRollover",
-        "LoanClosingsWith",
-        "LoanMaintenance",
-        "ExitFeeModule",
-        "BorrowerExitPerimeterOps",
-    ];
-    const overrides = deployedAddressOverrides();
-    for (const name of names) {
-        const artifact = await hre.artifacts.readArtifact(name);
-        if (overrides[name]) {
-            deployed[name] = await attachDeployed(
-                name,
-                overrides[name],
-                artifact.abi,
-                deployerSigner
-            );
-            continue;
-        }
-        const needsLib = Object.keys(artifact.linkReferences || {}).length > 0;
-        const factory = needsLib
-            ? await ethers.getContractFactory(name, {
-                  libraries: { SwapsImplSovrynSwapLib: swapsLib.address },
-                  signer: deployerSigner,
-              })
-            : await ethers.getContractFactory(name, deployerSigner);
-        const contract = await factory.deploy();
-        await contract.deployed();
-        await deployments.save(name, { address: contract.address, abi: artifact.abi });
-        deployed[name] = contract;
-    }
-    return { swapsLib, ...deployed };
-};
-
 module.exports = {
-    deployLendingReleaseContracts,
     deployedAddressOverrides,
     attachDeployed,
     ONE_RBTC,
@@ -652,9 +1040,19 @@ module.exports = {
     getImpersonatedSignerFromJsonRpcProvider,
     adoptQueuedSip,
     deployPerimeterStack,
+    upgradeControllerToDelayBuild,
+    assertDelayVintageControllerFixture,
+    servesDelayBuild,
+    findInstalledPhase2Release,
+    ERC1967_IMPL_SLOT,
     deployHookedBorrowerOperationsImpl,
     deployCollSurplusPoolImpl,
+    deployLendingReleaseContracts,
+    deployExitDelayQueue,
+    deployBorrowerOperationsPerimeterOps,
     stubOutZeroPriceFeed,
+    deployPhase2Release,
+    LOAN_TOKENS,
     createAndQueueSip,
     executeQueuedSip,
     createAndQueueGovernorOwnerSip,
@@ -662,4 +1060,5 @@ module.exports = {
     setupGovernanceContext,
     countPerimeterEvents,
     getSingleExitFeeApplied,
+    forkOps: require("./forkOps"),
 };

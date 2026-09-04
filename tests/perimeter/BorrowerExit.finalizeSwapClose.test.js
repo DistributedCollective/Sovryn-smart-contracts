@@ -52,6 +52,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -99,7 +100,7 @@ contract("Perimeter — borrower-exit finalizeSwapClose (Phase 3 / Task 3.3)", (
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
