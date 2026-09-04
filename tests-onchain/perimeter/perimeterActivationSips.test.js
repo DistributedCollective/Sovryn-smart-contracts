@@ -62,6 +62,7 @@ const {
     stubOutZeroPriceFeed,
     deployLendingReleaseContracts,
     createAndQueueGovernorOwnerSip,
+    adoptQueuedSip,
     executeQueuedGovernorOwnerSip,
     setupGovernanceContext,
     countPerimeterEvents,
@@ -74,6 +75,30 @@ const {
 } = hre;
 
 const FORK_BLOCK = forkBlock(9056400);
+
+/**
+ * Proposal ids to adopt instead of building, e.g. PERIMETER_QUEUED_PROPOSALS="54,55".
+ *
+ * Unset (the default) the run builds both parts from the args builders, which
+ * is the only thing possible before the proposals exist. Set, it drives the
+ * real queued ones, so the whole spec below measures the transactions that
+ * will actually execute rather than a faithful reconstruction of them.
+ */
+const QUEUED_PROPOSALS = process.env.PERIMETER_QUEUED_PROPOSALS;
+
+/**
+ * Proposal ids that have ALREADY EXECUTED on chain, e.g. PERIMETER_EXECUTED_PROPOSALS="54,55".
+ *
+ * The post-execution rehearsal: nothing is created, queued or executed here.
+ * The action tables are still read back from the governor and checked, the
+ * wiring assertions run against what the chain holds, and everything from the
+ * lending fixtures onward — enable, charged flows, no-touch paths, kill switch
+ * — runs unchanged. The pre-execution assertions (pointer unset between the
+ * parts, in-transaction event order, treasury balance deltas, the out-of-order
+ * revert) are what an execution is needed to observe, so they are skipped and
+ * the Adoption Fund is asserted drained instead.
+ */
+const EXECUTED_PROPOSALS = process.env.PERIMETER_EXECUTED_PROPOSALS;
 // The real PriceFeeds.queryRate(XUSD, WRBTC) at block 9056400. The production
 // WRBTC feed (PriceFeedsMoC) reads a MoC medianizer whose values expire, and
 // the fallback oracle was deactivated by SIP-0084 — so on a fork, live-feed
@@ -128,6 +153,20 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
             throw new Error(
                 "perimeterActivationSips must run on a forked mainnet (rskForkedMainnet); " +
                     "no fork tag on this network"
+            );
+        }
+        // The on-chain proposals encode the DEPLOYED addresses. Adopting them
+        // while this run deploys a fresh stack would point the proposals at
+        // contracts nothing here is holding, and the failures would read as
+        // wiring bugs rather than as a mis-invocation. Refuse instead.
+        if (
+            (QUEUED_PROPOSALS || EXECUTED_PROPOSALS) &&
+            !process.env.PERIMETER_DEPLOYED_ADDRESSES
+        ) {
+            throw new Error(
+                "PERIMETER_QUEUED_PROPOSALS needs PERIMETER_DEPLOYED_ADDRESSES: the queued " +
+                    "proposals act on the deployed release, so the run must attach to it " +
+                    "rather than deploy its own stack"
             );
         }
         await hre.network.provider.request({
@@ -216,14 +255,31 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // GovernorAlpha's one-live-proposal rule blocks only Pending/Active —
         // this is the real Phase C sequencing (create → vote → queue Part 1,
         // then create Part 2).
-        const { proposalId: part1Id } = await createAndQueueGovernorOwnerSip(
-            ctx,
-            "getArgsSip0094Part1"
-        );
-        const { proposalId: part2Id } = await createAndQueueGovernorOwnerSip(
-            ctx,
-            "getArgsSip0094Part2"
-        );
+        //
+        // With PERIMETER_QUEUED_PROPOSALS set, the run adopts the proposals
+        // already queued on chain instead. Same assertions, different subject:
+        // built proposals prove the args builders are right, adopted ones prove
+        // the transactions in the timelock are — and only the second is what
+        // execution day actually runs.
+        let part1Id, part2Id;
+        if (EXECUTED_PROPOSALS) {
+            const [a, b] = EXECUTED_PROPOSALS.split(",").map((s) => s.trim());
+            ({ proposalId: part1Id } = await adoptQueuedSip(ctx, a, "governorOwner", 7));
+            ({ proposalId: part2Id } = await adoptQueuedSip(ctx, b, "governorOwner", 7));
+        } else if (QUEUED_PROPOSALS) {
+            const [queuedPart1, queuedPart2] = QUEUED_PROPOSALS.split(",").map((s) => s.trim());
+            ({ proposalId: part1Id } = await adoptQueuedSip(ctx, queuedPart1));
+            ({ proposalId: part2Id } = await adoptQueuedSip(ctx, queuedPart2));
+        } else {
+            ({ proposalId: part1Id } = await createAndQueueGovernorOwnerSip(
+                ctx,
+                "getArgsSip0094Part1"
+            ));
+            ({ proposalId: part2Id } = await createAndQueueGovernorOwnerSip(
+                ctx,
+                "getArgsSip0094Part2"
+            ));
+        }
 
         // ── The proposals' own action tables ───────────────────────────────
         // Read back from GovernorAlpha storage, so every assertion below binds
@@ -277,7 +333,14 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // balance, non-zero, and the forwarding transfer moves exactly that
         // amount to the Exchequer — no dust left on the Timelock.
         expect(adoptionSweep.gt(0), "Adoption Fund sweep must move real value").to.be.true;
-        expect(adoptionSweep).to.equal(await sovToken.balanceOf(adoptionFundAddress));
+        if (EXECUTED_PROPOSALS) {
+            expect(
+                await sovToken.balanceOf(adoptionFundAddress),
+                "Adoption Fund drained by the executed Part 2"
+            ).to.equal(0);
+        } else {
+            expect(adoptionSweep).to.equal(await sovToken.balanceOf(adoptionFundAddress));
+        }
         expect(addr(transferReceiver)).to.equal(exchequerAddress);
         expect(transferAmount).to.equal(adoptionSweep);
 
@@ -286,45 +349,49 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         const exchequerSovBefore = await sovToken.balanceOf(exchequerAddress);
         const timelockSovBefore = await sovToken.balanceOf(timelockOwner.address);
 
-        // Out-of-order attempt: execute Part 2 with Part 1 still Queued.
-        // Its single action calls setExitFeeController on the protocol, whose
-        // fallback hits `target not active` until Part 1 registers the selector
-        // via ExitFeeModule. Timelock.executeTransaction requires success, so
-        // GovernorAlpha.execute reverts WHOLESALE (its own `executed` write
-        // included).
-        await time.increaseTo((await ctx.governorOwner.proposals(part2Id)).eta);
-        let outOfOrderError;
-        try {
-            await (await ctx.governorOwner.execute(part2Id)).wait();
-        } catch (e) {
-            outOfOrderError = e;
+        if (!EXECUTED_PROPOSALS) {
+            // Out-of-order attempt: execute Part 2 with Part 1 still Queued.
+            // Its single action calls setExitFeeController on the protocol, whose
+            // fallback hits `target not active` until Part 1 registers the selector
+            // via ExitFeeModule. Timelock.executeTransaction requires success, so
+            // GovernorAlpha.execute reverts WHOLESALE (its own `executed` write
+            // included).
+            await time.increaseTo((await ctx.governorOwner.proposals(part2Id)).eta);
+            let outOfOrderError;
+            try {
+                await (await ctx.governorOwner.execute(part2Id)).wait();
+            } catch (e) {
+                outOfOrderError = e;
+            }
+            expect(outOfOrderError, "Part-2-before-Part-1 execute must revert").to.not.be
+                .undefined;
+            expect(String(outOfOrderError.message)).to.match(/revert/i);
+            // Fail-closed, not fail-partial: the proposal survives as Queued —
+            // retryable within the 14-day timelock grace window — and nothing
+            // was wired. (The protocol's own exitFeeController() view does not
+            // exist yet either, so the probes below use pre-existing surfaces.)
+            expect(await ctx.governorOwner.state(part2Id)).to.equal(PROPOSAL_STATE_QUEUED);
+            expect((await ctx.governorOwner.proposals(part2Id)).executed).to.be.false;
+            expect(await protocol.getTarget("setExitFeeController(address)")).to.equal(
+                ethers.constants.AddressZero
+            );
+            expect(await boProxy.getImplementation()).to.equal(prePerimeterZeroImpl);
+            expect(await collSurplusPoolProxy.getImplementation()).to.equal(prePerimeterPoolImpl);
+            // …and the treasury actions that sit AHEAD of the failing pin did not
+            // settle either: a GovernorAlpha execution is one transaction, so the
+            // sweep is all-or-nothing with the Perimeter pin. No SOV moved anywhere.
+            expect(await sovToken.balanceOf(devFundAddress)).to.equal(devFundSovBefore);
+            expect(await sovToken.balanceOf(adoptionFundAddress)).to.equal(adoptionFundSovBefore);
+            expect(await sovToken.balanceOf(exchequerAddress)).to.equal(exchequerSovBefore);
+            expect(await sovToken.balanceOf(timelockOwner.address)).to.equal(timelockSovBefore);
         }
-        expect(outOfOrderError, "Part-2-before-Part-1 execute must revert").to.not.be.undefined;
-        expect(String(outOfOrderError.message)).to.match(/revert/i);
-        // Fail-closed, not fail-partial: the proposal survives as Queued —
-        // retryable within the 14-day timelock grace window — and nothing
-        // was wired. (The protocol's own exitFeeController() view does not
-        // exist yet either, so the probes below use pre-existing surfaces.)
-        expect(await ctx.governorOwner.state(part2Id)).to.equal(PROPOSAL_STATE_QUEUED);
-        expect((await ctx.governorOwner.proposals(part2Id)).executed).to.be.false;
-        expect(await protocol.getTarget("setExitFeeController(address)")).to.equal(
-            ethers.constants.AddressZero
-        );
-        expect(await boProxy.getImplementation()).to.equal(prePerimeterZeroImpl);
-        expect(await collSurplusPoolProxy.getImplementation()).to.equal(prePerimeterPoolImpl);
-        // …and the treasury actions that sit AHEAD of the failing pin did not
-        // settle either: a GovernorAlpha execution is one transaction, so the
-        // sweep is all-or-nothing with the Perimeter pin. No SOV moved anywhere.
-        expect(await sovToken.balanceOf(devFundAddress)).to.equal(devFundSovBefore);
-        expect(await sovToken.balanceOf(adoptionFundAddress)).to.equal(adoptionFundSovBefore);
-        expect(await sovToken.balanceOf(exchequerAddress)).to.equal(exchequerSovBefore);
-        expect(await sovToken.balanceOf(timelockOwner.address)).to.equal(timelockSovBefore);
 
         // ── Part 1 ─────────────────────────────────────────────────────────
-        const { executionReceipt: part1Receipt } = await executeQueuedGovernorOwnerSip(
-            ctx,
-            part1Id
-        );
+        // Post-execution mode reads the wiring the chain already holds; the
+        // receipt-bound assertions need an execution to observe and are skipped.
+        const part1Receipt = EXECUTED_PROPOSALS
+            ? null
+            : (await executeQueuedGovernorOwnerSip(ctx, part1Id)).executionReceipt;
 
         // Protocol modules replaced.
         const modulesList = getProtocolModules();
@@ -356,8 +423,10 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // ordering: hook strictly before controller.
         const opsDeployment = await get("BorrowerExitPerimeterOps");
         expect(await protocol.borrowerExitPerimeterOps()).to.equal(opsDeployment.address);
-        expect(await protocol.exitFeeController()).to.equal(ethers.constants.AddressZero);
-        expect(countPerimeterEvents(part1Receipt, "BorrowerExitPerimeterOpsSet")).to.equal(1);
+        if (!EXECUTED_PROPOSALS) {
+            expect(await protocol.exitFeeController()).to.equal(ethers.constants.AddressZero);
+            expect(countPerimeterEvents(part1Receipt, "BorrowerExitPerimeterOpsSet")).to.equal(1);
+        }
 
         // Beacon registrations: burn selectors and the new exitFeeController()
         // view route to the freshly registered LM modules.
@@ -372,50 +441,58 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         );
         expect(await beaconWrbtc.getTarget(sel("exitFeeController()"))).to.equal(newWrbtcLM);
         // iToken read-through reflects the (still unset) protocol singleton.
-        expect(await iRBTC.exitFeeController()).to.equal(ethers.constants.AddressZero);
+        if (!EXECUTED_PROPOSALS) {
+            expect(await iRBTC.exitFeeController()).to.equal(ethers.constants.AddressZero);
+        }
 
         // Zero: CollSurplusPool (first-ever upgrade, runbook §8) and
         // BorrowerOperations implementations swapped atomically in Part 1, and
         // BO's controller pinned in the SAME tx (actions 9+10) — the hooked
         // implementation is never live with an unset controller.
         expect(await collSurplusPoolProxy.getImplementation()).to.equal(poolImpl.address);
-        expect(await collSurplusPoolProxy.getImplementation()).to.not.equal(prePerimeterPoolImpl);
         expect(await boProxy.getImplementation()).to.equal(hookedImpl.address);
-        expect(await boProxy.getImplementation()).to.not.equal(prePerimeterZeroImpl);
+        if (!EXECUTED_PROPOSALS) {
+            expect(await collSurplusPoolProxy.getImplementation()).to.not.equal(
+                prePerimeterPoolImpl
+            );
+            expect(await boProxy.getImplementation()).to.not.equal(prePerimeterZeroImpl);
+        }
         expect(await borrowerOperations.exitFeeController()).to.equal(
             perimeterStack.controller.address
         );
-        // Exactly one ExitFeeControllerSet in Part 1: Zero's. The protocol
-        // singleton is Part 2's job (CF-1 — it stays the final pointer).
-        expect(countPerimeterEvents(part1Receipt, "ExitFeeControllerSet")).to.equal(1);
-        // §8 HARD ordering, pinned in-tx: the pool's ImplementationChanged must
-        // precede the BO's within the SAME Part-1 execution receipt.
-        const implChangedTopic = ethers.utils.id("ImplementationChanged(address,address)");
-        const implChangeIndexes = {};
-        part1Receipt.logs.forEach((log, i) => {
-            if (log.topics[0] === implChangedTopic) implChangeIndexes[log.address] = i;
-        });
-        expect(
-            implChangeIndexes[collSurplusPoolProxy.address],
-            "pool ImplementationChanged present"
-        ).to.not.be.undefined;
-        expect(implChangeIndexes[boProxy.address], "BO ImplementationChanged present").to.not.be
-            .undefined;
-        expect(implChangeIndexes[collSurplusPoolProxy.address]).to.be.lessThan(
-            implChangeIndexes[boProxy.address]
-        );
-        // Swap+wire atomicity, pinned in-tx: Zero's ExitFeeControllerSet must
-        // follow the BO ImplementationChanged in the SAME receipt — the setter
-        // only exists on the implementation the preceding action installs.
-        const controllerSetTopic = ethers.utils.id("ExitFeeControllerSet(address,address)");
-        const boControllerSetIndex = part1Receipt.logs.findIndex(
-            (log) => log.topics[0] === controllerSetTopic && log.address === boProxy.address
-        );
-        expect(
-            boControllerSetIndex,
-            "BO ExitFeeControllerSet present in Part 1"
-        ).to.be.greaterThan(-1);
-        expect(implChangeIndexes[boProxy.address]).to.be.lessThan(boControllerSetIndex);
+        if (!EXECUTED_PROPOSALS) {
+            // Exactly one ExitFeeControllerSet in Part 1: Zero's. The protocol
+            // singleton is Part 2's job (CF-1 — it stays the final pointer).
+            expect(countPerimeterEvents(part1Receipt, "ExitFeeControllerSet")).to.equal(1);
+            // §8 HARD ordering, pinned in-tx: the pool's ImplementationChanged must
+            // precede the BO's within the SAME Part-1 execution receipt.
+            const implChangedTopic = ethers.utils.id("ImplementationChanged(address,address)");
+            const implChangeIndexes = {};
+            part1Receipt.logs.forEach((log, i) => {
+                if (log.topics[0] === implChangedTopic) implChangeIndexes[log.address] = i;
+            });
+            expect(
+                implChangeIndexes[collSurplusPoolProxy.address],
+                "pool ImplementationChanged present"
+            ).to.not.be.undefined;
+            expect(implChangeIndexes[boProxy.address], "BO ImplementationChanged present").to.not
+                .be.undefined;
+            expect(implChangeIndexes[collSurplusPoolProxy.address]).to.be.lessThan(
+                implChangeIndexes[boProxy.address]
+            );
+            // Swap+wire atomicity, pinned in-tx: Zero's ExitFeeControllerSet must
+            // follow the BO ImplementationChanged in the SAME receipt — the setter
+            // only exists on the implementation the preceding action installs.
+            const controllerSetTopic = ethers.utils.id("ExitFeeControllerSet(address,address)");
+            const boControllerSetIndex = part1Receipt.logs.findIndex(
+                (log) => log.topics[0] === controllerSetTopic && log.address === boProxy.address
+            );
+            expect(
+                boControllerSetIndex,
+                "BO ExitFeeControllerSet present in Part 1"
+            ).to.be.greaterThan(-1);
+            expect(implChangeIndexes[boProxy.address]).to.be.lessThan(boControllerSetIndex);
+        }
         // The SIP touches ONLY BorrowerOperations + CollSurplusPool on the
         // Zero side.
         expect(await troveManagerProxy.getImplementation()).to.equal(troveManagerImplBefore);
@@ -441,30 +518,32 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         // ── Part 2 ─────────────────────────────────────────────────────────
         // The F-2 retry: the SAME proposal that just failed out-of-order now
         // executes cleanly with Part 1 in place.
-        const { executionReceipt: part2Receipt } = await executeQueuedGovernorOwnerSip(
-            ctx,
-            part2Id
-        );
-        // The treasury leg, asserted by BALANCE DELTAS against the amounts the
-        // proposal itself carries: the Adoption Fund is emptied by exactly its
-        // own withdrawal, the Exchequer gains exactly that amount, the Timelock
-        // — which held the tokens only mid-transaction — ends where it started,
-        // and the Development Fund is NOT touched by governance (its sweep is
-        // the companion Exchequer multisig transaction).
-        expect(
-            await sovToken.balanceOf(devFundAddress),
-            "Development Fund untouched by Part 2"
-        ).to.equal(devFundSovBefore);
-        expect(await sovToken.balanceOf(adoptionFundAddress), "Adoption Fund drained").to.equal(
-            adoptionFundSovBefore.sub(adoptionSweep)
-        );
-        expect(await sovToken.balanceOf(exchequerAddress), "Exchequer credited").to.equal(
-            exchequerSovBefore.add(adoptionSweep)
-        );
-        expect(
-            await sovToken.balanceOf(timelockOwner.address),
-            "the Timelock must not retain any of the swept SOV"
-        ).to.equal(timelockSovBefore);
+        const part2Receipt = EXECUTED_PROPOSALS
+            ? null
+            : (await executeQueuedGovernorOwnerSip(ctx, part2Id)).executionReceipt;
+        if (!EXECUTED_PROPOSALS) {
+            // The treasury leg, asserted by BALANCE DELTAS against the amounts the
+            // proposal itself carries: the Adoption Fund is emptied by exactly its
+            // own withdrawal, the Exchequer gains exactly that amount, the Timelock
+            // — which held the tokens only mid-transaction — ends where it started,
+            // and the Development Fund is NOT touched by governance (its sweep is
+            // the companion Exchequer multisig transaction).
+            expect(
+                await sovToken.balanceOf(devFundAddress),
+                "Development Fund untouched by Part 2"
+            ).to.equal(devFundSovBefore);
+            expect(
+                await sovToken.balanceOf(adoptionFundAddress),
+                "Adoption Fund drained"
+            ).to.equal(adoptionFundSovBefore.sub(adoptionSweep));
+            expect(await sovToken.balanceOf(exchequerAddress), "Exchequer credited").to.equal(
+                exchequerSovBefore.add(adoptionSweep)
+            );
+            expect(
+                await sovToken.balanceOf(timelockOwner.address),
+                "the Timelock must not retain any of the swept SOV"
+            ).to.equal(timelockSovBefore);
+        }
 
         // The last action: the protocol singleton — the final activation
         // pointer. Zero was already wired in Part 1 and is untouched here.
@@ -472,7 +551,9 @@ describe("SIP-0094 Perimeter Phase-1 activation (ownership-aggregated, GovernorO
         expect(await borrowerOperations.exitFeeController()).to.equal(
             perimeterStack.controller.address
         );
-        expect(countPerimeterEvents(part2Receipt, "ExitFeeControllerSet")).to.equal(1);
+        if (!EXECUTED_PROPOSALS) {
+            expect(countPerimeterEvents(part2Receipt, "ExitFeeControllerSet")).to.equal(1);
+        }
         // iToken read-through now resolves the singleton — with NO per-iToken
         // configuration anywhere.
         expect(await iRBTC.exitFeeController()).to.equal(perimeterStack.controller.address);

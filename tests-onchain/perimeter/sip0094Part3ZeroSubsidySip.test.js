@@ -41,6 +41,7 @@ const {
     getImpersonatedSigner,
     stubOutZeroPriceFeed,
     createAndQueueSip,
+    adoptQueuedSip,
     executeQueuedSip,
     setupGovernanceContext,
 } = require("./perimeterSipTestHelpers");
@@ -51,6 +52,21 @@ const {
 } = hre;
 
 const FORK_BLOCK = forkBlock(9056400);
+
+/**
+ * Proposal id to adopt instead of building, e.g. PERIMETER_QUEUED_ADMIN_PROPOSAL=29.
+ * Unset, the run builds Part 3 from its args builder.
+ */
+const QUEUED_ADMIN_PROPOSAL = process.env.PERIMETER_QUEUED_ADMIN_PROPOSAL;
+/**
+ * The proposal id ALREADY EXECUTED on GovernorAdmin, e.g.
+ * PERIMETER_EXECUTED_ADMIN_PROPOSAL=29. Post-execution rehearsal: the action
+ * table is read back and checked, nothing is executed, and the positive
+ * control (which needs the subsidy still ON) is skipped — the chain holds
+ * APR = 0 already. The no-op window, the wiring reads and the zero-accrual
+ * probe run unchanged against what the chain holds.
+ */
+const EXECUTED_ADMIN_PROPOSAL = process.env.PERIMETER_EXECUTED_ADMIN_PROPOSAL;
 // Tolerance for Zero's dynamic origination fee (raised well above the floor on
 // mainnet); test-only — the probe trove is funded from balance, not budgeted.
 const MAX_ZERO_FEE_PERCENTAGE = ethers.utils.parseEther("0.99");
@@ -165,30 +181,39 @@ describe("SIP-0094 Part 3 — disable the Zero Stability Pool SOV subsidy (Gover
             "the CommunityIssuance must hold SOV to pay gains with"
         ).to.be.true;
 
-        // ── POSITIVE CONTROL: the subsidy is live and measurable ───────────
-        const aprBeforeSip = await communityIssuance.APR();
-        expect(aprBeforeSip.gt(0), "the subsidy must be ON before the SIP, or this proves nothing")
-            .to.be.true;
+        let totalIssuedMark, depositorSovMark;
+        if (!EXECUTED_ADMIN_PROPOSAL) {
+            // ── POSITIVE CONTROL: the subsidy is live and measurable ───────────
+            const aprBeforeSip = await communityIssuance.APR();
+            expect(
+                aprBeforeSip.gt(0),
+                "the subsidy must be ON before the SIP, or this proves nothing"
+            ).to.be.true;
 
-        let totalIssuedMark = await communityIssuance.totalSOVIssued();
-        let depositorSovMark = await sov.balanceOf(depositor.address);
-        await time.increase(ACCRUAL_WINDOW);
-        // withdrawFromSP(0) is the claim-only path: it triggers issuance and
-        // pays out accrued SOV without moving any ZUSD.
-        await (await stabilityPool.connect(depositor).withdrawFromSP(0)).wait();
+            totalIssuedMark = await communityIssuance.totalSOVIssued();
+            depositorSovMark = await sov.balanceOf(depositor.address);
+            await time.increase(ACCRUAL_WINDOW);
+            // withdrawFromSP(0) is the claim-only path: it triggers issuance and
+            // pays out accrued SOV without moving any ZUSD.
+            await (await stabilityPool.connect(depositor).withdrawFromSP(0)).wait();
 
-        const issuedWhileOn = (await communityIssuance.totalSOVIssued()).sub(totalIssuedMark);
-        const paidWhileOn = (await sov.balanceOf(depositor.address)).sub(depositorSovMark);
-        expect(issuedWhileOn.gt(0), "with APR != 0 the pool must accrue SOV over time").to.be.true;
-        expect(paidWhileOn.gt(0), "with APR != 0 a depositor must actually be paid SOV").to.be
-            .true;
+            const issuedWhileOn = (await communityIssuance.totalSOVIssued()).sub(totalIssuedMark);
+            const paidWhileOn = (await sov.balanceOf(depositor.address)).sub(depositorSovMark);
+            expect(issuedWhileOn.gt(0), "with APR != 0 the pool must accrue SOV over time").to.be
+                .true;
+            expect(paidWhileOn.gt(0), "with APR != 0 a depositor must actually be paid SOV").to.be
+                .true;
+        }
 
         // ── The proposal ───────────────────────────────────────────────────
-        const { proposalId } = await createAndQueueSip(
-            ctx,
-            "getArgsSip0094Part3",
-            "governorAdmin"
-        );
+        // PERIMETER_QUEUED_ADMIN_PROPOSAL adopts the proposal already queued on
+        // GovernorAdmin instead of building one, so the assertions below bind to
+        // the transaction in the timelock rather than to a rebuild of it.
+        const { proposalId } = EXECUTED_ADMIN_PROPOSAL
+            ? await adoptQueuedSip(ctx, EXECUTED_ADMIN_PROPOSAL, "governorAdmin", 7)
+            : QUEUED_ADMIN_PROPOSAL
+              ? await adoptQueuedSip(ctx, QUEUED_ADMIN_PROPOSAL, "governorAdmin")
+              : await createAndQueueSip(ctx, "getArgsSip0094Part3", "governorAdmin");
         // Positional destructuring, NOT `.values`: on an ethers Result the
         // `values` key is shadowed by Array.prototype.values.
         const [actionTargets, actionValues, actionSignatures, actionCalldatas] =
@@ -203,16 +228,20 @@ describe("SIP-0094 Part 3 — disable the Zero Stability Pool SOV subsidy (Gover
         expect(proposedAPR, "the proposal must set the APR to exactly zero").to.equal(0);
 
         const totalIssuedBeforeExecution = await communityIssuance.totalSOVIssued();
-        await executeQueuedSip(ctx, proposalId, "governorAdmin");
+        if (!EXECUTED_ADMIN_PROPOSAL) {
+            await executeQueuedSip(ctx, proposalId, "governorAdmin");
+        }
 
         // ── The effect, read back ──────────────────────────────────────────
         expect(await communityIssuance.APR(), "APR must read back as exactly 0").to.equal(0);
         // setAPR settles what was earned at the OLD rate first — the subsidy is
         // switched off going forward, not clawed back.
-        expect(
-            (await communityIssuance.totalSOVIssued()).gt(totalIssuedBeforeExecution),
-            "setAPR must settle the accrual earned at the old rate during execution"
-        ).to.be.true;
+        if (!EXECUTED_ADMIN_PROPOSAL) {
+            expect(
+                (await communityIssuance.totalSOVIssued()).gt(totalIssuedBeforeExecution),
+                "setAPR must settle the accrual earned at the old rate during execution"
+            ).to.be.true;
+        }
         // …and nothing else on the contract moved.
         expect(await communityIssuance.rewardManager()).to.equal(rewardManager);
         expect(await communityIssuance.stabilityPoolAddress()).to.equal(stabilityPool.address);
