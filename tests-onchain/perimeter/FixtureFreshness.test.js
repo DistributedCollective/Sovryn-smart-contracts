@@ -102,11 +102,14 @@ contract("Perimeter — rehearsal fixtures are current", () => {
      * a commit that was itself reverted an hour later. Nothing in its bytes
      * looked wrong; it was simply built from source that no longer exists.
      *
-     * The only honest freshness test is whether the fixture names the commit
-     * its source repo is actually on. That needs the source repo on disk, so
-     * this skips loudly rather than passing quietly when it is absent.
+     * The only honest freshness test is whether the fixture names the tip of
+     * the branch it was built from, in the source repo on disk. The branch is
+     * read from the fixture's own provenance rather than from whatever that
+     * repo happens to have checked out, so an unrelated branch in the sibling
+     * checkout does not turn this red. It skips loudly rather than passing
+     * quietly when the repo is absent.
      */
-    it("every fixture names its source repo's current commit", () => {
+    it("every fixture names the tip of its source branch", () => {
         const roots = {
             "zero-contracts": path.join(__dirname, "../../../zero-contracts"),
             perimeter: path.join(__dirname, "../../../Sovryn-perimeter"),
@@ -122,12 +125,26 @@ contract("Perimeter — rehearsal fixtures are current", () => {
                 unchecked.push(`${file} (${provenance.repo} not on disk)`);
                 return;
             }
-            const head = require("child_process")
-                .execFileSync("git", ["-C", root, "rev-parse", "HEAD"], { encoding: "utf8" })
-                .trim();
+            const git = (...args) =>
+                require("child_process")
+                    .execFileSync("git", ["-C", root, ...args], { encoding: "utf8" })
+                    .trim();
+            // The branch the fixture was built from, when the repo still has
+            // it; a branch deleted after merging leaves only the checkout.
+            const branchRef = provenance.branch && `refs/heads/${provenance.branch}`;
+            let hasRef = false;
+            try {
+                if (branchRef) git("show-ref", "--verify", "--quiet", branchRef);
+                hasRef = Boolean(branchRef);
+            } catch (error) {
+                hasRef = false;
+            }
+            const ref = hasRef ? branchRef : "HEAD";
+            const head = git("rev-parse", ref);
             if (!head.startsWith(provenance.commit)) {
                 stale.push(
-                    `${file}: pinned ${provenance.commit}, ${provenance.repo} is at ${head.slice(0, 7)}`
+                    `${file}: pinned ${provenance.commit}, ${provenance.repo} ${ref} is at ` +
+                        head.slice(0, 7)
                 );
             }
         });

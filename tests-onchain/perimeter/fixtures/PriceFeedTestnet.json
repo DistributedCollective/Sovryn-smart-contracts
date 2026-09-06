@@ -2,7 +2,7 @@
     "_provenance": {
         "repo": "zero-contracts",
         "branch": "sovryn-perimeter-delay",
-        "commit": "2bbaccc",
+        "commit": "8ac7420",
         "compiler": "solc 0.6.11 via hardhat",
         "note": "Liquity/Zero settable price feed stub. Test-only fixture: the fork tests swap it in for ZeroPriceFeed because the production feed's staleness gate trips after governance time-jumps on a fork."
     },

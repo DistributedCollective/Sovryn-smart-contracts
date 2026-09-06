@@ -36,6 +36,26 @@ const zeroRoot = argValue("--zero");
 
 const git = (repo, ...a) => execFileSync("git", ["-C", repo, ...a], { encoding: "utf8" }).trim();
 
+/** The branch a checkout is on; for a detached checkout, the branch whose tip
+ *  is that commit (there has to be exactly one for the provenance to be
+ *  unambiguous). */
+const branchOf = (repo) => {
+    const current = git(repo, "branch", "--show-current");
+    if (current) return current;
+    const atHead = git(repo, "branch", "--points-at", "HEAD", "--format=%(refname:short)")
+        .split("\n")
+        // A detached worktree lists itself as "(no branch)" or "(HEAD detached …)".
+        .filter((name) => name && !name.startsWith("("));
+    if (atHead.length !== 1) {
+        console.error(
+            `error: ${repo} is detached and ${atHead.length} branches point at its HEAD ` +
+                `(${atHead.join(", ") || "none"}); check out the branch the fixtures come from`
+        );
+        process.exit(1);
+    }
+    return atHead[0];
+};
+
 for (const [name, repo] of [
     ["perimeter", perimeterRoot],
     ["zero", zeroRoot],
@@ -99,7 +119,7 @@ for (const [fixtureFile, artifactRel, repoRoot] of FIXTURES) {
     const before = JSON.stringify({ a: fixture.abi, b: fixture.bytecode });
     fixture.abi = artifact.abi;
     fixture.bytecode = bytecode;
-    fixture._provenance.branch = git(repoRoot, "branch", "--show-current");
+    fixture._provenance.branch = branchOf(repoRoot);
     fixture._provenance.commit = git(repoRoot, "rev-parse", "--short", "HEAD");
 
     fs.writeFileSync(fixturePath, JSON.stringify(fixture, null, 4) + "\n");

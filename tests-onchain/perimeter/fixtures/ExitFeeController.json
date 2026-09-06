@@ -2,7 +2,7 @@
     "_provenance": {
         "repo": "perimeter",
         "branch": "sovryn-perimeter-delay",
-        "commit": "befccb0",
+        "commit": "a7e8f55",
         "compiler": "solc 0.8.20 via forge (evm_version paris)",
         "note": "Test-only fixture for the fork-based SIP tests; production deploys run from the perimeter repo itself.",
         "pinned": "2026-09-02"
