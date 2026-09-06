@@ -28,7 +28,7 @@ const {
     ERC1967_IMPL_SLOT,
     forkOps,
 } = require("./perimeterSipTestHelpers");
-const { ensurePhase1Executed, findProposalByActions, hasAction } = require("./phase1Preflight");
+const { requirePhase1Executed, findProposalByActions, hasAction } = require("./phase1Proposals");
 const { assertControllerIsDelayBuild } = require("../../hardhat/tasks/sips/args/sipArgs");
 
 const queueFixture = require("./fixtures/ExitDelayQueue.json");
@@ -183,9 +183,8 @@ const attachToInstalledPhase2Stack = async (
         ctx.deployerSigner
     );
 
-    // Cheap on a fork where it already ran: every part reads as Executed and
-    // resolves in a handful of RPC calls, no staker walk needed.
-    const phase1 = await ensurePhase1Executed(ctx);
+    // Every part of the fee release must already read as Executed here.
+    const phase1 = await requirePhase1Executed(ctx);
 
     const active = ethers.utils.getAddress(
         "0x" +
@@ -251,10 +250,10 @@ const setupPhase2Stack = async () => {
         );
     }
 
-    // The preceding release must be finished before any of this one is
+    // The preceding release must be executed before any of this one is
     // proposed: its proposals are discovered by shape, and this one emits some
     // of the same actions.
-    const phase1 = await ensurePhase1Executed(ctx);
+    const phase1 = await requirePhase1Executed(ctx);
 
     const { queue } = await deployPhase2Release(ctx.deployerSigner, {
         minDelay: MIN_DELAY_SECONDS,

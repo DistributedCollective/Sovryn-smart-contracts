@@ -1,30 +1,17 @@
 /**
- * The preflight's vote predicate, pinned against GovernorAlpha.state.
+ * The action-shape predicates that find the SIP-0094 proposals on a fork.
  *
- * `winsTheVote` decides whether the preflight still has to buy votes, so it has
- * to agree with the chain exactly — not approximately. GovernorAlpha marks a
- * proposal Defeated when
+ * A part is recognised by the actions it carries, so each predicate has to
+ * accept the genuine action list and reject the look-alikes: a later release
+ * that touches the same beacons and proxy, a decoy that spreads the telling
+ * signature and target across two actions, a proposal that only does half the
+ * work. No network: the predicates are pure.
  *
- *     forVotes <= (forVotes + againstVotes) / 100 * majorityPercentageVotes
- *     || forVotes + againstVotes < proposal.quorum
- *
- * with the division taken FIRST, in integer arithmetic, and with the quorum
- * read from the proposal's own snapshot. Every case below fixes one of those
- * details. No network: the predicate is pure.
- *
- *     npx hardhat test tests-onchain/perimeter/phase1Preflight.unit.test.js
+ *     npx hardhat test tests-onchain/perimeter/phase1Proposals.unit.test.js
  */
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const {
-    winsTheVote,
-    hasAction,
-    rewiresLendingAndZero,
-    retiresTheSubsidy,
-    settlePart,
-} = require("./phase1Preflight");
-
-const bn = (value) => ethers.BigNumber.from(value);
+const { hasAction, rewiresLendingAndZero, retiresTheSubsidy } = require("./phase1Proposals");
 
 const BO_PROXY = "0x5B9dB4B8bdeF3e57323187a9AC2639C5DEe5FD39";
 const COMMUNITY_ISSUANCE = "0x9b38044A276fED8bC1703bd4a2DA1b17F2c61d16";
@@ -74,59 +61,6 @@ const genuinePart1 = actionsOf([
         data: address(SOMEWHERE_ELSE),
     },
 ]);
-
-describe("Phase 1 preflight — the vote predicate", () => {
-    for (const majority of [70, 50]) {
-        describe(`at a ${majority}% majority`, () => {
-            it("fails below quorum however lopsided the support", () => {
-                // Unanimous, and still not enough people showed up.
-                expect(winsTheVote(bn(100), bn(0), bn(101), bn(majority))).to.equal(false);
-            });
-
-            it("fails at exactly the majority threshold", () => {
-                // 100 votes cast, threshold = 100 / 100 * majority = majority.
-                // The contract defeats on `<=`, so landing on the line loses.
-                const forVotes = bn(majority);
-                const againstVotes = bn(100 - majority);
-                expect(winsTheVote(forVotes, againstVotes, bn(100), bn(majority))).to.equal(false);
-            });
-
-            it("passes one vote above the majority threshold", () => {
-                const forVotes = bn(majority + 1);
-                const againstVotes = bn(100 - majority - 1);
-                expect(winsTheVote(forVotes, againstVotes, bn(100), bn(majority))).to.equal(true);
-            });
-
-            it("divides before it multiplies, as the contract does", () => {
-                // total = 1e18 + 99. Truncating first gives a threshold of
-                // 1e16 * majority; multiplying first would give
-                // (1e18 + 99) * majority / 100, which is up to 99 higher.
-                // A tally inside that gap separates the two orders, and the
-                // contract's order is the one that must win here.
-                const total = bn(10).pow(18).add(99);
-                const truncatedFirst = total.div(100).mul(majority);
-                const multipliedFirst = total.mul(majority).div(100);
-                expect(
-                    multipliedFirst.gt(truncatedFirst),
-                    "the two orders must actually disagree for this case to prove anything"
-                ).to.equal(true);
-
-                const forVotes = truncatedFirst.add(1);
-                expect(forVotes.lte(multipliedFirst), "tally sits inside the gap").to.equal(true);
-                expect(winsTheVote(forVotes, total.sub(forVotes), total, bn(majority))).to.equal(
-                    true
-                );
-            });
-        });
-    }
-
-    it("reads quorum from the proposal snapshot it is handed", () => {
-        // Same tally, two quorums: only the snapshot decides.
-        const forVotes = bn(10).pow(25);
-        expect(winsTheVote(forVotes, bn(0), forVotes, bn(70))).to.equal(true);
-        expect(winsTheVote(forVotes, bn(0), forVotes.add(1), bn(70))).to.equal(false);
-    });
-});
 
 describe("Phase 1 preflight — the action-shape predicates", () => {
     describe("hasAction", () => {
@@ -292,25 +226,4 @@ describe("Phase 1 preflight — the action-shape predicates", () => {
             expect(retiresTheSubsidy(elsewhere, COMMUNITY_ISSUANCE)).to.equal(false);
         });
     });
-});
-
-describe("Phase 1 preflight — the create arm", () => {
-    /** The refusal happens before anything is read from the chain or from the
-     *  governance context, so a null context is enough to reach it. */
-    const settleMissing = (label, creatable) =>
-        settlePart(null, "governorOwner", null, "getArgsSip0094Part1", { label, creatable });
-
-    for (const label of ["Phase 1 Part 1", "Phase 1 Part 2"]) {
-        it(`refuses to create ${label} and names the rehearsal that can be run instead`, async () => {
-            let thrown = null;
-            try {
-                await settleMissing(label, false);
-            } catch (error) {
-                thrown = error;
-            }
-            expect(thrown, "a missing part was not refused").to.not.equal(null);
-            expect(thrown.message).to.contain(`${label} is not on chain`);
-            expect(thrown.message).to.contain("run the single-release rehearsal instead");
-        });
-    }
 });

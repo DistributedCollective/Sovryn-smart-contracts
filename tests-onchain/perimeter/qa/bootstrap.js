@@ -39,7 +39,7 @@ const {
     useSettableCommunityIssuanceFeed,
     STATE,
     STATE_NAMES,
-} = require("../phase1Preflight");
+} = require("../phase1Proposals");
 const {
     setupPhase2Stack,
     useAttachedStack,

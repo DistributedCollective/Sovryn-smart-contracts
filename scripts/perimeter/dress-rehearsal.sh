@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # One-command Phase 2 dress rehearsal. Runs the sequenced fork suite that:
-#   1. finishes whatever is left of the live Phase 1 governance proposals,
+#   1. requires the fee release (SIP-0094) to read as executed on the fork,
 #   2. upgrades the live controller to the delay build and activates Phase 2
 #      through its own two governance proposals, arming the withdrawal delay
 #      on a queue owned and administered by the real multisig, and
@@ -15,9 +15,9 @@
 # build — see findInstalledPhase2Release/attachToInstalledPhase2Stack in
 # tests-onchain/perimeter/phase2Stack.js. They run as ONE `hardhat test`
 # invocation, in that order, so the second file's `before` always finds the
-# first's release on chain. forkOps.test.js and phase1Preflight.test.js touch
-# neither fixture and keep their own fresh node each, unchanged.
-# PERIMETER_REHEARSAL_FRESH_NODE=1 restores a fresh node per file for all four,
+# first's release on chain. forkOps.test.js touches neither fixture and keeps
+# its own fresh node, unchanged.
+# PERIMETER_REHEARSAL_FRESH_NODE=1 restores a fresh node per file for all three,
 # which also still works: phase2Stack.js attaches or builds either way.
 #
 # PERIMETER_FORK_KIND selects the node kind; only "hardhat" runs today. The
@@ -95,14 +95,12 @@ log "== $(date -u +%FT%TZ) kind=$KIND network=$NETWORK rpc=$RPC =="
 if [ "${PERIMETER_REHEARSAL_FRESH_NODE:-0}" = "1" ]; then
     RUN_GROUPS=(
         "tests-onchain/perimeter/forkOps.test.js"
-        "tests-onchain/perimeter/phase1Preflight.test.js"
         "tests-onchain/perimeter/phase2Stack.test.js"
         "tests-onchain/perimeter/perimeterDelayE2E.test.js"
     )
 else
     RUN_GROUPS=(
         "tests-onchain/perimeter/forkOps.test.js"
-        "tests-onchain/perimeter/phase1Preflight.test.js"
         "tests-onchain/perimeter/phase2Stack.test.js tests-onchain/perimeter/perimeterDelayE2E.test.js"
     )
 fi
