@@ -2585,12 +2585,6 @@ const getArgsSipPerimeterPart2 = async (hre) => {
         "PERIMETER_ZERO_BORROWER_OPERATIONS_OPS",
         "BorrowerOperations settlement companion"
     );
-    const troveManagerImplAddress = await resolvePerimeterInput(
-        hre,
-        "TroveManagerLiquidationFix",
-        "PERIMETER_ZERO_TROVE_MANAGER",
-        "TroveManager implementation"
-    );
 
     if (
         (await protocol.getTarget("setExitFeeController(address)")) ===
@@ -3192,6 +3186,12 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
         "BorrowerOperationsPerimeterOps",
         "PERIMETER_ZERO_BORROWER_OPERATIONS_OPS",
         "BorrowerOperations settlement companion"
+    );
+    const troveManagerImplAddress = await resolvePerimeterInput(
+        hre,
+        "TroveManagerLiquidationFix",
+        "PERIMETER_ZERO_TROVE_MANAGER",
+        "TroveManager implementation"
     );
 
     /** Both Zero implementations must be the delay vintage, checked on their

@@ -437,6 +437,22 @@ const assertReleaseLanded = async (hre, release) => {
                 `one this run deployed (${ops}) — the release did not land`
         );
     }
+    // The TroveManager swap rides this release without being part of the
+    // perimeter, so it is checked on its own terms rather than through a
+    // perimeter pointer.
+    const troveManagerProxy = new ethers.Contract(
+        (await get("TroveManager_Proxy")).address,
+        ["function getImplementation() view returns (address)"],
+        ethers.provider
+    );
+    const installedTroveManager = await troveManagerProxy.getImplementation();
+    const expectedTroveManager = ethers.utils.getAddress(release.troveManagerImpl.address);
+    if (ethers.utils.getAddress(installedTroveManager) !== expectedTroveManager) {
+        throw new Error(
+            `perimeter QA: the TroveManager proxy serves ${installedTroveManager}, not the ` +
+                `implementation this run deployed (${expectedTroveManager}) — the release did not land`
+        );
+    }
     return queue;
 };
 
