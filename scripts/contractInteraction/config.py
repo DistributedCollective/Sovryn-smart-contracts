@@ -2,6 +2,7 @@ from brownie import *
 from brownie.network.contract import InterfaceContainer
 import json
 from os import environ
+import re
 
 def loadConfig():
     global contracts, acct
@@ -14,7 +15,9 @@ def loadConfig():
         else: 
             acct = accounts.load("rskdeployer")
         netName = environ.get('DEV_NET_NAME')
-        if(netName != None): 
+        if(netName != None):
+            if not re.match(r'^[a-zA-Z0-9_-]+$', netName):
+                raise ValueError("Invalid DEV_NET_NAME value")
             configPath = "./scripts/contractInteraction/" + netName + "_contracts.json"
             configFile = open(configPath)
         else:
