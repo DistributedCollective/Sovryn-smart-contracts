@@ -51,6 +51,7 @@ const collSurplusPoolFixture = require("./fixtures/CollSurplusPoolPerimeter.json
 const queueFixture = require("./fixtures/ExitDelayQueue.json");
 const borrowerOperationsOpsFixture = require("./fixtures/BorrowerOperationsPerimeterOps.json");
 const priceFeedTestnetFixture = require("./fixtures/PriceFeedTestnet.json");
+const troveManagerFixture = require("./fixtures/TroveManagerLiquidationFix.json");
 
 const perimeterEventsInterface = new ethers.utils.Interface([
     "event ExitFeeApplied(bytes32 indexed surfaceId, address indexed actor, address indexed asset, address subProduct, address recipient, uint256 grossAmount, uint256 feeAmount, uint256 netAmount, address feeReceiver)",
@@ -489,6 +490,47 @@ const deployCollSurplusPoolImpl = async (deployerSigner) => {
     return impl;
 };
 
+/** Deploy the TroveManager implementation that carries the Recovery-Mode
+ *  multi-liquidation correction, and save the "TroveManagerLiquidationFix"
+ *  record the delay Part 2 entry resolves.
+ *
+ *  Both constructor arguments are `immutable`, so they are part of the runtime
+ *  code rather than of proxy storage: an implementation built with different
+ *  ones is a different contract in the only way that matters here — a wrong
+ *  BOOTSTRAP_PERIOD moves the window in which redemptions are refused. Both are
+ *  therefore read from the live proxy rather than restated. */
+const deployTroveManagerImpl = async (deployerSigner) => {
+    const _ov = deployedAddressOverrides();
+    if (_ov["TroveManagerLiquidationFix"]) {
+        return await attachDeployed(
+            "TroveManagerLiquidationFix",
+            _ov["TroveManagerLiquidationFix"],
+            troveManagerFixture.abi,
+            deployerSigner
+        );
+    }
+    const proxyAddress = (await deployments.get("TroveManager_Proxy")).address;
+    const live = new ethers.Contract(
+        proxyAddress,
+        [
+            "function BOOTSTRAP_PERIOD() view returns (uint256)",
+            "function permit2() view returns (address)",
+        ],
+        deployerSigner
+    );
+    const impl = await new ethers.ContractFactory(
+        troveManagerFixture.abi,
+        troveManagerFixture.bytecode,
+        deployerSigner
+    ).deploy(await live.BOOTSTRAP_PERIOD(), await live.permit2());
+    await impl.deployed();
+    await deployments.save("TroveManagerLiquidationFix", {
+        address: impl.address,
+        abi: troveManagerFixture.abi,
+    });
+    return impl;
+};
+
 /** Deploy every lending-side contract the aggregate release registers, and
  *  save the hardhat-deploy records the proposal builders resolve.
  *
@@ -695,6 +737,7 @@ const deployPhase2Release = async (deployerSigner, { minDelay, owner, admin }) =
     const borrowerOperationsImpl = await deployHookedBorrowerOperationsImpl(deployerSigner);
     const collSurplusPoolImpl = await deployCollSurplusPoolImpl(deployerSigner);
     const perimeterOps = await deployBorrowerOperationsPerimeterOps(deployerSigner);
+    const troveManagerImpl = await deployTroveManagerImpl(deployerSigner);
 
     // The Zero implementations resolve under their own record names in this
     // release, so that a shell still holding the previous release's addresses
@@ -732,6 +775,7 @@ const deployPhase2Release = async (deployerSigner, { minDelay, owner, admin }) =
         borrowerOperationsImpl,
         collSurplusPoolImpl,
         perimeterOps,
+        troveManagerImpl,
         priceFeed,
         sources,
         queue,
@@ -1035,6 +1079,8 @@ module.exports = {
     PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     borrowerOperationsFixture,
     collSurplusPoolFixture,
+    troveManagerFixture,
+    deployTroveManagerImpl,
     perimeterEventsInterface,
     getImpersonatedSigner,
     getImpersonatedSignerFromJsonRpcProvider,

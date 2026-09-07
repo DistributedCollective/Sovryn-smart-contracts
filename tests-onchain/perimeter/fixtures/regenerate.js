@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Regenerate the eight externally-built Perimeter rehearsal fixtures from the
+ * Regenerate the externally-built Perimeter rehearsal fixtures from the
  * build artifacts of their source repos (runbook P11: fixtures must be
  * rebuilt at the frozen commits and their _provenance updated).
  *
@@ -98,6 +98,11 @@ const FIXTURES = [
         "artifacts/contracts/TestContracts/PriceFeedTestnet.sol/PriceFeedTestnet.json",
         zeroRoot,
     ],
+    [
+        "TroveManagerLiquidationFix.json",
+        "artifacts/contracts/TroveManager.sol/TroveManager.json",
+        zeroRoot,
+    ],
 ];
 
 let changed = 0;
@@ -128,4 +133,4 @@ for (const [fixtureFile, artifactRel, repoRoot] of FIXTURES) {
     if (before !== after) changed++;
     console.log(`${fixtureFile}: ${delta} (commit ${fixture._provenance.commit})`);
 }
-console.log(`done: 8 fixtures written, ${changed} with new bytes`);
+console.log(`done: ${FIXTURES.length} fixtures written, ${changed} with new bytes`);

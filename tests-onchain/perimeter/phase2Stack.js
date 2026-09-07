@@ -25,6 +25,7 @@ const {
     createAndQueueGovernorOwnerSip,
     executeQueuedGovernorOwnerSip,
     borrowerOperationsFixture,
+    troveManagerFixture,
     ERC1967_IMPL_SLOT,
     forkOps,
 } = require("./perimeterSipTestHelpers");
@@ -214,6 +215,11 @@ const attachToInstalledPhase2Stack = async (
         iXUSD,
         wrbtc,
         borrowerOperations,
+        troveManager: new ethers.Contract(
+            (await get("TroveManager_Proxy")).address,
+            troveManagerFixture.abi,
+            ctx.deployerSigner
+        ),
         provider,
         exchequer: { address: EXCHEQUER, signer: exchequerSigner, owners, required },
         viaMultisig,
@@ -304,6 +310,41 @@ const setupPhase2Stack = async () => {
     const part2 = await createAndQueueGovernorOwnerSip(ctx, "getArgsSipPerimeterDelayPart2");
     await executeQueuedGovernorOwnerSip(ctx, part2.proposalId);
 
+    // The TroveManager swap rides this release without belonging to the
+    // perimeter, so it is proved on its own terms: the proxy serves the new
+    // implementation, and the storage behind that proxy still reads. The
+    // correction adds no state, so anything that stopped reading here would be
+    // a layout break rather than a behaviour change.
+    const troveManager = new ethers.Contract(
+        (await get("TroveManager_Proxy")).address,
+        troveManagerFixture.abi,
+        ctx.deployerSigner
+    );
+    const troveManagerProxy = await ethers.getContract("TroveManager_Proxy");
+    const installedTroveManager = await troveManagerProxy.getImplementation();
+    const expectedTroveManager = (await get("TroveManagerLiquidationFix")).address;
+    if (installedTroveManager.toLowerCase() !== expectedTroveManager.toLowerCase()) {
+        throw new Error(
+            `the TroveManager proxy serves ${installedTroveManager}, not the implementation this ` +
+                `release installs (${expectedTroveManager})`
+        );
+    }
+    if ((await troveManager.troveManagerRedeemOps()) === ethers.constants.AddressZero) {
+        throw new Error(
+            "the TroveManager proxy lost its redeem-ops pointer across the implementation swap"
+        );
+    }
+    const troveCount = await troveManager.getTroveOwnersCount();
+    if (troveCount.isZero()) {
+        throw new Error("no troves on this fork — the TroveManager storage check cannot run");
+    }
+    const sampleTrove = await troveManager.Troves(await troveManager.TroveOwners(0));
+    if (sampleTrove.debt.isZero()) {
+        throw new Error(
+            "a live trove reads zero debt after the implementation swap — storage did not survive"
+        );
+    }
+
     // This release has no subsidy action: the rate it would retire is already
     // retired. If it is not, the chain is not where this fixture believes.
     const communityIssuance = await ethers.getContract(
@@ -366,6 +407,7 @@ const setupPhase2Stack = async () => {
         DELAY_SECONDS,
         MIN_DELAY_SECONDS,
         phase1,
+        troveManager,
         upgrade: { ...upgrade, performed: true },
         controllerPrecondition,
         proposals: { part1: part1.proposalId, part2: part2.proposalId },

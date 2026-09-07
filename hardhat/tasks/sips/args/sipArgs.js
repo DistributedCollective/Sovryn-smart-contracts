@@ -2585,6 +2585,12 @@ const getArgsSipPerimeterPart2 = async (hre) => {
         "PERIMETER_ZERO_BORROWER_OPERATIONS_OPS",
         "BorrowerOperations settlement companion"
     );
+    const troveManagerImplAddress = await resolvePerimeterInput(
+        hre,
+        "TroveManagerLiquidationFix",
+        "PERIMETER_ZERO_TROVE_MANAGER",
+        "TroveManager implementation"
+    );
 
     if (
         (await protocol.getTarget("setExitFeeController(address)")) ===
@@ -3324,7 +3330,73 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
     datas.push(abiCoder.encode(["address"], [queueAddress]));
     targetOwnerValidationAddresses.push(boProxyOwner);
 
-    const expected = poolChanges ? 4 : 3;
+    /** 5. The TroveManager implementation swap. It carries no perimeter code and
+     *  no storage change; it rides this release because it upgrades the same
+     *  product under the same governor, and it is placed last so that nothing
+     *  the perimeter depends on sits behind it.
+     *
+     *  Two things are checked on the resolved address rather than trusted. Its
+     *  runtime code must differ from what the proxy serves, or the action is a
+     *  no-op and the correction is not in what would ship. And its two
+     *  constructor arguments are `immutable`, so they live in the runtime code:
+     *  an implementation built with a different BOOTSTRAP_PERIOD would move the
+     *  window in which redemptions are refused, which is a live behaviour change
+     *  wearing this upgrade's clothes. Both must equal what the proxy serves
+     *  today. */
+    const troveManagerProxy = await ethers.getContract("TroveManager_Proxy");
+    const troveManagerProxyOwner = await troveManagerProxy.getOwner();
+    const currentTroveManagerImpl = await troveManagerProxy.getImplementation();
+    if (
+        (await ethers.provider.getCode(currentTroveManagerImpl)) ===
+        (await ethers.provider.getCode(troveManagerImplAddress))
+    ) {
+        throw new Error(
+            `Perimeter: the TroveManager implementation at ${troveManagerImplAddress} is ` +
+                `byte-identical to the one the proxy already serves (${currentTroveManagerImpl}). ` +
+                "The Recovery-Mode liquidation correction changes those bytes, so this address " +
+                "predates it — point PERIMETER_ZERO_TROVE_MANAGER at the built implementation."
+        );
+    }
+    const troveManagerImmutables = [
+        "function BOOTSTRAP_PERIOD() view returns (uint256)",
+        "function permit2() view returns (address)",
+    ];
+    const liveTroveManager = new ethers.Contract(
+        troveManagerProxy.address,
+        troveManagerImmutables,
+        ethers.provider
+    );
+    const nextTroveManager = new ethers.Contract(
+        troveManagerImplAddress,
+        troveManagerImmutables,
+        ethers.provider
+    );
+    const liveBootstrap = await liveTroveManager.BOOTSTRAP_PERIOD();
+    const nextBootstrap = await nextTroveManager.BOOTSTRAP_PERIOD();
+    if (!liveBootstrap.eq(nextBootstrap)) {
+        throw new Error(
+            `Perimeter: the TroveManager implementation at ${troveManagerImplAddress} was built ` +
+                `with BOOTSTRAP_PERIOD ${nextBootstrap.toString()}, but the proxy serves ` +
+                `${liveBootstrap.toString()}. That value is immutable, so installing this would ` +
+                "move the redemption bootstrap window as a side effect of the upgrade."
+        );
+    }
+    const livePermit2 = await liveTroveManager.permit2();
+    const nextPermit2 = await nextTroveManager.permit2();
+    if (livePermit2.toLowerCase() !== nextPermit2.toLowerCase()) {
+        throw new Error(
+            `Perimeter: the TroveManager implementation at ${troveManagerImplAddress} was built ` +
+                `against permit2 ${nextPermit2}, but the proxy serves ${livePermit2}. That address ` +
+                "is immutable and must match what is live."
+        );
+    }
+    targets.push(troveManagerProxy.address);
+    values.push(0);
+    signatures.push("setImplementation(address)");
+    datas.push(abiCoder.encode(["address"], [troveManagerImplAddress]));
+    targetOwnerValidationAddresses.push(troveManagerProxyOwner);
+
+    const expected = poolChanges ? 5 : 4;
     if (targets.length !== expected) {
         throw new Error(
             `Perimeter: delay Part 2 must hold exactly ${expected} actions, built ${targets.length}`
@@ -3359,7 +3431,7 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-XXXX (Part 2): Sovryn Security Perimeter, withdrawal delay — 2 of 2 executable parts (GovernorOwner). Installs the delay on Zero: upgrades the CollSurplusPool implementation where it changes (1), swaps the BorrowerOperations implementation (1), then pins the settlement companion and the exit delay queue on BorrowerOperations (2). The controller pointer installed by the preceding release is left untouched and is asserted, not rewritten. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-XXXX.md, sha256: ____",
+            "SIP-XXXX (Part 2): Sovryn Security Perimeter, withdrawal delay — 2 of 2 executable parts (GovernorOwner). Installs the delay on Zero: upgrades the CollSurplusPool implementation where it changes (1), swaps the BorrowerOperations implementation (1), then pins the settlement companion and the exit delay queue on BorrowerOperations (2), and swaps the TroveManager implementation for the one carrying Liquity's Recovery-Mode multi-liquidation correction (1). The controller pointer installed by the preceding release is left untouched and is asserted, not rewritten. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-XXXX.md, sha256: ____",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
