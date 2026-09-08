@@ -31,6 +31,11 @@ const {
 } = require("./perimeterSipTestHelpers");
 const { requirePhase1Executed, findProposalByActions, hasAction } = require("./phase1Proposals");
 const { assertControllerIsDelayBuild } = require("../../hardhat/tasks/sips/args/sipArgs");
+const {
+    SURFACE_IDS,
+    CONTRACT_CALLERS,
+    assertContractCallersExempt,
+} = require("../../hardhat/tasks/perimeter/contractCallerExemptions");
 
 const queueFixture = require("./fixtures/ExitDelayQueue.json");
 
@@ -360,11 +365,35 @@ const setupPhase2Stack = async () => {
 
     // Arming is the owner's and the admin's act, and one account holds both.
     const controller = stack.controller.connect(exchequerSigner);
+
+    // Every contract that withdraws on a user's behalf is registered BEFORE the
+    // hold exists, because a hold that catches one of them pays its users out of
+    // other users' money and escrows theirs where nobody can reach it. The
+    // rehearsal runs the ordering the runbook demands rather than a shortcut to
+    // the armed state.
+    for (const caller of CONTRACT_CALLERS) {
+        const surface = SURFACE_IDS[caller.surface];
+        if (caller.registration === "bypass") {
+            await (
+                await controller.setActorBypass(surface, caller.address, {
+                    active: true,
+                    bypass: true,
+                })
+            ).wait();
+        } else {
+            await (await controller.setPassthroughActor(surface, caller.address, true)).wait();
+        }
+    }
+
     await (await controller.setGlobalDelaySeconds(DELAY_SECONDS)).wait();
     await (await controller.setSecurityPerimeterEnabled(true)).wait();
     if (!(await controller.exitFeeEnabled())) {
         await (await controller.setExitFeeEnabled(true)).wait();
     }
+
+    // And prove it on the armed stack, so this fixture can never hand a scenario
+    // a perimeter that is holding money it cannot release.
+    await assertContractCallersExempt(controller);
 
     const multisig = await ethers.getContractAt("MultiSigWallet", EXCHEQUER);
     const { owners, required, ownerSigners } = await impersonateMultisigOwners(provider, multisig);

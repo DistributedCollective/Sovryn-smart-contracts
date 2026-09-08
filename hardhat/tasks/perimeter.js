@@ -3,6 +3,10 @@ const { task, types } = require("hardhat/config");
 const { ethers } = require("ethers");
 const Logs = require("node-logs");
 const { sendWithMultisig, multisigCheckTx } = require("../../deployment/helpers/helpers");
+const {
+    CONTRACT_CALLERS,
+    assertContractCallersExempt,
+} = require("./perimeter/contractCallerExemptions");
 
 const logger = new Logs().showInConsole(true);
 
@@ -29,6 +33,8 @@ const BLOCK_LEVERS = {
     "unfreeze(address[])": "clear a freeze on a batch of accounts",
     "unblacklist(address)": "clear a blacklist on one account",
     "unblacklist(address[])": "clear a blacklist on a batch of accounts",
+    "downgradeToFrozen(address)": "move one blacklisted account down to frozen",
+    "downgradeToFrozen(address[])": "move a batch of blacklisted accounts down to frozen",
     "freezeFromRequest(uint256,bool,bytes32)": "freeze the parties behind one request",
     "freezeFromRequest(uint256[],bool,bytes32)": "freeze the parties behind a batch of requests",
     "blacklistFromRequest(uint256,bool,bytes32)": "blacklist the parties behind one request",
@@ -132,4 +138,60 @@ task(
                 : "Call:      NOT an ExitDelayQueue block lever"
         );
         await multisigCheckTx(hre, id, multisigAddress);
+    });
+
+/**
+ * The go-live check that stands between the delay and the contracts that
+ * withdraw on somebody else's behalf.
+ *
+ * Read-only, and run BEFORE arming — it is the runbook's blocker step, the one
+ * that is otherwise a paragraph of prose nothing enforces. The registry and the
+ * reasoning live in `contractCallerExemptions.js`; this only points it at a
+ * live controller and prints the verdict.
+ */
+task(
+    "perimeter:verify-arming",
+    "Refuse go-live while a contract that withdraws for users is not delay-exempt"
+)
+    .addOptionalParam(
+        "controller",
+        "ExitFeeController address (defaults to the deployment record)"
+    )
+    .setAction(async ({ controller }, hre) => {
+        const {
+            deployments: { get },
+            ethers: hreEthers,
+        } = hre;
+
+        const address = hreEthers.utils.isAddress(controller)
+            ? controller
+            : (await get("ExitFeeController")).address;
+        if ((await hreEthers.provider.getCode(address)) === "0x") {
+            throw new Error(
+                `perimeter:verify-arming: no contract code at the controller ${address}`
+            );
+        }
+
+        const live = await hreEthers.getContractAt(
+            [
+                "function securityPerimeterEnabled() view returns (bool)",
+                "function globalDelaySeconds() view returns (uint32)",
+                "function actorBypass(bytes32,address) view returns (tuple(bool active, bool bypass))",
+                "function passthroughActor(bytes32,address) view returns (bool)",
+            ],
+            address
+        );
+
+        logger.info(`Controller: ${address}`);
+        logger.info(`Delay armed: ${await live.securityPerimeterEnabled()}`);
+        logger.info(`Global delay: ${await live.globalDelaySeconds()}s`);
+        for (const caller of CONTRACT_CALLERS) {
+            logger.info(`  ${caller.name} ${caller.address} -> ${caller.registration}`);
+        }
+
+        await assertContractCallersExempt(live);
+        logger.success(
+            "Every known contract-caller of a hooked exit is registered as this release decided. " +
+                "Nothing here blocks arming."
+        );
     });
