@@ -40,10 +40,13 @@
  *
  * WHAT THIS DOES NOT KNOW
  *
- * Only what is listed. Enumerating every remaining integrator that calls a
- * hooked withdrawal for a user is its own piece of work; each one it finds is
- * added here with its decided registration, and this check then holds the chain
- * to it.
+ * Only what is listed, and the list comes from a sweep of our own repositories.
+ * It cannot see contracts other people deployed against the same permissionless
+ * entry points — Zero publishes BorrowerLib as an SDK for exactly that — and
+ * finding those needs an indexer query over historical withdrawal events
+ * filtered to callers that have code. Until that runs, this check proves the
+ * chain agrees with what we know, not that we know everything. Whatever the
+ * scan turns up is added here with its decided registration.
  */
 const { ethers } = require("ethers");
 
@@ -74,6 +77,22 @@ const CONTRACT_CALLERS = Object.freeze([
             "arrives and the claimant's own money escrows to a request only the collector could " +
             "execute — and it has no code that does. It names ITSELF as the receiver, so a " +
             "passthrough would resolve the actor straight back to it and change nothing.",
+    }),
+    Object.freeze({
+        name: "RBTCWrapperProxy",
+        address: "0x2BEe6167f91D10db23252e03de039Da6b9047D49",
+        surface: "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW",
+        registration: "passthrough",
+        why:
+            "removeFromLendingPool burns the user's iTokens and names the USER as receiver, so the " +
+            "queue would record the wrapper as the only executor of the user's own money. The " +
+            "wrapper has no owner, no generic call facility and a fallback that accepts value only " +
+            "from WRBTC, so nothing can make it release the hold. A passthrough rewrites the " +
+            "effective originator and owner to the user, who is then delayed as intended and keeps " +
+            "control. A bypass would work mechanically but would exempt a whole withdrawal route " +
+            "from the perimeter, which is the thing the delay exists to prevent. The route is " +
+            "legacy — the dapp burns directly from the user's wallet — but it is public and " +
+            "permissionless, so an older client still on it is exposed.",
     }),
 ]);
 
