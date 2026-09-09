@@ -78,21 +78,31 @@ const CONTRACT_CALLERS = Object.freeze([
             "execute — and it has no code that does. It names ITSELF as the receiver, so a " +
             "passthrough would resolve the actor straight back to it and change nothing.",
     }),
+    // Not enforced, and deliberately kept: the address below is the LIVE
+    // AmmRbtcWrapperProxy, whose deployed bytecode carries no lending path at
+    // all — `addToLendingPool` (0x2e6bc575) and `removeFromLendingPool`
+    // (0xc5a58a60) are both absent from it, and it does have an owner. The
+    // repository holds two lineages that never merged: the branch carrying the
+    // lending functions was only ever pointed at testnet, and the mainnet build
+    // comes from the other one. Requiring a registration here would demand an
+    // owner transaction that exempts nothing.
+    //
+    // It stays as a WATCH rather than being deleted: were the lending-capable
+    // build ever deployed to this address, the entry describes exactly what it
+    // would need — a passthrough, not a bypass, because that build names the
+    // USER as receiver, so the queue would record the wrapper as the only
+    // executor of the user's own money, and a bypass would exempt a whole
+    // withdrawal route instead of just re-pointing it at the human.
     Object.freeze({
         name: "RBTCWrapperProxy",
         address: "0x2BEe6167f91D10db23252e03de039Da6b9047D49",
         surface: "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW",
         registration: "passthrough",
+        watchOnly: true,
+        watchSelectors: ["0xc5a58a60", "0x2e6bc575"],
         why:
-            "removeFromLendingPool burns the user's iTokens and names the USER as receiver, so the " +
-            "queue would record the wrapper as the only executor of the user's own money. The " +
-            "wrapper has no owner, no generic call facility and a fallback that accepts value only " +
-            "from WRBTC, so nothing can make it release the hold. A passthrough rewrites the " +
-            "effective originator and owner to the user, who is then delayed as intended and keeps " +
-            "control. A bypass would work mechanically but would exempt a whole withdrawal route " +
-            "from the perimeter, which is the thing the delay exists to prevent. The route is " +
-            "legacy — the dapp burns directly from the user's wallet — but it is public and " +
-            "permissionless, so an older client still on it is exposed.",
+            "The deployed build has no lending entry point, so nothing here can reach the " +
+            "perimeter. Enforced only if those selectors ever appear in its code.",
     }),
 ]);
 
@@ -103,9 +113,21 @@ const REGISTRATIONS = ["bypass", "passthrough"];
  * judgement so the judgement is testable without a chain, and so a caller can
  * feed it observations gathered some other way.
  */
+/** A watch-only caller is enforced only when its selectors are actually in the
+ *  deployed code — the build at that address may not carry the path at all. */
+const enforceable = async (provider, caller) => {
+    if (!caller.watchOnly) return true;
+    const code = (await provider.getCode(caller.address)).toLowerCase();
+    return (caller.watchSelectors || []).some((sel) => code.includes(sel.slice(2).toLowerCase()));
+};
+
 const readRegistrations = async (controller, callers = CONTRACT_CALLERS) => {
     const observations = [];
     for (const caller of callers) {
+        // A watch-only caller whose deployed build does not carry the path is
+        // not a gap to certify against; demanding a registration for it would
+        // ask an owner to exempt something that cannot reach the perimeter.
+        if (!(await enforceable(controller.provider, caller))) continue;
         const surface = SURFACE_IDS[caller.surface];
         if (!surface) {
             throw new Error(
