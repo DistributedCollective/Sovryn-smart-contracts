@@ -316,8 +316,8 @@ contract FeeSharingCollector is
 
         processedCheckpoints[user][_token] = end;
         if (loanTokenWrbtcAddress == _token) {
-            // We will change, so that feeSharingCollector will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
-            ILoanTokenWRBTC(_token).burnToBTC(_receiver, amount, false);
+            // The pool pays `_receiver` directly; nothing is forwarded from this contract.
+            _burnLoanTokenWrbtcToBtc(_receiver, amount);
         } else {
             // Previously it directly send the loanToken to the user
             require(
@@ -329,6 +329,31 @@ contract FeeSharingCollector is
         emit UserFeeWithdrawn(msg.sender, _receiver, _token, amount);
 
         return (amount, end);
+    }
+
+    /**
+     * @notice Redeem `_amount` iWRBTC held by this contract to RBTC paid to `_receiver`.
+     * @dev The pool reports `gross`, what left the pool, and `delivered`, what reached
+     * `_receiver` in the call. A zero `gross` pays zero. A positive `gross` with nothing
+     * delivered means the payout is held in the withdrawal delay queue under this
+     * contract's name: the call reverts, which undoes the burn and the caller's checkpoint
+     * write, so the range stays claimable.
+     * @param _receiver The address the pool pays.
+     * @param _amount The iWRBTC amount to redeem.
+     * @return The RBTC that reached `_receiver` in this call.
+     */
+    function _burnLoanTokenWrbtcToBtc(
+        address _receiver,
+        uint256 _amount
+    ) internal returns (uint256) {
+        (uint256 gross, uint256 delivered) = ILoanTokenWRBTC(loanTokenWrbtcAddress).burnToBTC(
+            _receiver,
+            _amount,
+            false
+        );
+        if (gross == 0) return 0;
+        require(delivered > 0, "FeeSharingCollector: redemption held");
+        return delivered;
     }
 
     /**
@@ -597,13 +622,8 @@ contract FeeSharingCollector is
                 // unwrap the wrbtc
                 wrbtcToken.withdraw(totalAmount);
             } else if (_token == loanTokenWrbtcAddress) {
-                // pull out the iWRBTC to rbtc to this feeSharingCollector contract
-                /** @dev will use the burned result from IWRBTC to RBTC as return total amount */
-                totalAmount = ILoanTokenWRBTC(loanTokenWrbtcAddress).burnToBTC(
-                    address(this),
-                    totalAmount,
-                    false
-                );
+                // Redeem to this contract, which forwards only the RBTC that arrived.
+                totalAmount = _burnLoanTokenWrbtcToBtc(address(this), totalAmount);
             }
         }
     }
@@ -1357,7 +1377,7 @@ interface ILoanTokenWRBTC {
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external returns (uint256 loanAmountPaid);
+    ) external returns (uint256 gross, uint256 delivered);
 
     function tokenPrice() external view returns (uint256 price);
 }
