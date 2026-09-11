@@ -22,6 +22,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { BigNumber } = require("ethers");
 
 const {
     forkOps,
@@ -47,6 +48,11 @@ const {
     MIN_DELAY_SECONDS,
 } = require("../phase2Stack");
 const { assertLocalQaFork } = require("./guard");
+const {
+    SURFACE_IDS,
+    CONTRACT_CALLERS,
+    assertContractCallersExempt,
+} = require("../../../hardhat/tasks/perimeter/contractCallerExemptions");
 const {
     getArgsSipPerimeterDelayPart1,
     getArgsSipPerimeterDelayPart2,
@@ -480,14 +486,20 @@ const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerS
 
     // The delay proposals both refuse to build against a controller that cannot
     // answer the delay views, and this upgrade is the only thing that lifts the
-    // refusal. It is the owner's own transaction, never a governance action.
+    // refusal. It is the owner's own transaction, never a governance action. The
+    // owner's exemptions go in around it: each fee entry on the fee build before
+    // it, each delay entry with it.
     const exchequerSigner = await impersonateSolvent(
         hre,
         provider,
         EXCHEQUER,
         IMPERSONATED_FUNDING
     );
-    const upgrade = await upgradeControllerToDelayBuild(stack.controller.address, exchequerSigner);
+    const upgrade = await upgradeWithExemptions(
+        stack.controller.connect(exchequerSigner),
+        () => upgradeControllerToDelayBuild(stack.controller.address, exchequerSigner),
+        log
+    );
     log(`  controller ${stack.controller.address} now serves ${upgrade.implementation}`);
 
     // Pin what the proposals are allowed to resolve to: the proxy the products
@@ -535,6 +547,140 @@ const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerS
     };
 };
 
+/** A controller read that throws comes back as null, which none of the checks
+ *  below accepts as an entry: an unread entry is never taken to be written. */
+const readOrNull = async (read) => {
+    try {
+        return await read();
+    } catch (error) {
+        return null;
+    }
+};
+
+/** Zero only for a value that parses as the number zero; a missing or
+ *  unparseable rate is not zero. */
+const isZeroRate = (rate) => {
+    try {
+        return BigNumber.from(rate).isZero();
+    } catch (error) {
+        return false;
+    }
+};
+
+const isFeeExemption = (fee) => Boolean(fee) && fee.active === true && isZeroRate(fee.rateBps);
+const isDelayExemption = (delay) =>
+    Boolean(delay) && delay.active === true && delay.bypass === true;
+const describeFee = (fee) =>
+    fee ? `(active=${fee.active}, rateBps=${fee.rateBps})` : "could not be read";
+const describeDelay = (delay) =>
+    delay ? `(active=${delay.active}, bypass=${delay.bypass})` : "could not be read";
+
+/**
+ * The owner's exemptions, as the arming guard's registry names them. The
+ * registry is the one place an exempted address is written down, so this file
+ * names none, and a registration the guard would refuse is refused here before
+ * anything is written.
+ */
+const exemptionEntries = () =>
+    CONTRACT_CALLERS.map((caller) => {
+        const where = `${caller.name} (${caller.address}) on ${caller.surface}`;
+        if (caller.registration !== "bypass") {
+            throw new Error(
+                `perimeter QA: ${where} is registered as ${JSON.stringify(caller.registration)}; ` +
+                    'the only registration is "bypass", the actor fee policy at rate zero plus ' +
+                    "the actor delay bypass, and the arming guard refuses anything else"
+            );
+        }
+        const surface = SURFACE_IDS[caller.surface];
+        if (!surface) {
+            throw new Error(`perimeter QA: ${where} names a surface this release does not hook`);
+        }
+        return { address: caller.address, surface, where };
+    });
+
+/** Read every fee half back; anything but `{active: true, rateBps: 0}` stops the run. */
+const assertFeeEntries = async (controller, when) => {
+    for (const { address, surface, where } of exemptionEntries()) {
+        const fee = await readOrNull(() => controller.actorPolicy(surface, address));
+        if (!isFeeExemption(fee)) {
+            throw new Error(
+                `perimeter QA: ${where} did not read back its fee entry ${when}: actorPolicy ` +
+                    describeFee(fee)
+            );
+        }
+    }
+};
+
+/**
+ * Write the fee half of each exemption that does not already read back as one,
+ * then read every fee half back. Both controller builds serve these two
+ * functions, so this runs on the fee build before the upgrade as well as on the
+ * delay build. Returns the entries it wrote.
+ */
+const writeFeeEntries = async (controller, when, log) => {
+    const written = [];
+    for (const { address, surface, where } of exemptionEntries()) {
+        if (!isFeeExemption(await readOrNull(() => controller.actorPolicy(surface, address)))) {
+            await (
+                await controller.setActorPolicy(surface, address, { active: true, rateBps: 0 })
+            ).wait();
+            log(`  ${where}: actor fee policy written ${when}`);
+            written.push(where);
+        }
+    }
+    await assertFeeEntries(controller, when);
+    return written;
+};
+
+/**
+ * Write the delay half of each exemption that does not already read back as
+ * one, then read both halves of every exemption back. Only the delay build
+ * stores the delay half. Returns the entries it wrote.
+ */
+const writeDelayEntries = async (controller, when, log) => {
+    const written = [];
+    for (const { address, surface, where } of exemptionEntries()) {
+        if (!isDelayExemption(await readOrNull(() => controller.actorBypass(surface, address)))) {
+            await (
+                await controller.setActorBypass(surface, address, { active: true, bypass: true })
+            ).wait();
+            log(`  ${where}: actor delay bypass written ${when}`);
+            written.push(where);
+        }
+    }
+    for (const { address, surface, where } of exemptionEntries()) {
+        const fee = await readOrNull(() => controller.actorPolicy(surface, address));
+        const delay = await readOrNull(() => controller.actorBypass(surface, address));
+        if (!isFeeExemption(fee) || !isDelayExemption(delay)) {
+            throw new Error(
+                `perimeter QA: ${where} did not read back its exemption ${when}: actorPolicy ` +
+                    `${describeFee(fee)}, actorBypass ${describeDelay(delay)}`
+            );
+        }
+    }
+    return written;
+};
+
+/**
+ * Upgrade the controller with the owner's exemptions in the runbook's order.
+ *
+ * The fee entry goes in first, on the fee build the proxy serves, because that
+ * build is already charging. It lives in the proxy's storage, so it is read
+ * back again once the delay build serves it. The delay entry goes in with the
+ * upgrade, since only the delay build stores it, and both halves are read back.
+ * Nothing is upgraded while a fee entry does not read back.
+ *
+ * `controller` must be connected to the controller's owner; `upgrade` performs
+ * the upgrade and its result is returned.
+ */
+const upgradeWithExemptions = async (controller, upgrade, log) => {
+    await writeFeeEntries(controller, "on the fee build", log);
+    const result = await upgrade();
+    await assertFeeEntries(controller, "after the upgrade");
+    await writeDelayEntries(controller, "with the upgrade", log);
+    return result;
+};
+
 /**
  * Arm the perimeter: the hold, the switch that makes it bite, and the charge.
  *
@@ -546,19 +692,57 @@ const installDelayRelease = async (hre, provider, deployerSigner, timelockOwnerS
  *
  * Every leg is conditional, so this is safe to run against a fork that is
  * already armed — which is what makes the installed and attached paths converge
- * on the same state.
+ * on the same state. `controller` must be connected to the owner.
  */
-const armDelay = async (controller, exchequerSigner, { delaySeconds, fee }) => {
-    const armed = controller.connect(exchequerSigner);
+const armDelay = async (controller, { delaySeconds, fee }) => {
     if (Number(await controller.globalDelaySeconds()) !== delaySeconds) {
-        await (await armed.setGlobalDelaySeconds(delaySeconds)).wait();
+        await (await controller.setGlobalDelaySeconds(delaySeconds)).wait();
     }
     if (!(await controller.securityPerimeterEnabled())) {
-        await (await armed.setSecurityPerimeterEnabled(true)).wait();
+        await (await controller.setSecurityPerimeterEnabled(true)).wait();
     }
     if (fee && !(await controller.exitFeeEnabled())) {
-        await (await armed.setExitFeeEnabled(true)).wait();
+        await (await controller.setExitFeeEnabled(true)).wait();
     }
+};
+
+/**
+ * Arm only once every exemption reads back whole, then hold the armed
+ * controller to the operator's own arming guard.
+ *
+ * On a fork this run upgraded, both halves are already written and are only
+ * read back, after the release's proposals have executed. A fork attached to
+ * was upgraded elsewhere, so a missing half is written here, the fee entry
+ * first. A pair already written is left as it is.
+ *
+ * `foundHolding` is what the controller said before this run touched it: true
+ * when the fork was already armed with a hold. An exemption written then came
+ * too late for any withdrawal the address made in between, and the run says
+ * so. It has no default, so an unread state is never taken to mean "not armed".
+ *
+ * `controller` must be connected to the owner.
+ */
+const armWithExemptions = async (controller, { delaySeconds, fee, foundHolding }, log) => {
+    if (typeof foundHolding !== "boolean") {
+        throw new Error(
+            "perimeter QA: arming needs foundHolding, read off the controller before this run " +
+                "touched it"
+        );
+    }
+    const when = foundHolding ? "on a fork found armed" : "before arming";
+    const written = [
+        ...(await writeFeeEntries(controller, when, log)),
+        ...(await writeDelayEntries(controller, when, log)),
+    ];
+    if (foundHolding && written.length > 0) {
+        log(
+            `  WARNING: this fork was armed without the whole exemption for ` +
+                `${[...new Set(written)].join(", ")} — withdrawals made in that time may already ` +
+                "have been charged the Perimeter fee or held"
+        );
+    }
+    await armDelay(controller, { delaySeconds, fee });
+    await assertContractCallersExempt(controller);
 };
 
 /**
@@ -878,7 +1062,11 @@ const bootstrapQa = async (hre, opts = {}) => {
         EXCHEQUER,
         IMPERSONATED_FUNDING
     );
-    await armDelay(controller, exchequerSigner, { delaySeconds, fee });
+    await armWithExemptions(
+        controller.connect(exchequerSigner),
+        { delaySeconds, fee, foundHolding: foundArmed && foundDelay > 0 },
+        log
+    );
 
     const accounts = [TEST_KEY.address, ...SUSPECTS];
     const operator = await ensureOperator(hre, provider, multisig, keepThreshold);
@@ -958,6 +1146,8 @@ const attachQa = async (hre) => {
 module.exports = {
     bootstrapQa,
     attachQa,
+    upgradeWithExemptions,
+    armWithExemptions,
     assertLocalQaFork,
     STATE_FILE,
     TEST_KEY,

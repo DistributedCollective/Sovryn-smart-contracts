@@ -27,10 +27,18 @@ __decryptionAlreadyDone__=TRUE npx hardhat perimeter:qa up --network rskForkedMa
 ```
 
 This installs the release the delay follows and the delay release itself by
-replaying each proposal from the timelock that would have executed it, arms the
-hold and the charge, adds the test key to the operator multisig, drops the
-signature threshold to 1, and funds the test accounts. It never moves the chain
-clock — the dapps count a hold down against wall-clock time.
+replaying each proposal from the timelock that would have executed it, writes
+the owner's exemption for every address the arming guard's registry lists,
+arms the hold and the charge, adds the test key to the operator multisig, drops
+the signature threshold to 1, and funds the test accounts. It never moves the
+chain clock — the dapps count a hold down against wall-clock time.
+
+An exemption is two controller entries, written in the runbook's order: the
+actor fee policy at rate zero on the fee build before the controller upgrade,
+and the actor delay bypass with the upgrade. Both are read back before the hold
+is armed, and the arming guard runs on the armed controller. Without them the
+fee-sharing collector is charged the Perimeter fee and held, and every staker
+claim that redeems iWRBTC refuses.
 
 Options:
 
@@ -42,8 +50,12 @@ Options:
 | `--governance impersonate\|real` | `real` walks the proposals through actual governance instead, which jumps the chain clock days ahead and makes every countdown in the dapps meaningless |
 
 Run it again at any time. A node that already carries the release is attached
-to, not rebuilt: the addresses are re-read, the perimeter is re-armed if it was
-found disarmed, the state file is rewritten, and the command reports `attached`.
+to, not rebuilt: the addresses are re-read, a missing half of an exemption is
+written and a pair already written is left alone, the perimeter is re-armed if
+it was found disarmed, the state file is rewritten, and the command reports
+`attached`. A node found armed without an exemption gets it written, with a
+warning that the address's withdrawals while it was armed may already have been
+charged or held.
 
 Arming only ever moves a switch one way, which is what makes re-running safe.
 So `--fee off` means "do not turn the charge on" — it will **not** turn off a
