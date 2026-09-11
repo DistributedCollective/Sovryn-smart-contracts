@@ -13,26 +13,67 @@
  *       --perimeter /path/to/perimeter --zero /path/to/zero-contracts
  *
  * Both paths are REQUIRED (no defaults — a default is a path nobody chose).
+ *
+ * To regenerate one repo's fixtures and leave every fixture of the other repo
+ * byte-for-byte as committed, name that repo with --only. The named repo's path
+ * is then the only one required, and the other repo's path is refused, so a run
+ * can never look as if it covered a repo it skipped:
+ *
+ *   node tests-onchain/perimeter/fixtures/regenerate.js \
+ *       --perimeter /path/to/perimeter --only perimeter
+ *
+ * --only selects a whole repo, never single fixtures: every fixture built from
+ * one repo is rewritten together, so they always name the same commit.
+ *
  * abi + bytecode + _provenance {branch, commit} are refreshed from each
  * repo's checkout; contractName, note and the rest of _provenance are
  * preserved from the committed fixture. The script refuses a dirty source
  * checkout: provenance must name a commit that fully describes the bytes.
+ * Every check runs before the first fixture is written, so a refusal leaves
+ * the committed fixtures untouched.
  */
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
+const USAGE = [
+    "usage: regenerate.js --perimeter <path> --zero <path>",
+    "       regenerate.js --perimeter <path> --only perimeter",
+    "       regenerate.js --zero <path> --only zero",
+].join("\n");
+
+const refuse = (message) => {
+    console.error(`error: ${message}`);
+    console.error(USAGE);
+    process.exit(1);
+};
+
 const args = process.argv.slice(2);
+/** The value that follows `flag`, or null when the flag is absent. */
 const argValue = (flag) => {
     const i = args.indexOf(flag);
-    if (i === -1 || i + 1 >= args.length) {
-        console.error(`usage: regenerate.js --perimeter <path> --zero <path>`);
-        process.exit(1);
-    }
+    if (i === -1) return null;
+    if (i + 1 >= args.length || args[i + 1].startsWith("--")) refuse(`${flag} needs a value`);
     return args[i + 1];
 };
-const perimeterRoot = argValue("--perimeter");
-const zeroRoot = argValue("--zero");
+
+const REPOS = ["perimeter", "zero"];
+const only = argValue("--only");
+if (only !== null && !REPOS.includes(only)) {
+    refuse(`--only takes one of ${REPOS.join(", ")}, not ${JSON.stringify(only)}`);
+}
+const selected = only === null ? REPOS : [only];
+
+const roots = {};
+for (const repo of REPOS) {
+    const root = argValue(`--${repo}`);
+    if (selected.includes(repo)) {
+        if (root === null) refuse(`--${repo} is required`);
+        roots[repo] = root;
+    } else if (root !== null) {
+        refuse(`--${repo} was given, but --only ${only} leaves that repo's fixtures untouched`);
+    }
+}
 
 const git = (repo, ...a) => execFileSync("git", ["-C", repo, ...a], { encoding: "utf8" }).trim();
 
@@ -56,16 +97,14 @@ const branchOf = (repo) => {
     return atHead[0];
 };
 
-for (const [name, repo] of [
-    ["perimeter", perimeterRoot],
-    ["zero", zeroRoot],
-]) {
+for (const repo of selected) {
+    const root = roots[repo];
     // Untracked files are fine (build output); modified tracked sources are not.
-    const dirty = git(repo, "status", "--porcelain")
+    const dirty = git(root, "status", "--porcelain")
         .split("\n")
         .filter((l) => l && !l.startsWith("??"));
     if (dirty.length > 0) {
-        console.error(`error: ${name} checkout at ${repo} has uncommitted changes:`);
+        console.error(`error: ${repo} checkout at ${root} has uncommitted changes:`);
         console.error(dirty.join("\n"));
         console.error("commit or stash first -- fixture provenance must name a real commit");
         process.exit(1);
@@ -73,64 +112,84 @@ for (const [name, repo] of [
 }
 
 const FIXTURES = [
-    // [fixture file, artifact path relative to its repo root, repo root]
-    ["ExitFeeController.json", "out/ExitFeeController.sol/ExitFeeController.json", perimeterRoot],
-    ["ExitFeeVault.json", "out/ExitFeeVault.sol/ExitFeeVault.json", perimeterRoot],
-    ["ExitDelayQueue.json", "out/ExitDelayQueue.sol/ExitDelayQueue.json", perimeterRoot],
-    ["ERC1967Proxy.json", "out/ERC1967Proxy.sol/ERC1967Proxy.json", perimeterRoot],
+    // [fixture file, artifact path relative to its repo root, repo]
+    ["ExitFeeController.json", "out/ExitFeeController.sol/ExitFeeController.json", "perimeter"],
+    ["ExitFeeVault.json", "out/ExitFeeVault.sol/ExitFeeVault.json", "perimeter"],
+    ["ExitDelayQueue.json", "out/ExitDelayQueue.sol/ExitDelayQueue.json", "perimeter"],
+    ["ERC1967Proxy.json", "out/ERC1967Proxy.sol/ERC1967Proxy.json", "perimeter"],
     [
         "BorrowerOperationsPerimeter.json",
         "artifacts/contracts/BorrowerOperations.sol/BorrowerOperations.json",
-        zeroRoot,
+        "zero",
     ],
     [
         "CollSurplusPoolPerimeter.json",
         "artifacts/contracts/CollSurplusPool.sol/CollSurplusPool.json",
-        zeroRoot,
+        "zero",
     ],
     [
         "BorrowerOperationsPerimeterOps.json",
         "artifacts/contracts/Dependencies/BorrowerOperationsPerimeterOps.sol/BorrowerOperationsPerimeterOps.json",
-        zeroRoot,
+        "zero",
     ],
     [
         "PriceFeedTestnet.json",
         "artifacts/contracts/TestContracts/PriceFeedTestnet.sol/PriceFeedTestnet.json",
-        zeroRoot,
+        "zero",
     ],
     [
         "TroveManagerLiquidationFix.json",
         "artifacts/contracts/TroveManager.sol/TroveManager.json",
-        zeroRoot,
+        "zero",
     ],
 ];
 
-let changed = 0;
-for (const [fixtureFile, artifactRel, repoRoot] of FIXTURES) {
-    const fixturePath = path.join(__dirname, fixtureFile);
-    const artifactPath = path.join(repoRoot, artifactRel);
-    const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
-    const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+// One provenance per repo, resolved before anything is written: a detached
+// checkout without exactly one branch at its HEAD is refused here.
+const provenance = {};
+for (const repo of selected) {
+    provenance[repo] = {
+        branch: branchOf(roots[repo]),
+        commit: git(roots[repo], "rev-parse", "--short", "HEAD"),
+    };
+}
 
-    // Foundry artifacts nest creation bytecode at .bytecode.object; hardhat
-    // artifacts carry it directly at .bytecode.
-    const bytecode =
-        typeof artifact.bytecode === "string" ? artifact.bytecode : artifact.bytecode.object;
-    if (!/^0x[0-9a-f]+$/i.test(bytecode)) {
-        console.error(`error: no usable creation bytecode in ${artifactPath}`);
-        process.exit(1);
+const updates = FIXTURES.filter(([, , repo]) => selected.includes(repo)).map(
+    ([fixtureFile, artifactRel, repo]) => {
+        const fixturePath = path.join(__dirname, fixtureFile);
+        const artifactPath = path.join(roots[repo], artifactRel);
+        const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+        const artifact = JSON.parse(fs.readFileSync(artifactPath, "utf8"));
+
+        // Foundry artifacts nest creation bytecode at .bytecode.object; hardhat
+        // artifacts carry it directly at .bytecode.
+        const bytecode =
+            typeof artifact.bytecode === "string" ? artifact.bytecode : artifact.bytecode.object;
+        if (!/^0x[0-9a-f]+$/i.test(bytecode)) {
+            console.error(`error: no usable creation bytecode in ${artifactPath}`);
+            process.exit(1);
+        }
+
+        const before = JSON.stringify({ a: fixture.abi, b: fixture.bytecode });
+        fixture.abi = artifact.abi;
+        fixture.bytecode = bytecode;
+        fixture._provenance.branch = provenance[repo].branch;
+        fixture._provenance.commit = provenance[repo].commit;
+        const after = JSON.stringify({ a: fixture.abi, b: fixture.bytecode });
+        return { fixtureFile, fixturePath, fixture, newBytes: before !== after };
     }
+);
 
-    const before = JSON.stringify({ a: fixture.abi, b: fixture.bytecode });
-    fixture.abi = artifact.abi;
-    fixture.bytecode = bytecode;
-    fixture._provenance.branch = branchOf(repoRoot);
-    fixture._provenance.commit = git(repoRoot, "rev-parse", "--short", "HEAD");
-
+// Every selected fixture has been read and checked; only now is any written.
+let changed = 0;
+for (const { fixtureFile, fixturePath, fixture, newBytes } of updates) {
     fs.writeFileSync(fixturePath, JSON.stringify(fixture, null, 4) + "\n");
-    const after = JSON.stringify({ a: fixture.abi, b: fixture.bytecode });
-    const delta = before === after ? "provenance only" : "abi/bytecode CHANGED";
-    if (before !== after) changed++;
+    if (newBytes) changed++;
+    const delta = newBytes ? "abi/bytecode CHANGED" : "provenance only";
     console.log(`${fixtureFile}: ${delta} (commit ${fixture._provenance.commit})`);
 }
-console.log(`done: ${FIXTURES.length} fixtures written, ${changed} with new bytes`);
+const untouched = FIXTURES.length - updates.length;
+console.log(
+    `done: ${updates.length} fixtures written, ${changed} with new bytes` +
+        (untouched > 0 ? `, ${untouched} of the other repo left untouched` : "")
+);
