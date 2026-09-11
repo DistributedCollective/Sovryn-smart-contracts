@@ -52,25 +52,34 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
         else return _mintToken(receiver, msg.value);
     }
 
-    /// @return loanAmountPaid The GROSS amount of underlying redeemed (paid out
-    ///         as native RBTC). When a Perimeter exit-fee policy is active the
-    ///         receiver is paid this amount minus the fee (split published in
-    ///         `ExitFeeApplied`) — do not treat the return value as the amount
-    ///         received.
+    /// @return gross The WRBTC that left the pool for this burn, paid out as
+    ///         native RBTC; a charged Perimeter fee is paid out of it.
+    /// @return delivered The part of `gross` that reached `receiver` as native
+    ///         RBTC in this call: all of it when no fee is charged and nothing is
+    ///         held, `gross` minus the fee when a fee is charged, and 0 when the
+    ///         withdrawal delay escrows the payout in the delay queue (the
+    ///         queue's record carries the escrowed amount) or when `gross` is 0.
+    ///         A caller that forwards the proceeds forwards `delivered`.
     function burnToBTC(
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
-        loanAmountPaid = useLM ? _burnFromLM(burnAmount) : _burnToken(burnAmount);
+    ) external nonReentrant globallyNonReentrant returns (uint256 gross, uint256 delivered) {
+        gross = useLM ? _burnFromLM(burnAmount) : _burnToken(burnAmount);
         // Perimeter: native-RBTC payout path (charge + unwrap + send).
-        _chargeExitFeeAndPayAsNative(receiver, loanAmountPaid);
+        delivered = _chargeExitFeeAndPayAsNative(receiver, gross);
     }
 
     /// @notice Perimeter charge for the native-RBTC burn path: every leg pays out
     ///         as native RBTC via `_transferNativeRBTC`.
-    function _chargeExitFeeAndPayAsNative(address receiver, uint256 gross) internal {
-        if (gross == 0) return;
+    /// @return delivered What reached `receiver` in this call: the net after a
+    ///         charged Perimeter fee, otherwise `gross`; 0 when the withdrawal
+    ///         delay escrows the user leg in the queue, and 0 when `gross` is 0.
+    function _chargeExitFeeAndPayAsNative(
+        address receiver,
+        uint256 gross
+    ) internal returns (uint256 delivered) {
+        if (gross == 0) return 0;
 
         IExitFeeController.ExitFeeQuote memory q = _safeQuoteExitFee(
             PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
@@ -106,8 +115,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
                     // USER leg (net): reroute WRBTC into the delay queue when
                     // d > 0 (queue unwraps at delivery), else the existing native
                     // primitive (WRBTC escrow, deferred unwrap).
-                    _payExitUserLegNative(receiver, q.netAmount);
-                    return;
+                    return _payExitUserLegNative(receiver, q.netAmount);
                 }
                 emit ExitFeeSkipped(
                     PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
@@ -129,7 +137,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
             );
         }
         // Full-gross fallback site: reroute behind the delay too.
-        _payExitUserLegNative(receiver, gross);
+        return _payExitUserLegNative(receiver, gross);
     }
 
     /// @notice Pay the native (RBTC) user leg of the `burnToBTC` exit, rerouting
@@ -143,8 +151,13 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
     ///         `d == 0` this is the existing native primitive, paid direct.
     /// @param receiver   Immutable payout destination.
     /// @param userAmount Net on fee-success, full gross on fee-failure.
-    function _payExitUserLegNative(address receiver, uint256 userAmount) internal {
-        if (userAmount == 0) return;
+    /// @return paid `userAmount` when it is sent to `receiver` as native RBTC in
+    ///         this call; 0 when it is escrowed in the queue or `userAmount` is 0.
+    function _payExitUserLegNative(
+        address receiver,
+        uint256 userAmount
+    ) internal returns (uint256 paid) {
+        if (userAmount == 0) return 0;
 
         // owner == rawOriginator == msg.sender (see `_payExitUserLeg`): the
         // burner is both the withdrawal originator and the position owner.
@@ -181,6 +194,7 @@ contract LoanTokenLogicWrbtcLM is LoanTokenLogicSplit {
             );
         } else {
             _transferNativeRBTC(receiver, userAmount, false);
+            paid = userAmount;
         }
     }
 

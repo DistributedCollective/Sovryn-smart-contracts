@@ -97,12 +97,14 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     /// @param receiver   Immutable payout destination (the burn's `receiver` arg).
     /// @param userAmount Net on fee-success, full gross on fee-failure.
     /// @param errorMsg   Revert reason for the direct fail-closed transfer.
+    /// @return paid `userAmount` when it is transferred to `receiver` in this
+    ///         call; 0 when it is escrowed in the queue or `userAmount` is 0.
     function _payExitUserLeg(
         address receiver,
         uint256 userAmount,
         string memory errorMsg
-    ) internal {
-        if (userAmount == 0) return;
+    ) internal returns (uint256 paid) {
+        if (userAmount == 0) return 0;
 
         // owner == rawOriginator == msg.sender: `burn(receiver, amt)` burns the
         // CALLER's iTokens (the position/pool share), so the burner is both the
@@ -117,39 +119,57 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
         );
 
         if (d > 0) {
-            // fail-CLOSED escrow. Only now — with the delay path active — do we
-            // touch the queue. Narrow guard is the caller's responsibility;
-            // enforce it here before any escrow accounting.
-            require(userAmount <= uint256(uint128(-1)), "PERIMETER:amount-too-large");
-            address queue = exitDelayQueue();
-            require(queue != address(0), "PERIMETER:queue-unset");
-            // Pull path: approve the queue for exactly `userAmount`, then it
-            // `safeTransferFrom`s and proves the received amount == amount.
-            // Optional-return approve: `loanTokenAddress` is the iToken
-            // UNDERLYING and MAY be a USDT-style no-return ERC20 (this repo
-            // supports them via `_callOptionalReturn`/`_safeTransfer`). A raw
-            // high-level `.approve()` would revert on such tokens and DoS every
-            // delayed lender exit; `_safeApprove` tolerates the missing return.
-            // Allowance is provably 0 at entry (the queue pulls EXACTLY
-            // `userAmount`, returning the allowance to 0), so no zero-first
-            // reset is needed.
-            _safeApprove(loanTokenAddress, queue, userAmount);
-            IExitDelayQueueHook(queue).recordERC20Exit(
-                loanTokenAddress,
-                uint128(userAmount),
-                d,
-                PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
-                address(this),
-                effOrig,
-                effOwner,
-                receiver,
-                false // unwrapOnDelivery: this is the plain-ERC20 burn path
-            );
+            _escrowExitUserLeg(receiver, userAmount, d, effOrig, effOwner);
         } else {
             // direct — the QUEUE IS NEVER TOUCHED (liveness). Existing
             // fail-closed user-payout primitive, unchanged from today.
             _transferUnderlyingToken(receiver, userAmount, false, errorMsg);
+            paid = userAmount;
         }
+    }
+
+    /// @notice Escrow the ERC20 user leg of a lender exit in the ExitDelayQueue
+    ///         under the delay `_payExitUserLeg` quoted.
+    /// @param receiver   Immutable payout destination recorded on the request.
+    /// @param userAmount Amount escrowed.
+    /// @param d          Quoted delay in seconds; the caller passes only `d > 0`.
+    /// @param effOrig    Effective originator from the delay quote.
+    /// @param effOwner   Effective owner from the delay quote.
+    function _escrowExitUserLeg(
+        address receiver,
+        uint256 userAmount,
+        uint32 d,
+        address effOrig,
+        address effOwner
+    ) internal {
+        // fail-CLOSED escrow. Only now — with the delay path active — do we
+        // touch the queue. Narrow guard is the caller's responsibility;
+        // enforce it here before any escrow accounting.
+        require(userAmount <= uint256(uint128(-1)), "PERIMETER:amount-too-large");
+        address queue = exitDelayQueue();
+        require(queue != address(0), "PERIMETER:queue-unset");
+        // Pull path: approve the queue for exactly `userAmount`, then it
+        // `safeTransferFrom`s and proves the received amount == amount.
+        // Optional-return approve: `loanTokenAddress` is the iToken
+        // UNDERLYING and MAY be a USDT-style no-return ERC20 (this repo
+        // supports them via `_callOptionalReturn`/`_safeTransfer`). A raw
+        // high-level `.approve()` would revert on such tokens and DoS every
+        // delayed lender exit; `_safeApprove` tolerates the missing return.
+        // Allowance is provably 0 at entry (the queue pulls EXACTLY
+        // `userAmount`, returning the allowance to 0), so no zero-first
+        // reset is needed.
+        _safeApprove(loanTokenAddress, queue, userAmount);
+        IExitDelayQueueHook(queue).recordERC20Exit(
+            loanTokenAddress,
+            uint128(userAmount),
+            d,
+            PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+            address(this),
+            effOrig,
+            effOwner,
+            receiver,
+            false // unwrapOnDelivery: this is the plain-ERC20 burn path
+        );
     }
 
     /// @notice Quote the lender-exit fee from this iToken's controller
@@ -179,12 +199,15 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     ///         `q.feeReceiver` (fail-open via nonBlocking=true) and the user
     ///         leg to `receiver` (fail-closed via nonBlocking=false).
     ///         On any non-charging path, pays the full `gross` to `receiver`.
+    /// @return delivered What reached `receiver` in this call: the net after a
+    ///         charged Perimeter fee, otherwise `gross`; 0 when the withdrawal
+    ///         delay escrows the user leg in the queue, and 0 when `gross` is 0.
     function _chargeExitFeeAndPay(
         address receiver,
         uint256 gross,
         string memory errorMsg
-    ) internal {
-        if (gross == 0) return;
+    ) internal returns (uint256 delivered) {
+        if (gross == 0) return 0;
 
         IExitFeeController.ExitFeeQuote memory q = _safeQuoteExitFee(
             PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
@@ -221,8 +244,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
                     );
                     // USER leg (net): reroute into the delay queue when d > 0,
                     // else the existing fail-closed direct transfer.
-                    _payExitUserLeg(receiver, q.netAmount, errorMsg);
-                    return;
+                    return _payExitUserLeg(receiver, q.netAmount, errorMsg);
                 }
                 emit ExitFeeSkipped(
                     PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
@@ -246,7 +268,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
         // Fallback to full-gross to user (covers !active, INVALID_QUOTE,
         // and fee-leg failure). Full-gross fallback site: reroute behind
         // the delay too, so a fee-vault failure cannot bypass the perimeter.
-        _payExitUserLeg(receiver, gross, errorMsg);
+        return _payExitUserLeg(receiver, gross, errorMsg);
     }
 
     /// @notice ERC20 transfer of `loanTokenAddress` shared by both Perimeter legs.

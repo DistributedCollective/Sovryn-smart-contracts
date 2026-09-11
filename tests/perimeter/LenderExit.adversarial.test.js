@@ -424,7 +424,7 @@ contract("Perimeter — lender-exit adversarial (iToken tree)", (accounts) => {
         async function probeGross(token, signature, receiver, burnAmount) {
             await arbitrary.setQuote(false, 0, 0, 0, ZERO, REASON.INACTIVE);
             await sovryn.setExitFeeController(arbitrary.address, { from: lender });
-            const gross = await token.contract.methods[signature](
+            const { gross } = await token.contract.methods[signature](
                 receiver,
                 burnAmount.toString(),
                 false

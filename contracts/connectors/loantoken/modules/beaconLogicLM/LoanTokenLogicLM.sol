@@ -69,20 +69,24 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
      * @param receiver the receiver of the underlying tokens. note: potetial LM rewards are always sent to the msg.sender
      * @param burnAmount The amount of pool tokens to redeem.
      * @param useLM if true -> deposit the pool tokens into the Liquidity Mining contract
-     * @return redeemed The GROSS amount of underlying tokens redeemed. When a
-     *         Perimeter exit-fee policy is active the receiver is paid this amount
-     *         minus the fee (split published in `ExitFeeApplied`) — do not
-     *         treat the return value as the amount received.
+     * @return gross The underlying that left the pool for this burn; a charged
+     *         Perimeter fee is paid out of it.
+     * @return delivered The part of `gross` that reached `receiver` in this
+     *         call: all of it when no fee is charged and nothing is held, `gross`
+     *         minus the fee when a fee is charged, and 0 when the withdrawal delay
+     *         escrows the payout in the delay queue (the queue's record carries
+     *         the escrowed amount) or when `gross` is 0. A caller that forwards
+     *         the proceeds forwards `delivered`.
      */
     function burn(
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external nonReentrant globallyNonReentrant returns (uint256 redeemed) {
-        if (useLM) redeemed = _burnFromLM(burnAmount);
-        else redeemed = _burnToken(burnAmount);
+    ) external nonReentrant globallyNonReentrant returns (uint256 gross, uint256 delivered) {
+        if (useLM) gross = _burnFromLM(burnAmount);
+        else gross = _burnToken(burnAmount);
         // Perimeter: charge the fee and pay the user. "asset transfer failed" is
         // the user-leg revert reason.
-        _chargeExitFeeAndPay(receiver, redeemed, "asset transfer failed");
+        delivered = _chargeExitFeeAndPay(receiver, gross, "asset transfer failed");
     }
 }
