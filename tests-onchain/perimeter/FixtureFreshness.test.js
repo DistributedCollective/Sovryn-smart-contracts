@@ -19,6 +19,7 @@
 const { expect } = require("chai");
 const fs = require("fs");
 const path = require("path");
+const { execFileSync } = require("child_process");
 
 const DIR = path.join(__dirname, "fixtures");
 
@@ -110,9 +111,19 @@ contract("Perimeter — rehearsal fixtures are current", () => {
      * quietly when the repo is absent.
      */
     it("every fixture names the tip of its source branch", () => {
+        // The source repos are checked out beside this repository's main
+        // checkout. A linked worktree of this repository can sit anywhere, so
+        // their location comes from the git directory all of its checkouts
+        // share, not from the path of this file.
+        const commonGitDir = execFileSync(
+            "git",
+            ["-C", __dirname, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            { encoding: "utf8" }
+        ).trim();
+        const reposDir = path.dirname(path.dirname(commonGitDir));
         const roots = {
-            "zero-contracts": path.join(__dirname, "../../../zero-contracts"),
-            perimeter: path.join(__dirname, "../../../Sovryn-perimeter"),
+            "zero-contracts": path.join(reposDir, "zero-contracts"),
+            perimeter: path.join(reposDir, "Sovryn-perimeter"),
         };
 
         const stale = [];
@@ -126,9 +137,7 @@ contract("Perimeter — rehearsal fixtures are current", () => {
                 return;
             }
             const git = (...args) =>
-                require("child_process")
-                    .execFileSync("git", ["-C", root, ...args], { encoding: "utf8" })
-                    .trim();
+                execFileSync("git", ["-C", root, ...args], { encoding: "utf8" }).trim();
             // The branch the fixture was built from, when the repo still has
             // it; a branch deleted after merging leaves only the checkout.
             const branchRef = provenance.branch && `refs/heads/${provenance.branch}`;
