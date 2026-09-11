@@ -138,8 +138,8 @@ contract BorrowerExitPerimeterOps is VaultController, IPerimeterEvents {
     /// @param  receiver    Immutable payout destination.
     /// @param  toUser      Net (post-fee) borrower payout amount.
     /// @param  d           Delay in seconds, already resolved by the caller.
-    /// @param  effOrig     Effective originator from the caller's quote.
-    /// @param  effOwner    Effective owner from the caller's quote.
+    /// @param  effOrig     The originator recorded for the request.
+    /// @param  effOwner    The owner recorded for the request.
     /// @return escrowed    Always true; a failure reverts instead.
     function escrowBorrowerExit(
         address subProduct,

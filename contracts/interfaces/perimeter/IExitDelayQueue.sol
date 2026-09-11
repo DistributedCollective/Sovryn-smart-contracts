@@ -43,7 +43,7 @@ interface IExitDelayQueue {
         uint64 createdAt; //  audit/analytics; emitted in ExitQueued
         uint64 unlockAt; //   COMPUTED by the queue = createdAt + delaySeconds
         // words 2-5:
-        address originator; // withdrawal caller (effective, post-normalization) — block key + executor
+        address originator; // withdrawal caller the hook saw — block key + executor
         address owner; //      position owner — MANDATORY block key + executor
         address receiver; //   immutable payout destination — block key iff freezeReceiver; NOT an executor
         address token; //      address(0) = native RBTC

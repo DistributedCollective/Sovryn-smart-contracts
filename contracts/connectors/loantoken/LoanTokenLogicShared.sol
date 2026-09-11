@@ -133,8 +133,8 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     /// @param receiver   Immutable payout destination recorded on the request.
     /// @param userAmount Amount escrowed.
     /// @param d          Quoted delay in seconds; the caller passes only `d > 0`.
-    /// @param effOrig    Effective originator from the delay quote.
-    /// @param effOwner   Effective owner from the delay quote.
+    /// @param effOrig    The originator recorded for the request.
+    /// @param effOwner   The owner recorded for the request.
     function _escrowExitUserLeg(
         address receiver,
         uint256 userAmount,
