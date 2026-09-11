@@ -282,6 +282,65 @@ const setupPhase2Stack = async () => {
 
     const exchequerSigner = await forkOps.impersonate(provider, EXCHEQUER);
 
+    // The exemptions and the arming are the owner's and the admin's acts, and one
+    // account holds both roles.
+    const controller = stack.controller.connect(exchequerSigner);
+
+    /** An exemption the owner decided is two entries for one address on one
+     *  surface: the actor fee policy at rate zero and the actor delay bypass. An
+     *  address missing its zero fee rate is charged, and one missing its delay
+     *  bypass has its withdrawals held. The rehearsal writes them in the runbook's
+     *  order: the fee entry first, on the fee build the proxy serves, because that
+     *  build is already charging; the delay entry once the upgrade has installed
+     *  the build that stores it; both before the hold is armed. A receipt is never
+     *  the check; the stored entries are. */
+    const exemptions = CONTRACT_CALLERS.map((caller) => {
+        const where = `${caller.name} (${caller.address}) on ${caller.surface}`;
+        if (caller.registration !== "bypass") {
+            throw new Error(
+                `${where} is registered as ${JSON.stringify(caller.registration)}; the only ` +
+                    'registration is "bypass", the actor fee policy at rate zero plus the actor ' +
+                    "delay bypass, and the arming guard refuses anything else"
+            );
+        }
+        return { address: caller.address, surface: SURFACE_IDS[caller.surface], where };
+    });
+    const readFeeEntry = async ({ address, surface, where }, when) => {
+        const fee = await controller.actorPolicy(surface, address);
+        if (fee.active !== true || !ethers.BigNumber.from(fee.rateBps).isZero()) {
+            throw new Error(
+                `${where} did not read back its fee entry ${when}: actorPolicy ` +
+                    `(active=${fee.active}, rateBps=${fee.rateBps})`
+            );
+        }
+    };
+    const readBothEntries = async ({ address, surface, where }, when) => {
+        const fee = await controller.actorPolicy(surface, address);
+        const delay = await controller.actorBypass(surface, address);
+        if (
+            fee.active !== true ||
+            !ethers.BigNumber.from(fee.rateBps).isZero() ||
+            delay.active !== true ||
+            delay.bypass !== true
+        ) {
+            throw new Error(
+                `${where} did not read back its exemption ${when}: actorPolicy ` +
+                    `(active=${fee.active}, rateBps=${fee.rateBps}), actorBypass ` +
+                    `(active=${delay.active}, bypass=${delay.bypass})`
+            );
+        }
+    };
+
+    for (const exemption of exemptions) {
+        await (
+            await controller.setActorPolicy(exemption.surface, exemption.address, {
+                active: true,
+                rateBps: 0,
+            })
+        ).wait();
+        await readFeeEntry(exemption, "on the fee build");
+    }
+
     /** Both delay proposals refuse to build against a controller that is not
      *  yet the delay build, and the upgrade below is the only thing that lifts
      *  that refusal. The reading is taken on either side of it — the controller
@@ -302,6 +361,23 @@ const setupPhase2Stack = async () => {
     const upgrade = await upgradeControllerToDelayBuild(stack.controller.address, exchequerSigner);
 
     controllerPrecondition.afterUpgrade = await readPrecondition();
+
+    // The fee entries live in the proxy's storage, so the delay build has to serve
+    // every one of them unchanged before anything else is written.
+    for (const exemption of exemptions) {
+        await readFeeEntry(exemption, "after the upgrade");
+    }
+    // The delay entries exist only on the delay build, so they go in with the
+    // upgrade and are read back together with their fee entries.
+    for (const exemption of exemptions) {
+        await (
+            await controller.setActorBypass(exemption.surface, exemption.address, {
+                active: true,
+                bypass: true,
+            })
+        ).wait();
+        await readBothEntries(exemption, "once its delay entry is written");
+    }
 
     // Pin what the proposals are allowed to resolve to. The hash covers the
     // proxy the products call, which is the address the proposals carry; the
@@ -363,52 +439,10 @@ const setupPhase2Stack = async () => {
         );
     }
 
-    // Arming is the owner's and the admin's act, and one account holds both.
-    const controller = stack.controller.connect(exchequerSigner);
-
-    // Every exemption the owner decided is written BEFORE the hold exists, both
-    // halves, and read back before arming: an exempted address missing its delay
-    // bypass has its withdrawals held, and one missing its zero fee rate is
-    // charged. The rehearsal runs the ordering the runbook demands rather than a
-    // shortcut to the armed state.
-    for (const caller of CONTRACT_CALLERS) {
-        const where = `${caller.name} (${caller.address}) on ${caller.surface}`;
-        if (caller.registration !== "bypass") {
-            throw new Error(
-                `${where} is registered as ${JSON.stringify(caller.registration)}; the only ` +
-                    'registration is "bypass", the actor fee policy at rate zero plus the actor ' +
-                    "delay bypass, and the arming guard refuses anything else"
-            );
-        }
-        const surface = SURFACE_IDS[caller.surface];
-        await (
-            await controller.setActorPolicy(surface, caller.address, {
-                active: true,
-                rateBps: 0,
-            })
-        ).wait();
-        await (
-            await controller.setActorBypass(surface, caller.address, {
-                active: true,
-                bypass: true,
-            })
-        ).wait();
-
-        // The receipt is not the check; the stored entries are.
-        const fee = await controller.actorPolicy(surface, caller.address);
-        const delay = await controller.actorBypass(surface, caller.address);
-        if (
-            fee.active !== true ||
-            !ethers.BigNumber.from(fee.rateBps).isZero() ||
-            delay.active !== true ||
-            delay.bypass !== true
-        ) {
-            throw new Error(
-                `${where} did not read back its exemption: actorPolicy (active=${fee.active}, ` +
-                    `rateBps=${fee.rateBps}), actorBypass (active=${delay.active}, ` +
-                    `bypass=${delay.bypass})`
-            );
-        }
+    // Both halves again before the hold exists, because the proposals executed
+    // after they were written, and once more on the armed stack below.
+    for (const exemption of exemptions) {
+        await readBothEntries(exemption, "before arming");
     }
 
     await (await controller.setGlobalDelaySeconds(DELAY_SECONDS)).wait();
