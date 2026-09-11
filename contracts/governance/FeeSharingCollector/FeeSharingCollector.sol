@@ -335,8 +335,10 @@ contract FeeSharingCollector is
      * @notice Redeem `_amount` iWRBTC held by this contract to RBTC paid to `_receiver`.
      * @dev The pool reports `gross`, what left the pool, and `delivered`, what reached
      * `_receiver` in the call. A zero `gross` pays zero. A positive `gross` with nothing
-     * delivered means the payout is held in the withdrawal delay queue under this
-     * contract's name: the call reverts, which undoes the burn and the caller's checkpoint
+     * delivered means nothing reached `_receiver`: either the redemption is held in the
+     * withdrawal delay queue under this contract's name, or the whole amount was taken as
+     * the Perimeter fee. Either way the claim is refused, with the same reason string for
+     * both causes: the call reverts, which undoes the burn and the caller's checkpoint
      * write, so the range stays claimable.
      * @param _receiver The address the pool pays.
      * @param _amount The iWRBTC amount to redeem.
