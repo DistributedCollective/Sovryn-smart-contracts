@@ -143,8 +143,8 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
         address effOwner
     ) internal {
         // fail-CLOSED escrow. Only now — with the delay path active — do we
-        // touch the queue. Narrow guard is the caller's responsibility;
-        // enforce it here before any escrow accounting.
+        // touch the queue. This function enforces the uint128 bound on
+        // `userAmount` before any escrow accounting.
         require(userAmount <= uint256(uint128(-1)), "PERIMETER:amount-too-large");
         address queue = exitDelayQueue();
         require(queue != address(0), "PERIMETER:queue-unset");

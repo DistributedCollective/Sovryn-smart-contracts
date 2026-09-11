@@ -23,6 +23,11 @@
  * the false-returning ERC20 is TestTokenBlockedRecipient (returns false only
  * for blocked recipients, so the user leg in the same tx still succeeds).
  *
+ * The iToken-tree burns return `(gross, delivered)`. With the fee leg failed
+ * on either primitive, the fallback pays the full gross: `delivered == gross`
+ * when it is paid direct, and `delivered == 0` when the withdrawal delay holds
+ * it, with the queue's record carrying the full gross.
+ *
  * Run:
  *   npx hardhat test tests/perimeter/VaultRevert.feeleg.test.js
  */
@@ -35,6 +40,7 @@ const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const MockExitFeeController = artifacts.require("MockExitFeeController");
+const MockExitDelayQueue = artifacts.require("MockExitDelayQueue");
 const MaliciousBorrower = artifacts.require("MaliciousBorrower");
 const TestTokenBlockedRecipient = artifacts.require("TestTokenBlockedRecipient");
 
@@ -69,6 +75,9 @@ const wei = web3.utils.toWei;
 // SkipReason enum: 0 NONE 1 INACTIVE 2 DISABLED 3 INVALID_QUOTE 4 CONTROLLER_REVERT 5 VAULT_REVERT
 const VAULT_REVERT = 5;
 
+const MIN_DELAY = 60;
+const DELAY = 3600;
+
 function findApplied(logs) {
     return logs.filter((l) => l.event === "ExitFeeApplied");
 }
@@ -77,10 +86,10 @@ function findSkipped(logs) {
 }
 
 contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts) => {
-    let lender, user, feeReceiver;
+    let lender, user, feeReceiver, receiver;
     let BLK, SUSD, WRBTC, RBTC, BZRX, priceFeeds, sovryn;
     let iBLK, iWRBTC;
-    let controller, revertingReceiver;
+    let controller, revertingReceiver, queue;
 
     async function fixture() {
         await mutexUtils.getOrDeployMutex();
@@ -163,6 +172,14 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
         // pointer through sovrynContractAddress).
         await sovryn.setExitFeeController(controller.address, { from: lender });
 
+        // ── Withdrawal delay off; the hold tests switch it on ──────────────
+        await controller.setSecurityPerimeterEnabledTest(false);
+        await controller.setGlobalDelaySecondsTest(DELAY);
+        queue = await MockExitDelayQueue.new(WRBTC.address, MIN_DELAY);
+        await queue.setAllowedSource(iBLK.address, true);
+        await queue.setAllowedSource(iWRBTC.address, true);
+        await sovryn.setExitDelayQueue(queue.address, { from: lender });
+
         // ── Seed the user in both pools ────────────────────────────────────
         const seedBLK = new BN(wei("1000", "ether"));
         await BLK.mint(user, seedBLK);
@@ -174,6 +191,9 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
 
     before(async () => {
         [lender, user, feeReceiver, ...accounts] = accounts;
+        // Receives the burns that report `(gross, delivered)` and never sends a
+        // transaction, so its native balance changes only by what a burn pays.
+        receiver = accounts[3];
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
         await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
@@ -255,6 +275,137 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
             poolWrbtcBefore.sub(await WRBTC.balanceOf(iWRBTC.address)).toString(),
             "pool WRBTC decrement == gross"
         ).to.equal(gross.toString());
+    });
+
+    describe("what the burn reports when the fee leg fails", () => {
+        const ROUTES = [
+            {
+                label: "ERC20 fee leg returns false, burn(address,uint256,bool)",
+                pool: () => iBLK,
+                asset: () => BLK,
+                signature: "burn(address,uint256,bool)",
+                native: false,
+                failFeeLeg: () => BLK.setBlockedRecipient(feeReceiver, true),
+                feeReceiverAddress: () => feeReceiver,
+            },
+            {
+                label: "native fee leg reverts, burnToBTC(address,uint256,bool)",
+                pool: () => iWRBTC,
+                asset: () => WRBTC,
+                signature: "burnToBTC(address,uint256,bool)",
+                native: true,
+                failFeeLeg: () => controller.setFeeReceiverTest(revertingReceiver.address),
+                feeReceiverAddress: () => revertingReceiver.address,
+            },
+        ];
+
+        /// Balance in the currency the route pays out: native RBTC for
+        /// burnToBTC, the pool's underlying token otherwise.
+        async function payoutBalance(route, who) {
+            return route.native
+                ? new BN(await web3.eth.getBalance(who))
+                : route.asset().balanceOf(who);
+        }
+
+        /// Reads the pair the burn reports (a static call on the same state),
+        /// sends the burn, confirms the fee leg failed, and measures the effects.
+        async function burnAndObserve(route) {
+            const pool = route.pool();
+            const method = pool.methods[route.signature];
+            const args = [receiver, await pool.balanceOf(user), false];
+
+            const poolBefore = await route.asset().balanceOf(pool.address);
+            const receiverBefore = await payoutBalance(route, receiver);
+            const feeReceiverBefore = await payoutBalance(route, route.feeReceiverAddress());
+            const lastIdBefore = await queue.lastRequestId();
+
+            const pair = await method.call(...args, { from: user });
+            expect(pair, "the burn reports a (gross, delivered) pair").to.have.property(
+                "delivered"
+            );
+            const tx = await method(...args, { from: user });
+
+            expect(findApplied(tx.logs).length, "no Applied on fee-leg failure").to.equal(0);
+            const skipped = findSkipped(tx.logs);
+            expect(skipped.length, "one Skipped").to.equal(1);
+            expect(skipped[0].args.reason.toNumber(), "the fee leg failed").to.equal(VAULT_REVERT);
+
+            const gross = new BN(pair.gross);
+            expect(gross.gtn(0), "non-vacuous: gross > 0").to.equal(true);
+            expect(skipped[0].args.grossAmount.toString(), "Skipped carries gross").to.equal(
+                gross.toString()
+            );
+
+            return {
+                gross,
+                delivered: new BN(pair.delivered),
+                poolDecrement: poolBefore.sub(await route.asset().balanceOf(pool.address)),
+                received: (await payoutBalance(route, receiver)).sub(receiverBefore),
+                feePaid: (await payoutBalance(route, route.feeReceiverAddress())).sub(
+                    feeReceiverBefore
+                ),
+                lastIdBefore,
+                lastIdAfter: await queue.lastRequestId(),
+            };
+        }
+
+        async function expectNoNativeResidue(route) {
+            if (!route.native) return;
+            expect(
+                (await balance.current(route.pool().address)).toString(),
+                "no orphan native in iToken"
+            ).to.equal("0");
+        }
+
+        ROUTES.forEach((route) => {
+            it(`${route.label}, no hold: delivered == gross, paid direct`, async () => {
+                await route.failFeeLeg();
+
+                const o = await burnAndObserve(route);
+
+                expect(o.delivered.toString(), "delivered == gross").to.equal(o.gross.toString());
+                expect(o.received.toString(), "receiver got gross").to.equal(o.gross.toString());
+                expect(o.feePaid.toString(), "fee receiver got nothing").to.equal("0");
+                expect(o.poolDecrement.toString(), "pool decrement == gross").to.equal(
+                    o.gross.toString()
+                );
+                expect(o.lastIdAfter.toString(), "nothing queued").to.equal(
+                    o.lastIdBefore.toString()
+                );
+                await expectNoNativeResidue(route);
+            });
+
+            it(`${route.label}, held by the delay: delivered == 0, the queue records gross`, async () => {
+                await route.failFeeLeg();
+                await controller.setSecurityPerimeterEnabledTest(true);
+
+                const o = await burnAndObserve(route);
+
+                expect(o.delivered.toString(), "delivered == 0").to.equal("0");
+                expect(o.received.toString(), "receiver got nothing yet").to.equal("0");
+                expect(o.feePaid.toString(), "fee receiver got nothing").to.equal("0");
+                expect(o.poolDecrement.toString(), "pool decrement == gross").to.equal(
+                    o.gross.toString()
+                );
+                expect(o.lastIdAfter.toString(), "one request queued").to.equal(
+                    o.lastIdBefore.addn(1).toString()
+                );
+                const req = await queue.getRequest(o.lastIdAfter);
+                expect(req.amount.toString(), "the queue record carries gross").to.equal(
+                    o.gross.toString()
+                );
+                expect(req.receiver.toLowerCase(), "the queue record pays the receiver").to.equal(
+                    receiver.toLowerCase()
+                );
+                expect(req.token.toLowerCase(), "the queue escrows the pool asset").to.equal(
+                    route.asset().address.toLowerCase()
+                );
+                expect(req.unwrapOnDelivery, "native route unwraps on delivery").to.equal(
+                    route.native
+                );
+                await expectNoNativeResidue(route);
+            });
+        });
     });
 });
 
