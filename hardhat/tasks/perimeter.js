@@ -6,6 +6,7 @@ const { sendWithMultisig, multisigCheckTx } = require("../../deployment/helpers/
 const {
     CONTRACT_CALLERS,
     assertContractCallersExempt,
+    readSwitch,
 } = require("./perimeter/contractCallerExemptions");
 
 const logger = new Logs().showInConsole(true);
@@ -182,8 +183,11 @@ task(
         );
 
         logger.info(`Controller: ${address}`);
-        logger.info(`Delay armed: ${await live.securityPerimeterEnabled()}`);
-        logger.info(`Global delay: ${await live.globalDelaySeconds()}s`);
+        const { armed, globalDelaySeconds } = await readSwitch(live);
+        logger.info(`Delay armed: ${armed}`);
+        logger.info(
+            `Global delay: ${typeof globalDelaySeconds === "number" ? `${globalDelaySeconds}s` : globalDelaySeconds}`
+        );
         for (const caller of CONTRACT_CALLERS) {
             logger.info(
                 `  ${caller.name} ${caller.address} on ${caller.surface} -> ` +

@@ -150,10 +150,61 @@ const readRegistrations = async (controller, callers = CONTRACT_CALLERS) => {
     return observations;
 };
 
-/** An observation half that is absent, carries a read error, or does not have
- *  the fields the judgement needs. */
+/** Whether one field of an observation half is unusable: `rateBps` must be a
+ *  value `asRate` can parse (a plain integer, a digit string, or an ethers
+ *  BigNumber — not a string `asRate` rejects, and not `null`); every other
+ *  field is a flag and must be an actual boolean, never a string like
+ *  `"false"`, which is truthy and would otherwise read as set. */
+const fieldUnread = (half, field) =>
+    field === "rateBps" ? Number.isNaN(asRate(half[field])) : typeof half[field] !== "boolean";
+
+/** An observation half that is absent, carries a read error, or carries a
+ *  field the judgement cannot use as read. */
 const unread = (half, fields) =>
-    !half || half.error !== undefined || fields.some((field) => half[field] === undefined);
+    !half || half.error !== undefined || fields.some((field) => fieldUnread(half, field));
+
+/** Sentinel for a delay-switch read (`securityPerimeterEnabled` or
+ *  `globalDelaySeconds`) that threw or returned something uninterpretable.
+ *  Never a boolean or a number, so it can never be silently read as "off". */
+const SWITCH_UNREAD = "unread";
+
+/**
+ * Read the delay switch the same guarded way the entries are read: a throw or
+ * an uninterpretable value comes back as `SWITCH_UNREAD`, never as a default.
+ */
+const readSwitch = async (controller) => {
+    const armed = await attempt(
+        () => controller.securityPerimeterEnabled(),
+        (value) => {
+            if (typeof value !== "boolean") {
+                throw new Error(
+                    `securityPerimeterEnabled returned a value that is not a bool: ${value}`
+                );
+            }
+            return value;
+        }
+    );
+    const globalDelaySeconds = await attempt(
+        () => controller.globalDelaySeconds(),
+        (value) => {
+            const seconds = asRate(value);
+            if (Number.isNaN(seconds)) {
+                throw new Error(
+                    "globalDelaySeconds returned a value that is not a non-negative integer: " +
+                        `${value}`
+                );
+            }
+            return seconds;
+        }
+    );
+    return {
+        armed: armed && armed.error !== undefined ? SWITCH_UNREAD : armed,
+        globalDelaySeconds:
+            globalDelaySeconds && globalDelaySeconds.error !== undefined
+                ? SWITCH_UNREAD
+                : globalDelaySeconds,
+    };
+};
 
 /**
  * Judge the observations. Pure: no chain, no I/O.
@@ -161,10 +212,13 @@ const unread = (half, fields) =>
  * The verdict does not depend on whether the delay is armed yet — this check
  * exists to gate arming, so a missing entry refuses certification either way.
  * `armed` and `globalDelaySeconds` only decide whether the failure is a warning
- * about the future or a report that withdrawals may already be held.
+ * about the future or a report that withdrawals may already be held. Either
+ * one may come in as `SWITCH_UNREAD`, which certifies nothing and is never
+ * treated as "not armed".
  */
 const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observations = [] } = {}) => {
-    const holding = Boolean(armed) && Number(globalDelaySeconds) > 0;
+    const switchUnread = armed === SWITCH_UNREAD || globalDelaySeconds === SWITCH_UNREAD;
+    const holding = !switchUnread && Boolean(armed) && Number(globalDelaySeconds) > 0;
     const failures = [];
 
     if (observations.length === 0) {
@@ -175,96 +229,114 @@ const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observation
                 "the exemption registry is empty, so this check certifies nothing. The " +
                 "fee-sharing collector belongs in it.",
         });
-        return { certified: false, holding, armed: Boolean(armed), failures };
+    } else {
+        for (const { caller, actorPolicy, actorBypass } of observations) {
+            const where = `${caller.name} (${caller.address}) on ${caller.surface}`;
+            const key = `${SURFACE_IDS[caller.surface] || caller.surface}, ${caller.address}`;
+            const feeCall = `setActorPolicy(${key}, {active: true, rateBps: 0})`;
+            const delayCall = `setActorBypass(${key}, {active: true, bypass: true})`;
+            const owner = "as the controller owner, then read it back";
+
+            if (caller.registration !== EXEMPTION) {
+                failures.push({
+                    name: caller.name,
+                    reason: "undecided-registration",
+                    detail:
+                        `${where} is registered as ${JSON.stringify(caller.registration)}, ` +
+                        `which is not a decided registration. The only one is "${EXEMPTION}": ` +
+                        "the owner's exemption of this address, written as a zero actor fee " +
+                        "rate and an actor delay bypass. Record the owner's decision and mark " +
+                        `the entry "${EXEMPTION}", or remove it.`,
+                });
+                continue;
+            }
+
+            if (unread(actorPolicy, ["active", "rateBps"])) {
+                failures.push({
+                    name: caller.name,
+                    reason: "fee-entry-unread",
+                    detail:
+                        `the actor fee policy for ${where} could not be read ` +
+                        `(${(actorPolicy && actorPolicy.error) || "no observation"}). An entry ` +
+                        "that cannot be read is not an exemption. Check that the address is the " +
+                        "ExitFeeController and that it serves actorPolicy(bytes32,address), then " +
+                        "run this again.",
+                });
+            } else if (actorPolicy.active !== true) {
+                failures.push({
+                    name: caller.name,
+                    reason: "fee-entry-inactive",
+                    detail:
+                        `${where} has no active actor fee policy (active=${actorPolicy.active}, ` +
+                        `rateBps=${actorPolicy.rateBps}). An inactive entry falls through to the ` +
+                        "sub-product and surface rates, so this address pays the Perimeter fee. " +
+                        `Run ${feeCall} ${owner} before arming.`,
+                });
+            } else {
+                const feeRateBps = asRate(actorPolicy.rateBps);
+                if (feeRateBps !== 0) {
+                    failures.push({
+                        name: caller.name,
+                        reason: "fee-rate-not-zero",
+                        detail:
+                            `${where} has an active actor fee policy charging ` +
+                            `${feeRateBps} bps, which is a rate, not an exemption. ` +
+                            `Run ${feeCall} ${owner} before arming.`,
+                    });
+                }
+            }
+
+            if (unread(actorBypass, ["active", "bypass"])) {
+                failures.push({
+                    name: caller.name,
+                    reason: "delay-entry-unread",
+                    detail:
+                        `the actor delay bypass for ${where} could not be read ` +
+                        `(${(actorBypass && actorBypass.error) || "no observation"}). An entry ` +
+                        "that cannot be read is not an exemption. Check that the address is the " +
+                        "ExitFeeController on the delay build and that it serves " +
+                        "actorBypass(bytes32,address), then run this again.",
+                });
+            } else if (actorBypass.active !== true) {
+                failures.push({
+                    name: caller.name,
+                    reason: "delay-entry-inactive",
+                    detail:
+                        `${where} has no active actor delay bypass (active=${actorBypass.active}, ` +
+                        `bypass=${actorBypass.bypass}). An inactive entry falls through to the ` +
+                        "sub-product and surface tiers, so this address's withdrawals are held. " +
+                        `Run ${delayCall} ${owner} before arming.`,
+                });
+            } else if (actorBypass.bypass !== true) {
+                failures.push({
+                    name: caller.name,
+                    reason: "delay-entry-forces-delay",
+                    detail:
+                        `${where} has an active actor delay entry with bypass=false, which ` +
+                        "forces the global delay on this address instead of lifting it. " +
+                        `Run ${delayCall} ${owner} before arming.`,
+                });
+            }
+        }
     }
 
-    for (const { caller, actorPolicy, actorBypass } of observations) {
-        const where = `${caller.name} (${caller.address}) on ${caller.surface}`;
-        const key = `${SURFACE_IDS[caller.surface] || caller.surface}, ${caller.address}`;
-        const feeCall = `setActorPolicy(${key}, {active: true, rateBps: 0})`;
-        const delayCall = `setActorBypass(${key}, {active: true, bypass: true})`;
-        const owner = "as the controller owner, then read it back";
-
-        if (caller.registration !== EXEMPTION) {
-            failures.push({
-                name: caller.name,
-                reason: "undecided-registration",
-                detail:
-                    `${where} is registered as ${JSON.stringify(caller.registration)}, which is ` +
-                    `not a decided registration. The only one is "${EXEMPTION}": the owner's ` +
-                    "exemption of this address, written as a zero actor fee rate and an actor " +
-                    "delay bypass. Record the owner's decision and mark the entry " +
-                    `"${EXEMPTION}", or remove it.`,
-            });
-            continue;
-        }
-
-        if (unread(actorPolicy, ["active", "rateBps"])) {
-            failures.push({
-                name: caller.name,
-                reason: "fee-entry-unread",
-                detail:
-                    `the actor fee policy for ${where} could not be read ` +
-                    `(${(actorPolicy && actorPolicy.error) || "no observation"}). An entry ` +
-                    "that cannot be read is not an exemption. Check that the address is the " +
-                    "ExitFeeController and that it serves actorPolicy(bytes32,address), then " +
-                    "run this again.",
-            });
-        } else if (actorPolicy.active !== true) {
-            failures.push({
-                name: caller.name,
-                reason: "fee-entry-inactive",
-                detail:
-                    `${where} has no active actor fee policy (active=${actorPolicy.active}, ` +
-                    `rateBps=${actorPolicy.rateBps}). An inactive entry falls through to the ` +
-                    "sub-product and surface rates, so this address pays the Perimeter fee. " +
-                    `Run ${feeCall} ${owner} before arming.`,
-            });
-        } else if (actorPolicy.rateBps !== 0) {
-            failures.push({
-                name: caller.name,
-                reason: "fee-rate-not-zero",
-                detail:
-                    `${where} has an active actor fee policy charging ` +
-                    `${actorPolicy.rateBps} bps, which is a rate, not an exemption. ` +
-                    `Run ${feeCall} ${owner} before arming.`,
-            });
-        }
-
-        if (unread(actorBypass, ["active", "bypass"])) {
-            failures.push({
-                name: caller.name,
-                reason: "delay-entry-unread",
-                detail:
-                    `the actor delay bypass for ${where} could not be read ` +
-                    `(${(actorBypass && actorBypass.error) || "no observation"}). An entry ` +
-                    "that cannot be read is not an exemption. Check that the address is the " +
-                    "ExitFeeController on the delay build and that it serves " +
-                    "actorBypass(bytes32,address), then run this again.",
-            });
-        } else if (actorBypass.active !== true) {
-            failures.push({
-                name: caller.name,
-                reason: "delay-entry-inactive",
-                detail:
-                    `${where} has no active actor delay bypass (active=${actorBypass.active}, ` +
-                    `bypass=${actorBypass.bypass}). An inactive entry falls through to the ` +
-                    "sub-product and surface tiers, so this address's withdrawals are held. " +
-                    `Run ${delayCall} ${owner} before arming.`,
-            });
-        } else if (actorBypass.bypass !== true) {
-            failures.push({
-                name: caller.name,
-                reason: "delay-entry-forces-delay",
-                detail:
-                    `${where} has an active actor delay entry with bypass=false, which forces ` +
-                    "the global delay on this address instead of lifting it. " +
-                    `Run ${delayCall} ${owner} before arming.`,
-            });
-        }
+    if (switchUnread) {
+        failures.push({
+            name: "(switch)",
+            reason: "arming-state-unread",
+            detail:
+                "the delay switch (securityPerimeterEnabled and globalDelaySeconds) could not " +
+                "be read from the controller. An unread switch is never taken to mean the delay " +
+                "is off, so nothing certifies until it reads back.",
+        });
     }
 
-    return { certified: failures.length === 0, holding, armed: Boolean(armed), failures };
+    return {
+        certified: failures.length === 0,
+        holding,
+        armed: switchUnread ? SWITCH_UNREAD : Boolean(armed),
+        failures,
+    };
 };
 
 /**
@@ -276,11 +348,8 @@ const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observation
  */
 const assertContractCallersExempt = async (controller, { callers = CONTRACT_CALLERS } = {}) => {
     const observations = await readRegistrations(controller, callers);
-    const verdict = evaluateExemptions({
-        armed: await controller.securityPerimeterEnabled(),
-        globalDelaySeconds: Number(await controller.globalDelaySeconds()),
-        observations,
-    });
+    const { armed, globalDelaySeconds } = await readSwitch(controller);
+    const verdict = evaluateExemptions({ armed, globalDelaySeconds, observations });
 
     if (verdict.certified) return verdict;
 
@@ -303,7 +372,9 @@ const assertContractCallersExempt = async (controller, { callers = CONTRACT_CALL
 module.exports = {
     SURFACE_IDS,
     CONTRACT_CALLERS,
+    SWITCH_UNREAD,
     readRegistrations,
+    readSwitch,
     evaluateExemptions,
     assertContractCallersExempt,
 };

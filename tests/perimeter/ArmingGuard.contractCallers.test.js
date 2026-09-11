@@ -261,6 +261,73 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
         });
     });
 
+    describe("an observation gathered some other way, not through readRegistrations", () => {
+        const observationWith = (actorPolicy, actorBypass) => [
+            { caller: exemptCaller()[0], actorPolicy, actorBypass },
+        ];
+
+        it("certifies a rate that reads back as a real ethers BigNumber zero", () => {
+            const { failures, certified } = evaluateExemptions({
+                armed: true,
+                observations: observationWith(
+                    { active: true, rateBps: ethers.BigNumber.from(0) },
+                    { active: true, bypass: true }
+                ),
+            });
+            expect(failures).to.be.empty;
+            expect(certified).to.be.true;
+        });
+
+        it('certifies a rate handed in as the numeral string "0"', () => {
+            const { failures, certified } = evaluateExemptions({
+                armed: true,
+                observations: observationWith(
+                    { active: true, rateBps: "0" },
+                    { active: true, bypass: true }
+                ),
+            });
+            expect(failures).to.be.empty;
+            expect(certified).to.be.true;
+        });
+
+        it("refuses a rate asRate cannot parse as unread, not as a charge", () => {
+            for (const rateBps of [null, "abc", "0x"]) {
+                const { failures } = evaluateExemptions({
+                    armed: true,
+                    observations: observationWith(
+                        { active: true, rateBps },
+                        { active: true, bypass: true }
+                    ),
+                });
+                expect(reasons(failures), `rateBps=${JSON.stringify(rateBps)}`).to.deep.equal([
+                    "fee-entry-unread",
+                ]);
+            }
+        });
+
+        it("refuses a fee flag that is not a boolean as unread, not as inactive", () => {
+            const { failures } = evaluateExemptions({
+                armed: true,
+                observations: observationWith(
+                    { active: "true", rateBps: 0 },
+                    { active: true, bypass: true }
+                ),
+            });
+            expect(reasons(failures)).to.deep.equal(["fee-entry-unread"]);
+        });
+
+        it("refuses a delay flag that is not a boolean as unread, not as forcing the delay", () => {
+            const { failures } = evaluateExemptions({
+                armed: true,
+                observations: observationWith(
+                    { active: true, rateBps: 0 },
+                    { active: true, bypass: "false" }
+                ),
+            });
+            expect(reasons(failures)).to.deep.equal(["delay-entry-unread"]);
+        });
+    });
+
     describe("what the registry itself must not become", () => {
         for (const registration of ["passthrough", "structural", "", "Bypass", undefined]) {
             it(`refuses an entry registered as ${JSON.stringify(registration)} as undecided, even with the pair on chain`, async () => {
@@ -347,6 +414,18 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
             );
             expect(error).to.not.be.null;
             expect(error.message).to.include("[delay-entry-unread]");
+        });
+
+        it("refuses when the controller lacks the delay switch views, even with every exemption written", async () => {
+            await writePair();
+            const target = {
+                actorPolicy: (...args) => controller.actorPolicy(...args),
+                actorBypass: (...args) => controller.actorBypass(...args),
+            };
+            const error = await thrownBy(target);
+            expect(error, "an unread switch must refuse certification").to.not.be.null;
+            expect(error.message).to.include("[arming-state-unread]");
+            expect(error.message).to.not.include("is not a function");
         });
 
         it("returns quietly once the chain carries the pair", async () => {
