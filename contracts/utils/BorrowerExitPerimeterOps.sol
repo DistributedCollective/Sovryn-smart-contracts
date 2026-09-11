@@ -36,9 +36,9 @@ contract BorrowerExitPerimeterOps is VaultController, IPerimeterEvents {
     /// @notice A resolved borrower-exit delay leg, bundled to keep the reroute
     ///         off the stack (0.5.17 stack-depth limit). `token == address(0)` is
     ///         the native (measured-receipt) leg; otherwise the ERC20
-    ///         (measured-delta) leg. `effOrig`/`effOwner` are the effective
-    ///         identities from the up-front quote (raw for this no-passthrough
-    ///         surface); `subProduct` is the iToken pool.
+    ///         (measured-delta) leg. `effOrig`/`effOwner` are the originator and
+    ///         owner the up-front quote returned, unchanged; `subProduct` is the
+    ///         iToken pool.
     struct DelayLeg {
         address queue;
         address token;

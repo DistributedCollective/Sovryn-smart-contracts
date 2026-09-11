@@ -2,7 +2,7 @@
  * The scenario engine, driven end to end against a bootstrapped QA fork.
  *
  * This walks the queue through every state a dapp or the operator console has
- * to draw — held, frozen, released, paused, unpaused, executed, pass-through
+ * to draw — held, frozen, released, paused, unpaused, executed, paid direct
  * with the perimeter off, recovered into a pool, recovered to an address — and
  * checks each one by reading the contracts, never by reading a printed table.
  *
@@ -255,7 +255,7 @@ describe("QA scenario engine", () => {
         // The switch stops the delay being quoted; it does not erase it.
         expect(Number(await s.controller.globalDelaySeconds())).to.equal(delaySeconds);
 
-        const receiver = drivers.derivedActor(s.state.testKey.address, "pass-through");
+        const receiver = drivers.derivedActor(s.state.testKey.address, "paid-direct");
         const lastBefore = await s.queue.lastRequestId();
         const balanceBefore = await ethers.provider.getBalance(receiver);
         const record = await engine.withdraw(s, {
@@ -268,7 +268,7 @@ describe("QA scenario engine", () => {
         expect(await s.queue.lastRequestId()).to.equal(lastBefore);
         expect(
             (await ethers.provider.getBalance(receiver)).sub(balanceBefore).gt(0),
-            "the pass-through payout never arrived"
+            "the direct payout never arrived"
         ).to.be.true;
 
         // Everything taken before the switch is still held to its own unlock.

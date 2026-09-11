@@ -75,7 +75,7 @@ contract BorrowerExitPerimeter is ModuleCommonFunctionalities, VaultController {
         if (toUser == 0) return false;
 
         // rawOriginator = entry-point msg.sender (borrower or delegated manager),
-        // owner = loanLocal.borrower, no passthrough on this surface.
+        // owner = loanLocal.borrower; the quote returns both unchanged.
         (uint32 d, address effOrig, address effOwner) = PerimeterLib.safeQuoteDelay(
             PerimeterLib.getController(),
             msg.sender,

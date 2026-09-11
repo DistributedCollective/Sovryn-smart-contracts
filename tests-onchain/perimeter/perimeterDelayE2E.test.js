@@ -68,7 +68,7 @@ const S2 = { a: actor("e2e52001"), b: actor("e2e52002"), receiver: actor("e2e520
 const S3 = { c: actor("e2e53001"), d: actor("e2e53002") };
 const S4 = {
     held: actor("e2e54001"),
-    passThrough: actor("e2e54002"),
+    paidDirect: actor("e2e54002"),
     receiver: actor("e2e54003"),
 };
 const S5 = {
@@ -503,7 +503,7 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
         expect(await s.queue.totalEscrowed(wrbtcAddress)).to.equal(0);
     });
 
-    it("S4: the kill switch makes the queue pass-through while existing holds stand", async () => {
+    it("S4: the kill switch pays withdrawals direct while existing holds stand", async () => {
         expect(await s.queue.totalEscrowed(wrbtcAddress)).to.equal(0);
 
         const held = await queueLenderWithdrawal(S4.held);
@@ -515,23 +515,23 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
         expect(await s.stack.controller.globalDelaySeconds()).to.equal(s.DELAY_SECONDS);
 
         // A withdrawal taken now is paid on the spot and records nothing.
-        const passThrough = await signerFor(S4.passThrough);
+        const paidDirect = await signerFor(S4.paidDirect);
         await (
             await s.iRBTC
-                .connect(passThrough)
-                .mintWithBTC(S4.passThrough, false, { value: LEND_AMOUNT })
+                .connect(paidDirect)
+                .mintWithBTC(S4.paidDirect, false, { value: LEND_AMOUNT })
         ).wait();
-        const minted = await s.iRBTC.balanceOf(S4.passThrough);
+        const minted = await s.iRBTC.balanceOf(S4.paidDirect);
         const requestIdBefore = await s.queue.lastRequestId();
         const receiverBefore = await nativeBalance(S4.receiver);
         const burnReceipt = await (
-            await s.iRBTC.connect(passThrough).burnToBTC(S4.receiver, minted, false)
+            await s.iRBTC.connect(paidDirect).burnToBTC(S4.receiver, minted, false)
         ).wait();
         expect(await s.queue.lastRequestId(), "a disabled perimeter still queued").to.equal(
             requestIdBefore
         );
         const applied = getSingleExitFeeApplied(burnReceipt);
-        expect(await nativeBalance(S4.receiver), "the pass-through payout is not net").to.equal(
+        expect(await nativeBalance(S4.receiver), "the direct payout is not net").to.equal(
             receiverBefore.add(applied.netAmount)
         );
         expect(await s.queue.totalEscrowed(wrbtcAddress)).to.equal(escrowedUnderHold);
@@ -550,9 +550,9 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
         // Re-arm, and holds resume.
         await onController("setSecurityPerimeterEnabled(bool)", [true]);
         expect(await s.stack.controller.securityPerimeterEnabled()).to.be.true;
-        const resumed = await queueLenderWithdrawal(S4.passThrough);
+        const resumed = await queueLenderWithdrawal(S4.paidDirect);
         await forkOps.increaseTime(s.provider, s.DELAY_SECONDS + 1);
-        await executeAndExpectPaid(resumed.id, S4.passThrough);
+        await executeAndExpectPaid(resumed.id, S4.paidDirect);
         expect(await s.queue.totalEscrowed(wrbtcAddress)).to.equal(0);
     });
 

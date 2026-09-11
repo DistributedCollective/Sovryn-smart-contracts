@@ -44,9 +44,6 @@ contract MockExitFeeController is IExitFeeController {
     // When set, `quoteExitDelayFor` reverts — exercises the hook's fail-CLOSED
     // per-pragma safe-quote wrapper.
     bool public revertOnDelayQuote;
-    // surfaceId => actor => is-passthrough. A passthrough resolves to the
-    // receiver in `effectiveActor` / `quoteExitDelayFor`.
-    mapping(bytes32 => mapping(address => bool)) private _passthrough;
     // surfaceId => actor => bypass (exempt from delay). Mirrors the actor tier.
     mapping(bytes32 => mapping(address => bool)) private _actorBypassActive;
     mapping(bytes32 => mapping(address => bool)) private _actorBypassValue;
@@ -230,10 +227,6 @@ contract MockExitFeeController is IExitFeeController {
         revertOnDelayQuote = v;
     }
 
-    function setPassthroughActorTest(bytes32 surfaceId, address a, bool isPassthrough) external {
-        _passthrough[surfaceId][a] = isPassthrough;
-    }
-
     function setActorBypassTest(
         bytes32 surfaceId,
         address actor,
@@ -246,22 +239,14 @@ contract MockExitFeeController is IExitFeeController {
 
     // ── Delay extension: IExitFeeController quote API ───────────────────────
 
-    function effectiveActor(
-        bytes32 surfaceId,
-        address raw,
-        address receiver
-    ) public view returns (address) {
-        return _passthrough[surfaceId][raw] ? receiver : raw;
-    }
-
     function quoteExitDelay(
         bytes32 surfaceId,
         address /* subProduct */,
-        address effectiveActor_
+        address actor
     ) public view returns (uint32) {
         if (!_perimeterEnabled) return 0;
-        if (_actorBypassActive[surfaceId][effectiveActor_]) {
-            return _actorBypassValue[surfaceId][effectiveActor_] ? 0 : _globalDelaySeconds;
+        if (_actorBypassActive[surfaceId][actor]) {
+            return _actorBypassValue[surfaceId][actor] ? 0 : _globalDelaySeconds;
         }
         return _globalDelaySeconds;
     }
@@ -269,19 +254,14 @@ contract MockExitFeeController is IExitFeeController {
     function quoteExitDelayFor(
         address rawOriginator,
         address owner,
-        address receiver,
+        address /* receiver */,
         bytes32 surfaceId,
         address subProduct
     ) external view returns (uint32 d, address effOrig, address effOwner) {
         require(!revertOnDelayQuote, "MockEFC: delay quote revert");
-        // Short-circuit the kill switch FIRST: a disabled perimeter pays
-        // direct with RAW identities and never consults the registry.
-        if (!_perimeterEnabled) {
-            return (0, rawOriginator, owner);
-        }
-        effOrig = effectiveActor(surfaceId, rawOriginator, receiver);
-        effOwner = effectiveActor(surfaceId, owner, receiver);
-        d = quoteExitDelay(surfaceId, subProduct, effOrig);
+        // The originator and owner come back unchanged; the delay is quoted on
+        // the originator, and is zero while the perimeter is switched off.
+        return (quoteExitDelay(surfaceId, subProduct, rawOriginator), rawOriginator, owner);
     }
 
     // ── Delay extension: IExitFeeController state views ─────────────────────
@@ -313,10 +293,6 @@ contract MockExitFeeController is IExitFeeController {
         p.bypass = _actorBypassValue[surfaceId][actor];
     }
 
-    function passthroughActor(bytes32 surfaceId, address a) external view returns (bool) {
-        return _passthrough[surfaceId][a];
-    }
-
     // ── Delay extension: IExitFeeController admin (no-ops / minimal) ─────────
 
     function setSecurityPerimeterEnabled(bool e) external {
@@ -338,9 +314,5 @@ contract MockExitFeeController is IExitFeeController {
     ) external {
         _actorBypassActive[surfaceId][actor] = policy.active;
         _actorBypassValue[surfaceId][actor] = policy.bypass;
-    }
-
-    function setPassthroughActor(bytes32 surfaceId, address a, bool isPassthrough) external {
-        _passthrough[surfaceId][a] = isPassthrough;
     }
 }

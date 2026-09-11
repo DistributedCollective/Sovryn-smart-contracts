@@ -119,10 +119,6 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
     // switched off gives. That keeps the fee-side tests driven by this mock
     // independent of the delay extension.
 
-    function effectiveActor(bytes32, address raw, address) public view returns (address) {
-        return raw;
-    }
-
     function quoteExitDelay(bytes32, address, address) public view returns (uint32) {
         return 0;
     }
@@ -154,10 +150,6 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
 
     function actorBypass(bytes32, address) external view returns (DelayBypassPolicy memory p) {}
 
-    function passthroughActor(bytes32, address) external view returns (bool) {
-        return false;
-    }
-
     function setSecurityPerimeterEnabled(bool) external {}
 
     function setGlobalDelaySeconds(uint32) external {}
@@ -167,6 +159,4 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
     function setSubProductBypass(bytes32, address, DelayBypassPolicy calldata) external {}
 
     function setActorBypass(bytes32, address, DelayBypassPolicy calldata) external {}
-
-    function setPassthroughActor(bytes32, address, bool) external {}
 }

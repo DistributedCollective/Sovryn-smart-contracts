@@ -376,7 +376,7 @@ const withdraw = async (s, opts = {}) => {
     const paidNow = (await ethers.provider.getBalance(receiver)).sub(result.before.receiver);
 
     if (!result.id) {
-        log(`  PASS-THROUGH  ${surface} withdrawal paid on the spot, nothing queued`);
+        log(`  PAID DIRECT  ${surface} withdrawal paid on the spot, nothing queued`);
         return {
             command: "withdraw",
             surface,

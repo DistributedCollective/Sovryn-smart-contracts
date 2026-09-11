@@ -108,8 +108,8 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
 
         // owner == rawOriginator == msg.sender: `burn(receiver, amt)` burns the
         // CALLER's iTokens (the position/pool share), so the burner is both the
-        // withdrawal originator and the position owner. The controller normalizes
-        // a registered wrapper passthrough (→ receiver) for BOTH inside the quote.
+        // withdrawal originator and the position owner, and the quote returns
+        // both unchanged.
         (uint32 d, address effOrig, address effOwner) = _safeQuoteExitDelay(
             msg.sender,
             msg.sender,
