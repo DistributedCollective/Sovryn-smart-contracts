@@ -141,8 +141,7 @@ task(
     });
 
 /**
- * The go-live check that stands between the delay and the contracts that
- * withdraw on somebody else's behalf.
+ * The go-live check for the addresses the owner has exempted from the perimeter.
  *
  * Read-only, and run BEFORE arming — it is the runbook's blocker step, the one
  * that is otherwise a paragraph of prose nothing enforces. The registry and the
@@ -151,7 +150,7 @@ task(
  */
 task(
     "perimeter:verify-arming",
-    "Refuse go-live while a contract that withdraws for users is not delay-exempt"
+    "Refuse go-live while an exempted address lacks its zero fee rate or its delay bypass"
 )
     .addOptionalParam(
         "controller",
@@ -176,8 +175,8 @@ task(
             [
                 "function securityPerimeterEnabled() view returns (bool)",
                 "function globalDelaySeconds() view returns (uint32)",
+                "function actorPolicy(bytes32,address) view returns (tuple(bool active, uint16 rateBps))",
                 "function actorBypass(bytes32,address) view returns (tuple(bool active, bool bypass))",
-                "function passthroughActor(bytes32,address) view returns (bool)",
             ],
             address
         );
@@ -186,12 +185,19 @@ task(
         logger.info(`Delay armed: ${await live.securityPerimeterEnabled()}`);
         logger.info(`Global delay: ${await live.globalDelaySeconds()}s`);
         for (const caller of CONTRACT_CALLERS) {
-            logger.info(`  ${caller.name} ${caller.address} -> ${caller.registration}`);
+            logger.info(
+                `  ${caller.name} ${caller.address} on ${caller.surface} -> ` +
+                    `${JSON.stringify(caller.registration)}`
+            );
         }
+        logger.info(
+            '  "bypass" requires both actor entries: fee policy {active: true, rateBps: 0} and ' +
+                "delay bypass {active: true, bypass: true}"
+        );
 
         await assertContractCallersExempt(live);
         logger.success(
-            "Every known contract-caller of a hooked exit is registered as this release decided. " +
+            "Every exempted address carries both halves of its exemption on the controller. " +
                 "Nothing here blocks arming."
         );
     });

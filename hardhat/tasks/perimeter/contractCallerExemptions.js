@@ -1,52 +1,46 @@
 /**
- * Contracts that withdraw on somebody else's behalf, and the registration each
- * one needs before the delay is armed.
+ * The addresses the owner has exempted from the perimeter, and the check that
+ * the live controller carries every exemption before the withdrawal delay is
+ * armed.
  *
- * WHY THIS EXISTS
+ * WHAT AN EXEMPTION IS
  *
- * A hooked exit derives the queue request's executor set from `msg.sender` at
- * the product. When a contract burns a user's position for them, that contract
- * becomes both originator and owner of the escrow request, and the receiver is
- * deliberately never an executor. If the contract has no code that calls
- * `executeExit` — almost none does — the user's money sits in an escrow nobody
- * on chain can release, recoverable only by an owner resolution.
+ * Two owner entries on the ExitFeeController for one address on one surface.
+ * One without the other exempts nothing:
  *
- * Worse, such a contract usually reads the withdrawal's return value as cash
- * that arrived in the same transaction. Under a hold no cash arrives and the
- * gross is returned anyway, so the contract pays its user out of whatever it
- * already holds — other users' money — until that balance is gone.
+ *   - an actor fee policy `{active: true, rateBps: 0}`. An inactive actor
+ *     policy is not a zero rate: resolution falls through to the sub-product
+ *     and surface tiers, so the address pays whatever the surface charges, even
+ *     when the stored rate reads zero.
+ *   - an actor delay bypass `{active: true, bypass: true}`. An active entry with
+ *     `bypass: false` is the opposite of an exemption: it forces the global
+ *     delay on the address even where a broader tier would lift it.
  *
- * The remedy is configuration, which is exactly why it is easy to miss: no
- * contract, no proposal and no deployment record mentions these addresses. This
- * module is the thing that mentions them. `assertContractCallersExempt` reads
- * the live controller and refuses to certify go-live until the chain agrees
- * with the registry below.
+ * Both entries are keyed on the surface as well as the address, so an entry
+ * written under another surface exempts nothing here.
  *
- * BYPASS OR PASSTHROUGH — NOT INTERCHANGEABLE
+ * The owner decides each exemption per address. Nothing in the contracts or the
+ * proposals names these addresses, so this registry is the place that does, and
+ * `assertContractCallersExempt` refuses to certify go-live until the controller
+ * reads back both entries for every address listed.
  *
- * `passthrough` rewrites the effective originator and owner to the RECEIVER, so
- * the end user becomes the executor and keeps their hold. Right for a wrapper
- * that names the user as receiver.
+ * WHAT IS NOT LISTED
  *
- * `bypass` gives the raw caller a zero delay, so nothing is escrowed at all.
- * Right for a contract that names ITSELF as receiver and then pays the user on
- * its own — where a passthrough would resolve the actor back to that same
- * contract and change nothing.
+ * A contract that withdraws for its users — a wrapper, a per-user borrowing
+ * clone — needs no entry. The queue records it as the request's originator and
+ * owner, and because that owner has code, anyone may deliver the request into
+ * its recorded receiver once it unlocks.
  *
- * Getting this backwards is silent: the transaction succeeds and the problem
- * only surfaces at unlock time. The checks below refuse both directions of the
- * mistake, including an actor bypass that a passthrough registration has made
- * unreachable.
+ * `bypass` is the only registration: it names the two-entry exemption above.
+ * An entry marked with anything else is refused as undecided rather than
+ * interpreted.
  *
- * WHAT THIS DOES NOT KNOW
+ * AN UNREAD ENTRY IS A REFUSAL
  *
- * Only what is listed, and the list comes from a sweep of our own repositories.
- * It cannot see contracts other people deployed against the same permissionless
- * entry points — Zero publishes BorrowerLib as an SDK for exactly that — and
- * finding those needs an indexer query over historical withdrawal events
- * filtered to callers that have code. Until that runs, this check proves the
- * chain agrees with what we know, not that we know everything. Whatever the
- * scan turns up is added here with its decided registration.
+ * A controller read that throws — a controller that does not serve the view,
+ * the wrong address, a node error — or that returns a value this module cannot
+ * interpret is recorded as unread, and an unread entry refuses certification.
+ * It is never taken to mean either "set" or "not set".
  */
 const { ethers } = require("ethers");
 
@@ -64,70 +58,76 @@ const SURFACE_IDS = {
     PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS: surfaceId("PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS"),
 };
 
+/** The one registration kind: the actor fee policy at rate zero plus the actor
+ *  delay bypass, both on the entry's surface. */
+const EXEMPTION = "bypass";
+
 const CONTRACT_CALLERS = Object.freeze([
     Object.freeze({
         name: "FeeSharingCollector",
         address: "0x115cAF168c51eD15ec535727F64684D33B7b08D1",
         surface: "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW",
-        registration: "bypass",
+        registration: EXEMPTION,
         why:
-            "Stakers claim protocol fees in RBTC. The collector redeems its own iWRBTC position by " +
-            "calling burnToBTC and treats the returned figure as RBTC in hand, paying the claimant " +
-            "out of the pooled balance it holds for every other staker. Under a hold nothing " +
-            "arrives and the claimant's own money escrows to a request only the collector could " +
-            "execute — and it has no code that does. It names ITSELF as the receiver, so a " +
-            "passthrough would resolve the actor straight back to it and change nothing.",
-    }),
-    // Not enforced, and deliberately kept: the address below is the LIVE
-    // AmmRbtcWrapperProxy, whose deployed bytecode carries no lending path at
-    // all — `addToLendingPool` (0x2e6bc575) and `removeFromLendingPool`
-    // (0xc5a58a60) are both absent from it, and it does have an owner. The
-    // repository holds two lineages that never merged: the branch carrying the
-    // lending functions was only ever pointed at testnet, and the mainnet build
-    // comes from the other one. Requiring a registration here would demand an
-    // owner transaction that exempts nothing.
-    //
-    // It stays as a WATCH rather than being deleted: were the lending-capable
-    // build ever deployed to this address, the entry describes exactly what it
-    // would need — a passthrough, not a bypass, because that build names the
-    // USER as receiver, so the queue would record the wrapper as the only
-    // executor of the user's own money, and a bypass would exempt a whole
-    // withdrawal route instead of just re-pointing it at the human.
-    Object.freeze({
-        name: "RBTCWrapperProxy",
-        address: "0x2BEe6167f91D10db23252e03de039Da6b9047D49",
-        surface: "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW",
-        registration: "passthrough",
-        watchOnly: true,
-        watchSelectors: ["0xc5a58a60", "0x2e6bc575"],
-        why:
-            "The deployed build has no lending entry point, so nothing here can reach the " +
-            "perimeter. Enforced only if those selectors ever appear in its code.",
+            "Pays stakers their share of protocol fees. It redeems the iWRBTC it holds through " +
+            "burnToBTC, a hooked lender withdrawal, and refuses a claim when nothing reaches the " +
+            "receiver. Protocol fees are not funds a user placed in the system and later " +
+            "removed, so the owner exempted it from both the Perimeter fee and the withdrawal " +
+            "delay.",
     }),
 ]);
 
-const REGISTRATIONS = ["bypass", "passthrough"];
-
 /**
- * Read what the live controller says about each caller. Kept apart from the
- * judgement so the judgement is testable without a chain, and so a caller can
- * feed it observations gathered some other way.
+ * One controller read. A throw, or a value `shape` cannot interpret, comes back
+ * as `{ error }` and never as a default value.
  */
-/** A watch-only caller is enforced only when its selectors are actually in the
- *  deployed code — the build at that address may not carry the path at all. */
-const enforceable = async (provider, caller) => {
-    if (!caller.watchOnly) return true;
-    const code = (await provider.getCode(caller.address)).toLowerCase();
-    return (caller.watchSelectors || []).some((sel) => code.includes(sel.slice(2).toLowerCase()));
+const attempt = async (read, shape) => {
+    try {
+        return shape(await read());
+    } catch (error) {
+        return { error: (error && error.message) || String(error) };
+    }
 };
 
+/** A stored rate as a plain integer, or NaN for anything that is not one.
+ *  `Number(null)` and `Number("")` are both 0, which would turn a missing rate
+ *  into an exempt one, so neither is accepted. */
+const asRate = (value) => {
+    if (typeof value === "number") return Number.isInteger(value) && value >= 0 ? value : NaN;
+    if (value === null || value === undefined) return NaN;
+    const text = typeof value === "string" ? value : String(value);
+    return /^\d+$/.test(text) ? Number(text) : NaN;
+};
+
+const feeShape = (policy) => {
+    const rateBps = asRate(policy.rateBps);
+    if (typeof policy.active !== "boolean" || Number.isNaN(rateBps)) {
+        throw new Error(
+            `actorPolicy returned a value that is not {bool active, uint16 rateBps}: ` +
+                `active=${policy.active}, rateBps=${policy.rateBps}`
+        );
+    }
+    return { active: policy.active, rateBps };
+};
+
+const delayShape = (policy) => {
+    if (typeof policy.active !== "boolean" || typeof policy.bypass !== "boolean") {
+        throw new Error(
+            `actorBypass returned a value that is not {bool active, bool bypass}: ` +
+                `active=${policy.active}, bypass=${policy.bypass}`
+        );
+    }
+    return { active: policy.active, bypass: policy.bypass };
+};
+
+/**
+ * Read what the live controller says about each listed address. Kept apart
+ * from the judgement so the judgement is testable without a chain, and so a
+ * caller can feed it observations gathered some other way.
+ */
 const readRegistrations = async (controller, callers = CONTRACT_CALLERS) => {
     const observations = [];
     for (const caller of callers) {
-        // A watch-only caller whose deployed build does not carry the path is
-        // not a gap to certify against; demanding a registration for it would
-        // ask an owner to exempt something that cannot reach the perimeter.
-        if (!(await enforceable(controller.provider, caller))) continue;
         const surface = SURFACE_IDS[caller.surface];
         if (!surface) {
             throw new Error(
@@ -135,23 +135,33 @@ const readRegistrations = async (controller, callers = CONTRACT_CALLERS) => {
                     "which is not one this release hooks"
             );
         }
-        const policy = await controller.actorBypass(surface, caller.address);
         observations.push({
             caller,
-            actorBypass: { active: policy.active, bypass: policy.bypass },
-            passthrough: await controller.passthroughActor(surface, caller.address),
+            actorPolicy: await attempt(
+                () => controller.actorPolicy(surface, caller.address),
+                feeShape
+            ),
+            actorBypass: await attempt(
+                () => controller.actorBypass(surface, caller.address),
+                delayShape
+            ),
         });
     }
     return observations;
 };
 
+/** An observation half that is absent, carries a read error, or does not have
+ *  the fields the judgement needs. */
+const unread = (half, fields) =>
+    !half || half.error !== undefined || fields.some((field) => half[field] === undefined);
+
 /**
  * Judge the observations. Pure: no chain, no I/O.
  *
  * The verdict does not depend on whether the delay is armed yet — this check
- * exists to gate arming, so an unexempt caller refuses certification either
- * way. `armed` and `globalDelaySeconds` only decide whether the failure is a
- * warning about the future or a report that money may already be stranding.
+ * exists to gate arming, so a missing entry refuses certification either way.
+ * `armed` and `globalDelaySeconds` only decide whether the failure is a warning
+ * about the future or a report that withdrawals may already be held.
  */
 const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observations = [] } = {}) => {
     const holding = Boolean(armed) && Number(globalDelaySeconds) > 0;
@@ -162,71 +172,94 @@ const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observation
             name: "(registry)",
             reason: "empty-registry",
             detail:
-                "the contract-caller registry is empty, so this check certifies nothing. At least " +
-                "the fee-sharing collector belongs in it.",
+                "the exemption registry is empty, so this check certifies nothing. The " +
+                "fee-sharing collector belongs in it.",
         });
         return { certified: false, holding, armed: Boolean(armed), failures };
     }
 
-    for (const { caller, actorBypass, passthrough } of observations) {
+    for (const { caller, actorPolicy, actorBypass } of observations) {
         const where = `${caller.name} (${caller.address}) on ${caller.surface}`;
-        const exempt = Boolean(actorBypass.active) && Boolean(actorBypass.bypass);
+        const key = `${SURFACE_IDS[caller.surface] || caller.surface}, ${caller.address}`;
+        const feeCall = `setActorPolicy(${key}, {active: true, rateBps: 0})`;
+        const delayCall = `setActorBypass(${key}, {active: true, bypass: true})`;
+        const owner = "as the controller owner, then read it back";
 
-        if (!REGISTRATIONS.includes(caller.registration)) {
+        if (caller.registration !== EXEMPTION) {
             failures.push({
                 name: caller.name,
                 reason: "undecided-registration",
                 detail:
-                    `${where} has no decided registration. Read its source: a contract that names ` +
-                    "the end user as receiver needs a passthrough, one that names itself needs an " +
-                    "actor bypass, and the two are not interchangeable.",
+                    `${where} is registered as ${JSON.stringify(caller.registration)}, which is ` +
+                    `not a decided registration. The only one is "${EXEMPTION}": the owner's ` +
+                    "exemption of this address, written as a zero actor fee rate and an actor " +
+                    "delay bypass. Record the owner's decision and mark the entry " +
+                    `"${EXEMPTION}", or remove it.`,
             });
             continue;
         }
 
-        if (caller.registration === "bypass") {
-            if (passthrough) {
-                failures.push({
-                    name: caller.name,
-                    reason: "bypass-shadowed-by-passthrough",
-                    detail:
-                        `${where} is registered as a passthrough. A passthrough resolves the ` +
-                        "effective actor to the receiver, so the actor bypass keyed on the caller " +
-                        "itself is never consulted, and this contract names itself as receiver in " +
-                        "any case. Run setPassthroughActor(surface, address, false).",
-                });
-            } else if (!exempt) {
-                failures.push({
-                    name: caller.name,
-                    reason: "not-exempt",
-                    detail:
-                        `${where} is not delay-exempt (actorBypass active=${actorBypass.active}, ` +
-                        `bypass=${actorBypass.bypass}). Run setActorBypass(surface, address, ` +
-                        "{active: true, bypass: true}) as the controller owner before arming.",
-                });
-            }
-            continue;
+        if (unread(actorPolicy, ["active", "rateBps"])) {
+            failures.push({
+                name: caller.name,
+                reason: "fee-entry-unread",
+                detail:
+                    `the actor fee policy for ${where} could not be read ` +
+                    `(${(actorPolicy && actorPolicy.error) || "no observation"}). An entry ` +
+                    "that cannot be read is not an exemption. Check that the address is the " +
+                    "ExitFeeController and that it serves actorPolicy(bytes32,address), then " +
+                    "run this again.",
+            });
+        } else if (actorPolicy.active !== true) {
+            failures.push({
+                name: caller.name,
+                reason: "fee-entry-inactive",
+                detail:
+                    `${where} has no active actor fee policy (active=${actorPolicy.active}, ` +
+                    `rateBps=${actorPolicy.rateBps}). An inactive entry falls through to the ` +
+                    "sub-product and surface rates, so this address pays the Perimeter fee. " +
+                    `Run ${feeCall} ${owner} before arming.`,
+            });
+        } else if (actorPolicy.rateBps !== 0) {
+            failures.push({
+                name: caller.name,
+                reason: "fee-rate-not-zero",
+                detail:
+                    `${where} has an active actor fee policy charging ` +
+                    `${actorPolicy.rateBps} bps, which is a rate, not an exemption. ` +
+                    `Run ${feeCall} ${owner} before arming.`,
+            });
         }
 
-        // passthrough
-        if (!passthrough) {
+        if (unread(actorBypass, ["active", "bypass"])) {
             failures.push({
                 name: caller.name,
-                reason: "not-passthrough",
+                reason: "delay-entry-unread",
                 detail:
-                    `${where} is not registered as a passthrough, so a withdrawal it initiates ` +
-                    "escrows with itself as the only executor. Run " +
-                    "setPassthroughActor(surface, address, true) as the controller owner before arming.",
+                    `the actor delay bypass for ${where} could not be read ` +
+                    `(${(actorBypass && actorBypass.error) || "no observation"}). An entry ` +
+                    "that cannot be read is not an exemption. Check that the address is the " +
+                    "ExitFeeController on the delay build and that it serves " +
+                    "actorBypass(bytes32,address), then run this again.",
             });
-        } else if (actorBypass.active) {
+        } else if (actorBypass.active !== true) {
             failures.push({
                 name: caller.name,
-                reason: "unreachable-actor-bypass",
+                reason: "delay-entry-inactive",
                 detail:
-                    `${where} carries an actor bypass that can never be consulted: the passthrough ` +
-                    "already resolves the effective actor to the receiver, so the policy is keyed " +
-                    "on an address the resolver never looks up. Whoever set it believed this " +
-                    "address was exempt. Clear it, or decide again which of the two it needs.",
+                    `${where} has no active actor delay bypass (active=${actorBypass.active}, ` +
+                    `bypass=${actorBypass.bypass}). An inactive entry falls through to the ` +
+                    "sub-product and surface tiers, so this address's withdrawals are held. " +
+                    `Run ${delayCall} ${owner} before arming.`,
+            });
+        } else if (actorBypass.bypass !== true) {
+            failures.push({
+                name: caller.name,
+                reason: "delay-entry-forces-delay",
+                detail:
+                    `${where} has an active actor delay entry with bypass=false, which forces ` +
+                    "the global delay on this address instead of lifting it. " +
+                    `Run ${delayCall} ${owner} before arming.`,
             });
         }
     }
@@ -239,7 +272,7 @@ const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observation
  *
  * Run it before arming (it is the runbook's blocker step), and again from the
  * rehearsal once the delay is on, so a fixture can never hand back an armed
- * stack that would strand a claimant's money.
+ * stack that holds or charges an exempted address.
  */
 const assertContractCallersExempt = async (controller, { callers = CONTRACT_CALLERS } = {}) => {
     const observations = await readRegistrations(controller, callers);
@@ -252,16 +285,17 @@ const assertContractCallersExempt = async (controller, { callers = CONTRACT_CALL
     if (verdict.certified) return verdict;
 
     const lead = verdict.holding
-        ? "the delay is ARMED and holding, so withdrawals through these contracts may already be " +
-          "paying out of other users' money and escrowing to requests nobody can execute"
-        : "arming the delay in this state would strand withdrawals made through these contracts";
+        ? "the delay is ARMED and holding, and an exempted address does not carry its whole " +
+          "exemption, so its withdrawals may already be charged or held"
+        : "an exempted address does not carry its whole exemption, so arming the delay in this " +
+          "state would charge or hold its withdrawals";
 
     throw new Error(
         `Perimeter arming guard: ${lead}.\n\n` +
             verdict.failures
                 .map((failure) => `  - [${failure.reason}] ${failure.detail}`)
                 .join("\n\n") +
-            "\n\nEach registration is an owner call on the ExitFeeController. Re-run this check " +
+            "\n\nEach entry is an owner call on the ExitFeeController. Re-run this check " +
             "after they execute."
     );
 };

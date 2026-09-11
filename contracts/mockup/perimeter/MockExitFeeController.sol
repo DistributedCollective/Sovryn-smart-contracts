@@ -21,6 +21,13 @@ contract MockExitFeeController is IExitFeeController {
     mapping(address => bool) public configuredActorActive;
     mapping(address => uint16) public configuredActorRate;
 
+    // Surface-scoped actor fee policy, keyed as the real controller keys it.
+    // Written by `setActorPolicy` and `setActorFeePolicyTest`, read back by
+    // `actorPolicy`, and consulted first by `quoteExitFee`, so the view and
+    // the quote agree.
+    mapping(bytes32 => mapping(address => bool)) private _actorPolicyActive;
+    mapping(bytes32 => mapping(address => uint16)) private _actorPolicyRate;
+
     // Sub-product (per-iToken) override (middle tier). Mirrors
     // `subProductPolicy[surfaceId][subProduct]` on the real controller.
     mapping(address => bool) public configuredSubProductActive;
@@ -75,6 +82,18 @@ contract MockExitFeeController is IExitFeeController {
         configuredActorRate[actor] = rateBps;
     }
 
+    /// @notice Write a surface-scoped actor fee policy, as the owner's
+    ///         `setActorPolicy` does, with flat arguments.
+    function setActorFeePolicyTest(
+        bytes32 surfaceId,
+        address actor,
+        bool active_,
+        uint16 rateBps
+    ) external {
+        _actorPolicyActive[surfaceId][actor] = active_;
+        _actorPolicyRate[surfaceId][actor] = rateBps;
+    }
+
     /// @notice Pin a sub-product (per-iToken) policy entry so tests can
     ///         verify per-iToken rates (e.g. iWRBTC 30 bps, iXUSD 50 bps)
     ///         override the surface default.
@@ -86,7 +105,7 @@ contract MockExitFeeController is IExitFeeController {
     // ── IExitFeeController quote API ───────────────────────────────────────
 
     function quoteExitFee(
-        bytes32 /* surfaceId */,
+        bytes32 surfaceId,
         address subProduct,
         address actor,
         uint256 grossAmount
@@ -110,8 +129,12 @@ contract MockExitFeeController is IExitFeeController {
 
         // Resolution order matches the real controller:
         //   actor (top) > sub-product > surface default.
+        // The actor tier reads the surface-scoped entry first, then the
+        // surface-agnostic one `setActorPolicyTest` writes.
         uint16 rate;
-        if (configuredActorActive[actor]) {
+        if (_actorPolicyActive[surfaceId][actor]) {
+            rate = _actorPolicyRate[surfaceId][actor];
+        } else if (configuredActorActive[actor]) {
             rate = configuredActorRate[actor];
         } else if (configuredSubProductActive[subProduct]) {
             rate = configuredSubProductRate[subProduct];
@@ -148,7 +171,13 @@ contract MockExitFeeController is IExitFeeController {
         p.rateBps = configuredRateBps;
     }
 
-    function actorPolicy(bytes32, address) external view returns (RatePolicy memory p) {}
+    function actorPolicy(
+        bytes32 surfaceId,
+        address actor
+    ) external view returns (RatePolicy memory p) {
+        p.active = _actorPolicyActive[surfaceId][actor];
+        p.rateBps = _actorPolicyRate[surfaceId][actor];
+    }
 
     function subProductKeys(bytes32) external view returns (address[] memory keys) {
         return keys;
@@ -158,7 +187,7 @@ contract MockExitFeeController is IExitFeeController {
         return keys;
     }
 
-    // ── IExitFeeController admin (no-ops on the stub) ──────────────────────
+    // ── IExitFeeController admin ───────────────────────────────────────────
 
     function setExitFeeEnabled(bool enabled) external {
         _enabled = enabled;
@@ -171,7 +200,16 @@ contract MockExitFeeController is IExitFeeController {
     function setSurfacePolicy(bytes32, RatePolicy calldata) external {}
     function setSubProductPolicy(bytes32, address, RatePolicy calldata) external {}
     function setSubProductPolicies(bytes32, address[] calldata, RatePolicy[] calldata) external {}
-    function setActorPolicy(bytes32, address, RatePolicy calldata) external {}
+
+    function setActorPolicy(
+        bytes32 surfaceId,
+        address actor,
+        RatePolicy calldata policy
+    ) external {
+        _actorPolicyActive[surfaceId][actor] = policy.active;
+        _actorPolicyRate[surfaceId][actor] = policy.rateBps;
+    }
+
     function setActorPolicies(bytes32, address[] calldata, RatePolicy[] calldata) external {}
     function removeSubProductPolicy(bytes32, address) external {}
     function removeSubProductPolicies(bytes32, address[] calldata) external {}
