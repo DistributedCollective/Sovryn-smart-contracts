@@ -366,22 +366,48 @@ const setupPhase2Stack = async () => {
     // Arming is the owner's and the admin's act, and one account holds both.
     const controller = stack.controller.connect(exchequerSigner);
 
-    // Every contract that withdraws on a user's behalf is registered BEFORE the
-    // hold exists, because a hold that catches one of them pays its users out of
-    // other users' money and escrows theirs where nobody can reach it. The
-    // rehearsal runs the ordering the runbook demands rather than a shortcut to
-    // the armed state.
+    // Every exemption the owner decided is written BEFORE the hold exists, both
+    // halves, and read back before arming: an exempted address missing its delay
+    // bypass has its withdrawals held, and one missing its zero fee rate is
+    // charged. The rehearsal runs the ordering the runbook demands rather than a
+    // shortcut to the armed state.
     for (const caller of CONTRACT_CALLERS) {
+        const where = `${caller.name} (${caller.address}) on ${caller.surface}`;
+        if (caller.registration !== "bypass") {
+            throw new Error(
+                `${where} is registered as ${JSON.stringify(caller.registration)}; the only ` +
+                    'registration is "bypass", the actor fee policy at rate zero plus the actor ' +
+                    "delay bypass, and the arming guard refuses anything else"
+            );
+        }
         const surface = SURFACE_IDS[caller.surface];
-        if (caller.registration === "bypass") {
-            await (
-                await controller.setActorBypass(surface, caller.address, {
-                    active: true,
-                    bypass: true,
-                })
-            ).wait();
-        } else {
-            await (await controller.setPassthroughActor(surface, caller.address, true)).wait();
+        await (
+            await controller.setActorPolicy(surface, caller.address, {
+                active: true,
+                rateBps: 0,
+            })
+        ).wait();
+        await (
+            await controller.setActorBypass(surface, caller.address, {
+                active: true,
+                bypass: true,
+            })
+        ).wait();
+
+        // The receipt is not the check; the stored entries are.
+        const fee = await controller.actorPolicy(surface, caller.address);
+        const delay = await controller.actorBypass(surface, caller.address);
+        if (
+            fee.active !== true ||
+            !ethers.BigNumber.from(fee.rateBps).isZero() ||
+            delay.active !== true ||
+            delay.bypass !== true
+        ) {
+            throw new Error(
+                `${where} did not read back its exemption: actorPolicy (active=${fee.active}, ` +
+                    `rateBps=${fee.rateBps}), actorBypass (active=${delay.active}, ` +
+                    `bypass=${delay.bypass})`
+            );
         }
     }
 
