@@ -321,13 +321,21 @@ const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observation
     }
 
     if (switchUnread) {
+        // Names the views, never the read's own error text: the reason a view
+        // could not be read belongs to the node or the library, and the operator
+        // needs to know which view to check.
+        const unreadViews = [
+            armed === SWITCH_UNREAD ? "securityPerimeterEnabled()" : null,
+            globalDelaySeconds === SWITCH_UNREAD ? "globalDelaySeconds()" : null,
+        ].filter(Boolean);
         failures.push({
             name: "(switch)",
             reason: "arming-state-unread",
             detail:
-                "the delay switch (securityPerimeterEnabled and globalDelaySeconds) could not " +
-                "be read from the controller. An unread switch is never taken to mean the delay " +
-                "is off, so nothing certifies until it reads back.",
+                `${unreadViews.join(" and ")} could not be read on this controller. An unread ` +
+                "delay switch is never taken to mean the delay is off, so nothing certifies " +
+                "until it reads back. Check that the address is the ExitFeeController on the " +
+                "delay build, then run this again.",
         });
     }
 
@@ -353,11 +361,17 @@ const assertContractCallersExempt = async (controller, { callers = CONTRACT_CALL
 
     if (verdict.certified) return verdict;
 
-    const lead = verdict.holding
-        ? "the delay is ARMED and holding, and an exempted address does not carry its whole " +
-          "exemption, so its withdrawals may already be charged or held"
-        : "an exempted address does not carry its whole exemption, so arming the delay in this " +
-          "state would charge or hold its withdrawals";
+    const exemptionMissing = verdict.failures.some(
+        (failure) => failure.reason !== "arming-state-unread"
+    );
+    const lead = !exemptionMissing
+        ? "the delay switch could not be read, so this check cannot tell whether withdrawals " +
+          "are already held, and it certifies nothing"
+        : verdict.holding
+          ? "the delay is ARMED and holding, and an exempted address does not carry its whole " +
+            "exemption, so its withdrawals may already be charged or held"
+          : "an exempted address does not carry its whole exemption, so arming the delay in " +
+            "this state would charge or hold its withdrawals";
 
     throw new Error(
         `Perimeter arming guard: ${lead}.\n\n` +

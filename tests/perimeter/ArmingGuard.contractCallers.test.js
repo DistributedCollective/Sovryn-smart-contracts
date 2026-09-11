@@ -23,6 +23,7 @@ const { ethers } = require("hardhat");
 const {
     SURFACE_IDS,
     CONTRACT_CALLERS,
+    SWITCH_UNREAD,
     readRegistrations,
     evaluateExemptions,
     assertContractCallersExempt,
@@ -34,6 +35,10 @@ const LENDER_WITHDRAW = "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW";
 const BORROWER_WITHDRAW = "PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW";
 const COLLECTOR = "0x115cAF168c51eD15ec535727F64684D33B7b08D1";
 const NO_CODE = "0x00000000000000000000000000000000000000A1";
+/** What ethers throws for a view the target does not serve. The guard's refusal
+ *  must say which view it could not read in its own words, never this text. */
+const RAW_LIBRARY_ERROR =
+    'call revert exception [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (method="globalDelaySeconds()", data="0x", errorArgs=null, errorName=null, errorSignature=null, reason=null, code=CALL_EXCEPTION, version=abi/5.7.0)';
 
 /** The view signatures the operator task reads the live controller through. */
 const CONTROLLER_VIEWS = [
@@ -370,6 +375,39 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
             const inert = evaluateExemptions({ armed: true, globalDelaySeconds: 0, observations });
             expect(inert.holding).to.be.false;
         });
+
+        it("never certifies a switch read on one view only, whichever view answered", async () => {
+            await writePair();
+            const observations = await readRegistrations(controller, exemptCaller());
+            const cases = [
+                {
+                    armed: SWITCH_UNREAD,
+                    globalDelaySeconds: 0,
+                    unread: "securityPerimeterEnabled()",
+                },
+                {
+                    armed: SWITCH_UNREAD,
+                    globalDelaySeconds: 3600,
+                    unread: "securityPerimeterEnabled()",
+                },
+                {
+                    armed: false,
+                    globalDelaySeconds: SWITCH_UNREAD,
+                    unread: "globalDelaySeconds()",
+                },
+                { armed: true, globalDelaySeconds: SWITCH_UNREAD, unread: "globalDelaySeconds()" },
+            ];
+            for (const { armed, globalDelaySeconds, unread } of cases) {
+                const label = `armed=${armed}, globalDelaySeconds=${globalDelaySeconds}`;
+                const verdict = evaluateExemptions({ armed, globalDelaySeconds, observations });
+                expect(verdict.certified, label).to.be.false;
+                expect(verdict.holding, label).to.be.false;
+                expect(reasons(verdict.failures), label).to.deep.equal(["arming-state-unread"]);
+                expect(verdict.failures[0].detail, label).to.include(
+                    `${unread} could not be read on this controller`
+                );
+            }
+        });
     });
 
     describe("the assertion an operator and the rehearsal both run", () => {
@@ -425,7 +463,60 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
             const error = await thrownBy(target);
             expect(error, "an unread switch must refuse certification").to.not.be.null;
             expect(error.message).to.include("[arming-state-unread]");
+            expect(error.message).to.include(
+                "securityPerimeterEnabled() and globalDelaySeconds() could not be read on this controller"
+            );
             expect(error.message).to.not.include("is not a function");
+        });
+
+        /** A controller that serves the written pair, with each switch view
+         *  answering or throwing as the case needs. */
+        const halfReadSwitch = ({ securityPerimeterEnabled, globalDelaySeconds }) => ({
+            actorPolicy: (...args) => controller.actorPolicy(...args),
+            actorBypass: (...args) => controller.actorBypass(...args),
+            securityPerimeterEnabled,
+            globalDelaySeconds,
+        });
+        const libraryError = () => {
+            throw new Error(RAW_LIBRARY_ERROR);
+        };
+
+        it("refuses when securityPerimeterEnabled() throws and globalDelaySeconds() answers, naming the view it could not read", async () => {
+            await writePair();
+            const error = await thrownBy(
+                halfReadSwitch({
+                    securityPerimeterEnabled: async () => libraryError(),
+                    globalDelaySeconds: async () => 3600,
+                })
+            );
+            expect(error, "a switch read on one view only must refuse certification").to.not.be
+                .null;
+            expect(error.message).to.include("[arming-state-unread]");
+            expect(error.message).to.include(
+                "securityPerimeterEnabled() could not be read on this controller"
+            );
+            expect(error.message).to.not.include("globalDelaySeconds() could not be read");
+            expect(error.message).to.not.include("CALL_EXCEPTION");
+            expect(error.message).to.not.include("does not carry its whole exemption");
+        });
+
+        it("refuses when globalDelaySeconds() throws, even though securityPerimeterEnabled() answers false", async () => {
+            await writePair();
+            const error = await thrownBy(
+                halfReadSwitch({
+                    securityPerimeterEnabled: async () => false,
+                    globalDelaySeconds: async () => libraryError(),
+                })
+            );
+            expect(error, "a switch that reads off on one view only must refuse certification").to
+                .not.be.null;
+            expect(error.message).to.include("[arming-state-unread]");
+            expect(error.message).to.include(
+                "globalDelaySeconds() could not be read on this controller"
+            );
+            expect(error.message).to.not.include("securityPerimeterEnabled() could not be read");
+            expect(error.message).to.not.include("CALL_EXCEPTION");
+            expect(error.message).to.not.include("does not carry its whole exemption");
         });
 
         it("returns quietly once the chain carries the pair", async () => {
