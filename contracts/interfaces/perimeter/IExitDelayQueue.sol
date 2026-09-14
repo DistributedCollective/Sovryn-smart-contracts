@@ -23,7 +23,7 @@ interface IExitDelayQueue {
         Queued, //             1 — escrowed, awaiting execute / recovery
         Executed, //           2 — paid to receiver (terminal)
         ResolvedToProtocol, // 3 — Leg-2 recovery-away (terminal)
-        ResolvedBySIP //       4 — Leg-3 DAO catch-all (terminal)
+        ResolvedByOwner //       4 — Leg-3 Owner resolution (terminal)
     }
 
     /// @notice Per-address block state. `Frozen` = temporary (investigating);
@@ -91,7 +91,7 @@ interface IExitDelayQueue {
         address destination,
         uint128 amount
     );
-    event ExitResolvedBySIP(uint256 indexed id, address indexed destination, uint128 amount);
+    event ExitResolvedByOwner(uint256 indexed id, address indexed destination, uint128 amount);
     event AccountBlocked(
         address indexed account,
         BlockState state,
@@ -135,7 +135,7 @@ interface IExitDelayQueue {
     error SourceNotBlacklisted(address src); //   Leg-2 OR-predicate not satisfied
     error NotBlacklisted(address a); //           unblacklist on a non-Blacklisted address
     error NotFrozen(address a); //                unfreeze on a non-Frozen address
-    error NotResolvableBySIP(uint256 id); //      Leg-3 bounded predicate not satisfied
+    error NotResolvableByOwner(uint256 id); //      Leg-3 bounded predicate not satisfied
     error UnwrapNonWrbtc(); //                    unwrapOnDelivery set on a non-WRBTC token
     error InvalidAltReceiver(address altReceiver); // recoverStuckExit altReceiver ∈ {0,this,token,wrbtc}
     error SelfOnly(); //                          payoutExternal trampoline is self-call-only
@@ -263,7 +263,7 @@ interface IExitDelayQueue {
     // Batch by-address: each reverts `EmptyIds()` on
     // an empty array, for API consistency with the by-id batch variants
     // (`executeExits` / batch `freezeFromRequest` / `resolveToProtocol` /
-    // `resolveBySIP`) — an empty batch is a caller mistake, never a silent no-op.
+    // `resolveByOwner`) — an empty batch is a caller mistake, never a silent no-op.
     function freeze(address[] calldata a) external;
     function blacklist(address[] calldata a) external;
     function unfreeze(address[] calldata a) external;
@@ -276,7 +276,7 @@ interface IExitDelayQueue {
     // ─── Recovery ────────────────────────────────────────────────
 
     function resolveToProtocol(uint256[] calldata ids, bytes32 routeId) external;
-    function resolveBySIP(uint256[] calldata ids, address destination) external;
+    function resolveByOwner(uint256[] calldata ids, address destination) external;
 
     function setRecoveryRoute(RecoveryRoute calldata route) external returns (bytes32 routeId);
     function removeRecoveryRoute(bytes32 routeId) external;

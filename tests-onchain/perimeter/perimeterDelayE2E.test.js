@@ -42,7 +42,7 @@ const ERC20_ABI = [
 ];
 
 /** ExitStatus / BlockState as the queue stores them. */
-const STATUS = { None: 0, Queued: 1, Executed: 2, ResolvedToProtocol: 3, ResolvedBySIP: 4 };
+const STATUS = { None: 0, Queued: 1, Executed: 2, ResolvedToProtocol: 3, ResolvedByOwner: 4 };
 const BLOCK = { None: 0, Frozen: 1, Blacklisted: 2 };
 
 const REASON_E2E = ethers.utils.id("e2e");
@@ -625,11 +625,11 @@ describe("Withdrawal-delay perimeter — the operator's levers on a fork", () =>
 
         // ── Leg 3: the owner's catch-all ───────────────────────────────────
         expect(await s.wrbtc.balanceOf(S5.arbitrary)).to.equal(0);
-        await onQueue("resolveBySIP(uint256[],address)", [[second.id], S5.arbitrary]);
+        await onQueue("resolveByOwner(uint256[],address)", [[second.id], S5.arbitrary]);
         expect(await s.wrbtc.balanceOf(S5.arbitrary), "the named address was not paid").to.equal(
             second.request.amount
         );
-        expect((await s.queue.getRequest(second.id)).status).to.equal(STATUS.ResolvedBySIP);
+        expect((await s.queue.getRequest(second.id)).status).to.equal(STATUS.ResolvedByOwner);
 
         expect(await s.queue.totalEscrowed(wrbtcAddress)).to.equal(
             escrowedBefore.sub(first.request.amount).sub(second.request.amount)

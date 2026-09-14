@@ -335,6 +335,7 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
 
     describe("what the registry itself must not become", () => {
         for (const registration of ["passthrough", "structural", "", "Bypass", undefined]) {
+            // the first two are retired kinds
             it(`refuses an entry registered as ${JSON.stringify(registration)} as undecided, even with the pair on chain`, async () => {
                 await writePair();
                 // Spread rather than the helper's default parameter, which would

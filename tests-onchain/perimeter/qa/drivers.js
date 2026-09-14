@@ -42,7 +42,7 @@ const ERC20_ABI = [
 ];
 
 /** ExitStatus / BlockState as the queue stores them. */
-const STATUS = { None: 0, Queued: 1, Executed: 2, ResolvedToProtocol: 3, ResolvedBySIP: 4 };
+const STATUS = { None: 0, Queued: 1, Executed: 2, ResolvedToProtocol: 3, ResolvedByOwner: 4 };
 const BLOCK = { None: 0, Frozen: 1, Blacklisted: 2 };
 /** Zero's Status.active and Status.closedByRedemption. */
 const TROVE_ACTIVE = 1;

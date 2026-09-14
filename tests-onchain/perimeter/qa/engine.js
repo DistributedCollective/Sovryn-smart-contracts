@@ -831,7 +831,7 @@ const refund = async (s, ids, to, opts = {}) => {
         destination = ethers.utils.getAddress(to);
     }
 
-    const wantStatus = toPool ? STATUS.ResolvedToProtocol : STATUS.ResolvedBySIP;
+    const wantStatus = toPool ? STATUS.ResolvedToProtocol : STATUS.ResolvedByOwner;
     const read = balanceReader(token);
     const before = await read(destination);
     const result = await viaMultisig(
@@ -839,7 +839,7 @@ const refund = async (s, ids, to, opts = {}) => {
         `refund ${numeric.join(",")} to ${toPool ? "the pool" : destination}`,
         s.queue.address,
         s.queue,
-        toPool ? "resolveToProtocol(uint256[],bytes32)" : "resolveBySIP(uint256[],address)",
+        toPool ? "resolveToProtocol(uint256[],bytes32)" : "resolveByOwner(uint256[],address)",
         toPool ? [numeric, routeId] : [numeric, destination],
         {
             ...opts,

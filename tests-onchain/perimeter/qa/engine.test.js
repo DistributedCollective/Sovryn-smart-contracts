@@ -339,7 +339,7 @@ describe("QA scenario engine", () => {
         const namedBefore = await ethers.provider.getBalance(named);
         const bySip = await engine.refund(s, [ids.borrower], named, silent);
         expect(bySip.applied, bySip.note || "").to.equal(true);
-        expect((await s.queue.getRequest(ids.borrower)).status).to.equal(STATUS.ResolvedBySIP);
+        expect((await s.queue.getRequest(ids.borrower)).status).to.equal(STATUS.ResolvedByOwner);
         expect(await ethers.provider.getBalance(named)).to.equal(
             namedBefore.add(borrowerRequest.amount)
         );
