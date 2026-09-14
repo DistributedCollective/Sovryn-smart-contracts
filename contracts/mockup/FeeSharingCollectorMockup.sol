@@ -59,14 +59,6 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
         return _getEndOfRange(0, _token, 0);
     }
 
-    function getRBTCBalance(
-        address _token,
-        address _user,
-        uint32 _maxCheckpoints
-    ) public view returns (uint256 _tokenAmount, uint256 _endToken) {
-        return _getRBTCBalance(_token, _user, _maxCheckpoints);
-    }
-
     function testWithdrawReentrancy(
         address _token,
         uint32 _maxCheckpoints,

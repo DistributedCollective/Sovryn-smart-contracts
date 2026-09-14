@@ -569,9 +569,6 @@ contract FeeSharingCollector is
             (, endTokenCheckpoint) = _withdraw(_nonRbtcTokenAddress, _maxCheckpoints, _receiver);
 
             uint256 _previousUsedCheckpoint = endTokenCheckpoint.sub(startingCheckpoint);
-            if (startingCheckpoint > 0) {
-                _previousUsedCheckpoint.add(1);
-            }
 
             _maxCheckpoints = safe32(
                 _maxCheckpoints - _previousUsedCheckpoint,
@@ -668,10 +665,6 @@ contract FeeSharingCollector is
             rbtcAmountToSend = rbtcAmountToSend.add(totalAmount);
 
             uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
-            if (startingCheckpoint > 0) {
-                // we only need to add used checkpoint by 1 only if starting checkpoint > 0
-                _previousUsedCheckpoint.add(1);
-            }
             totalProcessedCheckpoints += _previousUsedCheckpoint;
             _maxCheckpoints = safe32(
                 _maxCheckpoints - _previousUsedCheckpoint,
@@ -1217,42 +1210,6 @@ contract FeeSharingCollector is
     }
 
     /**
-     * @dev This function is dedicated to recover the wrong fee allocation for the 4 year vesting contracts.
-     * This function can only be called once
-     * The affected tokens to be withdrawn
-     * 1. RBTC
-     * 2. ZUSD
-     * 3. SOV
-     * The amount for all of the tokens above is hardcoded
-     * The withdrawn tokens will be sent to the owner.
-     */
-    function recoverIncorrectAllocatedFees()
-        external
-        oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
-        onlyOwner
-    {
-        uint256 rbtcAmount = 878778886164898400;
-        uint256 zusdAmount = 16658600400155126000000;
-        uint256 sovAmount = 6275898259771202000000;
-
-        address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
-        address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;
-
-        // Withdraw rbtc
-        (bool success, ) = owner().call.value(rbtcAmount)("");
-        require(
-            success,
-            "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
-        );
-
-        // Withdraw ZUSD
-        IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
-
-        // Withdraw SOV
-        IERC20(sovToken).safeTransfer(owner(), sovAmount);
-    }
-
-    /**
      * @dev view function that calculate the total RBTC that includes:
      * - RBTC
      * - WRBTC
@@ -1339,20 +1296,12 @@ contract FeeSharingCollector is
         address _user,
         uint32 _maxCheckpoints
     ) internal view returns (uint256 _tokenAmount, uint256 _endToken) {
-        if (
-            _token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT ||
-            _token == wrbtcTokenAddress ||
-            _token == loanTokenWrbtcAddress
-        ) {
-            (_tokenAmount, _endToken) = _getAccumulatedFees({
-                _user: _user,
-                _token: _token,
-                _startFrom: 0,
-                _maxCheckpoints: _maxCheckpoints
-            });
-        } else {
-            revert("FeeSharingCollector::_getRBTCBalance: only rbtc-based tokens are allowed");
-        }
+        (_tokenAmount, _endToken) = _getAccumulatedFees({
+            _user: _user,
+            _token: _token,
+            _startFrom: 0,
+            _maxCheckpoints: _maxCheckpoints
+        });
     }
 
     // @todo update dependency `numTokenCheckpoints` -> `totalTokenCheckpoints` and deprecate numTokenCheckpoints function
