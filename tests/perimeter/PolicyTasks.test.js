@@ -66,6 +66,17 @@ describe("Perimeter policy — surface resolution", () => {
             }
         }
     });
+
+    it("throws, listing the known names, on a well-formed id that matches no surface", () => {
+        try {
+            policy.resolveSurface("0x" + "ab".repeat(32));
+            expect.fail("expected resolveSurface to throw");
+        } catch (e) {
+            for (const name of Object.keys(policy.SURFACES)) {
+                expect(e.message).to.include(name);
+            }
+        }
+    });
 });
 
 describe("Perimeter policy — parseRate", () => {
@@ -344,5 +355,30 @@ describe("Perimeter policy — describeFeeEntry / describeDelayEntry", () => {
         expect(policy.describeDelayEntry({ active: true, bypass: false }, "actor")).to.match(
             /held/
         );
+    });
+});
+
+describe("Perimeter policy — buildFromCode", () => {
+    const SECURITY_PERIMETER_ENABLED_SELECTOR = ethers.utils
+        .id("securityPerimeterEnabled()")
+        .slice(2, 10);
+
+    it("reads as 'delay' when the bytecode contains the securityPerimeterEnabled selector", () => {
+        const code = `0x600035${SECURITY_PERIMETER_ENABLED_SELECTOR}146101a057`;
+        expect(policy.buildFromCode(code)).to.equal("delay");
+    });
+
+    it("reads as 'delay' regardless of case", () => {
+        const code = `0x600035${SECURITY_PERIMETER_ENABLED_SELECTOR.toUpperCase()}146101a057`;
+        expect(policy.buildFromCode(code)).to.equal("delay");
+    });
+
+    it("reads as 'fee-only' when the selector is absent from the bytecode", () => {
+        expect(policy.buildFromCode("0x6080604052348015600f57600080fd5b50")).to.equal("fee-only");
+    });
+
+    it("reads as 'fee-only' for empty or missing code", () => {
+        expect(policy.buildFromCode("0x")).to.equal("fee-only");
+        expect(policy.buildFromCode(undefined)).to.equal("fee-only");
     });
 });

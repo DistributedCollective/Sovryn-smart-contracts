@@ -74,9 +74,14 @@ const resolveSurface = (input) => {
     const trimmed = input.trim();
 
     if (/^0x[0-9a-fA-F]{64}$/.test(trimmed)) {
-        const id = trimmed.toLowerCase();
-        const name = NAME_BY_ID[id] || null;
-        return { name, id: name ? SURFACES[name] : trimmed };
+        const name = NAME_BY_ID[trimmed.toLowerCase()];
+        if (!name) {
+            throw new Error(
+                `resolveSurface: '${input}' is not a known surface. Expected one of:\n  ` +
+                    Object.keys(SURFACES).join("\n  ")
+            );
+        }
+        return { name, id: SURFACES[name] };
     }
 
     const upper = trimmed.toUpperCase();
@@ -146,6 +151,26 @@ const CONTROLLER_ABI = [
 ];
 
 const controllerInterface = () => new ethers.utils.Interface(CONTROLLER_ABI);
+
+/** The 4-byte selector of `securityPerimeterEnabled()` — present in the
+ *  deployed bytecode of the delay build, absent from the fee-only build. */
+const SECURITY_PERIMETER_ENABLED_SELECTOR = ethers.utils
+    .id("securityPerimeterEnabled()")
+    .slice(2, 10)
+    .toLowerCase();
+
+/**
+ * Decide "fee-only" or "delay" purely from deployed bytecode — no chain call,
+ * so a network error or a reverting call can never be mistaken for "fee-only".
+ * The caller reads the bytecode once (the same read it already needs to
+ * refuse an empty-code address) and hands it here.
+ */
+const buildFromCode = (code) =>
+    String(code || "")
+        .toLowerCase()
+        .includes(SECURITY_PERIMETER_ENABLED_SELECTOR)
+        ? "delay"
+        : "fee-only";
 
 /** The owner/admin setters `buildCall`/`decodeCall` know how to build and read back. */
 const CALL_KINDS = Object.freeze([
@@ -532,6 +557,7 @@ module.exports = {
     surfaceLabel,
     CONTROLLER_ABI,
     controllerInterface,
+    buildFromCode,
     parseRate,
     buildCall,
     decodeCall,

@@ -17,8 +17,9 @@ const logger = new Logs().showInConsole(true);
  * explicit `--controller`, a saved `ExitFeeController` deployment record
  * (fork/QA tests save one), and finally the protocol's own pointer to it.
  * Whether the deployed controller is the fee-only build or the one that also
- * carries the withdrawal delay is detected on the fly: `securityPerimeterEnabled()`
- * exists only on the delay build and reverts on the fee-only one.
+ * carries the withdrawal delay is decided from its deployed bytecode: the
+ * delay build's code contains the selector of `securityPerimeterEnabled()`,
+ * the fee-only build's does not (see `policy.buildFromCode`).
  */
 
 const resolveControllerAddress = async (hre, controllerParam) => {
@@ -51,22 +52,22 @@ const resolveControllerAddress = async (hre, controllerParam) => {
     return pointer;
 };
 
+/**
+ * Resolve the controller, refuse an empty-code address, and decide the build
+ * from that same bytecode read (`policy.buildFromCode`) — a positive check,
+ * not a try/catch around a call. A network error or a revert on
+ * `securityPerimeterEnabled()` propagates as an error instead of silently
+ * reading as "fee-only", which would make `perimeter:exemption --action
+ * revoke` clear only the fee half while looking like it cleared both.
+ */
 const attachController = async (hre, controllerParam) => {
     const address = await resolveControllerAddress(hre, controllerParam);
-    if ((await hre.ethers.provider.getCode(address)) === "0x") {
+    const code = await hre.ethers.provider.getCode(address);
+    if (code === "0x") {
         throw new Error(`no contract code at the controller ${address}`);
     }
     const controller = await hre.ethers.getContractAt(policy.CONTROLLER_ABI, address);
-    return { address, controller };
-};
-
-const detectBuild = async (controller) => {
-    try {
-        await controller.securityPerimeterEnabled();
-        return "delay";
-    } catch (e) {
-        return "fee-only";
-    }
+    return { address, controller, build: policy.buildFromCode(code) };
 };
 
 const resolveMultisigAddress = async (hre, multisigParam) => {
@@ -88,6 +89,28 @@ const resolveSigner = async (hre, signerParam) => {
     return hreEthers.utils.isAddress(signerParam)
         ? signerParam
         : (await hre.getNamedAccounts())[signerParam];
+};
+
+/**
+ * The checks a sub-product target must pass before `perimeter:fee:set` or
+ * `perimeter:fee:remove` will touch its entry: the surface must have a
+ * sub-product tier at all (the two Zero surfaces don't — they key on nothing,
+ * not a pool), and the address must actually be a contract. Shared so the two
+ * tasks can't drift apart on what counts as a valid sub-product.
+ */
+const requireSubProductTarget = async (hre, resolvedSurface, subproductInput, taskLabel) => {
+    const { ethers: hreEthers } = hre;
+    if (policy.SURFACES_WITHOUT_SUBPRODUCT.has(resolvedSurface.name)) {
+        throw new Error(
+            `${taskLabel}: ${resolvedSurface.name} has no sub-product tier — Zero withdrawals ` +
+                "are not keyed on a pool"
+        );
+    }
+    const address = hreEthers.utils.getAddress(subproductInput);
+    if ((await hreEthers.provider.getCode(address)) === "0x") {
+        throw new Error(`${taskLabel}: no contract code at sub-product ${address}`);
+    }
+    return address;
 };
 
 /** Render a decoded arg for display: tuples as "(a, b)", everything else via
@@ -141,12 +164,14 @@ task(
     .addOptionalParam("subproduct", "Sub-product to quote for (with --actor); default: none")
     .setAction(async ({ controller, surface, actor, subproduct }, hre) => {
         const { ethers: hreEthers } = hre;
-        const { address: controllerAddress, controller: controllerContract } =
-            await attachController(hre, controller);
+        const {
+            address: controllerAddress,
+            controller: controllerContract,
+            build,
+        } = await attachController(hre, controller);
 
         const enabled = await controllerContract.exitFeeEnabled();
         const receiver = await controllerContract.feeReceiver();
-        const build = await detectBuild(controllerContract);
 
         logger.info(`Controller:   ${controllerAddress}`);
         logger.info(`Fee switch:   ${enabled ? "on" : "off"}`);
@@ -268,9 +293,11 @@ task(
                 throw new Error("perimeter:exemption: --actor must not be the zero address");
             }
 
-            const { address: controllerAddress, controller: controllerContract } =
-                await attachController(hre, controller);
-            const build = await detectBuild(controllerContract);
+            const {
+                address: controllerAddress,
+                controller: controllerContract,
+                build,
+            } = await attachController(hre, controller);
 
             const surfacePolicyEntry = await controllerContract.surfacePolicy(resolvedSurface.id);
             if (!surfacePolicyEntry.active) {
@@ -374,18 +401,12 @@ task(
             let tier;
             let address;
             if (subproduct) {
-                if (policy.SURFACES_WITHOUT_SUBPRODUCT.has(resolvedSurface.name)) {
-                    throw new Error(
-                        `perimeter:fee:set: ${resolvedSurface.name} has no sub-product tier — Zero ` +
-                            "withdrawals are not keyed on a pool"
-                    );
-                }
-                address = hreEthers.utils.getAddress(subproduct);
-                if ((await hreEthers.provider.getCode(address)) === "0x") {
-                    throw new Error(
-                        `perimeter:fee:set: no contract code at sub-product ${address}`
-                    );
-                }
+                address = await requireSubProductTarget(
+                    hre,
+                    resolvedSurface,
+                    subproduct,
+                    "perimeter:fee:set"
+                );
                 kind = "setSubProductPolicy";
                 tier = "sub-product";
             } else if (actor) {
@@ -482,13 +503,25 @@ task(
             const { address: controllerAddress, controller: controllerContract } =
                 await attachController(hre, controller);
 
-            const tier = subproduct ? "sub-product" : "actor";
-            const kind = subproduct ? "removeSubProductPolicy" : "removeActorPolicy";
-            const address = hreEthers.utils.getAddress(subproduct || actor);
-            if (address === hreEthers.constants.AddressZero) {
-                throw new Error(
-                    `perimeter:fee:remove: --${subproduct ? "subproduct" : "actor"} must not be the zero address`
+            let tier;
+            let kind;
+            let address;
+            if (subproduct) {
+                address = await requireSubProductTarget(
+                    hre,
+                    resolvedSurface,
+                    subproduct,
+                    "perimeter:fee:remove"
                 );
+                tier = "sub-product";
+                kind = "removeSubProductPolicy";
+            } else {
+                address = hreEthers.utils.getAddress(actor);
+                if (address === hreEthers.constants.AddressZero) {
+                    throw new Error("perimeter:fee:remove: --actor must not be the zero address");
+                }
+                tier = "actor";
+                kind = "removeActorPolicy";
             }
 
             const entry =
@@ -615,7 +648,7 @@ task(
     .setAction(async ({ id, multisig, controller }, hre) => {
         const { ethers: hreEthers } = hre;
         const multisigAddress = await resolveMultisigAddress(hre, multisig);
-        const controllerAddress = await resolveControllerAddress(hre, controller);
+        const { address: controllerAddress } = await attachController(hre, controller);
 
         const ms = await hreEthers.getContractAt("MultiSigWallet", multisigAddress);
         const tx = await ms.transactions(id);
