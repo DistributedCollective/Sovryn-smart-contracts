@@ -382,3 +382,26 @@ describe("Perimeter policy — buildFromCode", () => {
         expect(policy.buildFromCode(undefined)).to.equal("fee-only");
     });
 });
+
+describe("Perimeter policy — implementationFromSlot", () => {
+    it("reads a zero word as undefined — not an ERC-1967 proxy", () => {
+        expect(policy.implementationFromSlot(`0x${"0".repeat(64)}`)).to.be.undefined;
+    });
+
+    it("reads the low 20 bytes as the checksummed implementation address", () => {
+        const slotValue = `0x${"0".repeat(24)}50ec5c1c156cfa7e3007a0b0c97298e4f58a552d`;
+        expect(policy.implementationFromSlot(slotValue)).to.equal(
+            ethers.utils.getAddress("0x50ec5c1c156cfa7e3007a0b0c97298e4f58a552d")
+        );
+    });
+
+    it("throws on a value that is not a 32-byte hex word", () => {
+        expect(() => policy.implementationFromSlot("0x1234")).to.throw(/32-byte hex word/);
+        expect(() => policy.implementationFromSlot(undefined)).to.throw(/32-byte hex word/);
+    });
+
+    it("throws when the upper 12 bytes are not zero — not a plausible ERC-1967 slot", () => {
+        const slotValue = `0x${"1".repeat(24)}50ec5c1c156cfa7e3007a0b0c97298e4f58a552d`;
+        expect(() => policy.implementationFromSlot(slotValue)).to.throw(/not a plausible/);
+    });
+});

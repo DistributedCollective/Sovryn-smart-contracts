@@ -172,6 +172,34 @@ const buildFromCode = (code) =>
         ? "delay"
         : "fee-only";
 
+/**
+ * Extract an ERC-1967 implementation address from the value read out of a
+ * proxy's implementation storage slot. `undefined` for the all-zero word —
+ * that slot is unset, which means the address being inspected is not an
+ * ERC-1967 proxy at all, and its own code is the implementation. Otherwise
+ * the low 20 bytes are the address, checksummed; a slot that isn't a clean
+ * left-zero-padded address (upper 12 bytes non-zero) is not a plausible
+ * ERC-1967 slot and throws rather than being misread as one. Pure — the
+ * caller does the storage read.
+ */
+const implementationFromSlot = (slotValue) => {
+    if (typeof slotValue !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(slotValue)) {
+        throw new Error(`implementationFromSlot: expected a 32-byte hex word, got '${slotValue}'`);
+    }
+    const upperBytes = slotValue.slice(2, 26);
+    if (!/^0+$/.test(upperBytes)) {
+        throw new Error(
+            `implementationFromSlot: '${slotValue}' is not a plausible ERC-1967 implementation ` +
+                "slot — the upper 12 bytes must be zero"
+        );
+    }
+    const lowBytes = slotValue.slice(-40);
+    if (/^0+$/.test(lowBytes)) {
+        return undefined;
+    }
+    return ethers.utils.getAddress(`0x${lowBytes}`);
+};
+
 /** The owner/admin setters `buildCall`/`decodeCall` know how to build and read back. */
 const CALL_KINDS = Object.freeze([
     "setExitFeeEnabled",
@@ -558,6 +586,7 @@ module.exports = {
     CONTROLLER_ABI,
     controllerInterface,
     buildFromCode,
+    implementationFromSlot,
     parseRate,
     buildCall,
     decodeCall,

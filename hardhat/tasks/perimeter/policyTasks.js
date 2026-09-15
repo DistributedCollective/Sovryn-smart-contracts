@@ -16,10 +16,14 @@ const logger = new Logs().showInConsole(true);
  * repo, not something it deploys — resolution below tries, in order, an
  * explicit `--controller`, a saved `ExitFeeController` deployment record
  * (fork/QA tests save one), and finally the protocol's own pointer to it.
- * Whether the deployed controller is the fee-only build or the one that also
- * carries the withdrawal delay is decided from its deployed bytecode: the
- * delay build's code contains the selector of `securityPerimeterEnabled()`,
- * the fee-only build's does not (see `policy.buildFromCode`).
+ * The live controller is an ERC-1967 proxy, so whether the fee-only build or
+ * the one that also carries the withdrawal delay is installed cannot be read
+ * off the controller address's own bytecode — a proxy's code never contains
+ * any of the implementation's selectors. `attachController` resolves the
+ * ERC-1967 implementation slot first, and decides the build from the
+ * IMPLEMENTATION's bytecode: the delay build's code contains the selector of
+ * `securityPerimeterEnabled()`, the fee-only build's does not (see
+ * `policy.buildFromCode`, `policy.implementationFromSlot`).
  */
 
 const resolveControllerAddress = async (hre, controllerParam) => {
@@ -52,22 +56,47 @@ const resolveControllerAddress = async (hre, controllerParam) => {
     return pointer;
 };
 
+/** The ERC-1967 storage slot that holds a UUPS/Transparent proxy's
+ *  implementation address (keccak256("eip1967.proxy.implementation") - 1). */
+const ERC1967_IMPLEMENTATION_SLOT =
+    "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc";
+
 /**
  * Resolve the controller, refuse an empty-code address, and decide the build
- * from that same bytecode read (`policy.buildFromCode`) — a positive check,
- * not a try/catch around a call. A network error or a revert on
- * `securityPerimeterEnabled()` propagates as an error instead of silently
- * reading as "fee-only", which would make `perimeter:exemption --action
- * revoke` clear only the fee half while looking like it cleared both.
+ * from the IMPLEMENTATION's bytecode (`policy.buildFromCode`) — the live
+ * controller is an ERC-1967 proxy, and a proxy's own bytecode never contains
+ * any of the implementation's selectors, so the selector check has to run
+ * against whatever the ERC-1967 implementation slot names. When that slot
+ * reads zero the address is not a proxy at all, and its own code is the
+ * implementation. Either way this is a positive check, not a try/catch
+ * around a call: a network error or a revert propagates as an error instead
+ * of silently reading as "fee-only", which would make `perimeter:exemption
+ * --action revoke` clear only the fee half while looking like it cleared
+ * both.
  */
 const attachController = async (hre, controllerParam) => {
+    const { provider } = hre.ethers;
     const address = await resolveControllerAddress(hre, controllerParam);
-    const code = await hre.ethers.provider.getCode(address);
-    if (code === "0x") {
+    const proxyCode = await provider.getCode(address);
+    if (proxyCode === "0x") {
         throw new Error(`no contract code at the controller ${address}`);
     }
+
+    const slotValue = await provider.getStorageAt(address, ERC1967_IMPLEMENTATION_SLOT);
+    const proxyTarget = policy.implementationFromSlot(slotValue);
+    const implementation = proxyTarget || address;
+    const implementationCode = proxyTarget ? await provider.getCode(proxyTarget) : proxyCode;
+    if (implementationCode === "0x") {
+        throw new Error(`no contract code at the implementation ${implementation}`);
+    }
+
     const controller = await hre.ethers.getContractAt(policy.CONTROLLER_ABI, address);
-    return { address, controller, build: policy.buildFromCode(code) };
+    return {
+        address,
+        implementation,
+        controller,
+        build: policy.buildFromCode(implementationCode),
+    };
 };
 
 const resolveMultisigAddress = async (hre, multisigParam) => {
@@ -166,6 +195,7 @@ task(
         const { ethers: hreEthers } = hre;
         const {
             address: controllerAddress,
+            implementation,
             controller: controllerContract,
             build,
         } = await attachController(hre, controller);
@@ -173,7 +203,7 @@ task(
         const enabled = await controllerContract.exitFeeEnabled();
         const receiver = await controllerContract.feeReceiver();
 
-        logger.info(`Controller:   ${controllerAddress}`);
+        logger.info(`Controller:   ${controllerAddress} — implementation: ${implementation}`);
         logger.info(`Fee switch:   ${enabled ? "on" : "off"}`);
         logger.info(`Fee receiver: ${receiver}`);
         if (build === "delay") {
