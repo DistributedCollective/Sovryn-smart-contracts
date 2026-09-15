@@ -67,6 +67,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -118,7 +119,7 @@ contract("Perimeter — LC-1 regression: _handleLoanTokenReturn excess collatera
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 

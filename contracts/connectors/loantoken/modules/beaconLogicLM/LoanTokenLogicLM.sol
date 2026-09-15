@@ -23,7 +23,7 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
         pure
         returns (bytes4[] memory functionSignatures, bytes32 moduleName)
     {
-        bytes4[] memory res = new bytes4[](5);
+        bytes4[] memory res = new bytes4[](6);
 
         // Loan Token LM & OVERLOADING function
         /**
@@ -40,6 +40,9 @@ contract LoanTokenLogicLM is LoanTokenLogicSplit {
 
         // Perimeter controller view.
         res[4] = bytes4(keccak256("exitFeeController()"));
+
+        // Security-perimeter delay-queue view.
+        res[5] = bytes4(keccak256("exitDelayQueue()"));
 
         return (res, stringToBytes32("LoanTokenLogicLM"));
     }

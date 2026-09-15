@@ -62,6 +62,7 @@ const {
     open_margin_trade_position,
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -174,7 +175,7 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
     before(async () => {
         [lender, user, feeReceiver, ...accounts] = accounts;
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {
@@ -297,7 +298,7 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (protocol tree)", (account
         [owner, account1, feeReceiver, ...accounts] = accounts;
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 

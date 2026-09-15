@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Regenerate the six externally-built Perimeter rehearsal fixtures from the
+ * Regenerate the externally-built Perimeter rehearsal fixtures from the
  * build artifacts of their source repos (runbook P11: fixtures must be
  * rebuilt at the frozen commits and their _provenance updated).
  *
@@ -36,6 +36,26 @@ const zeroRoot = argValue("--zero");
 
 const git = (repo, ...a) => execFileSync("git", ["-C", repo, ...a], { encoding: "utf8" }).trim();
 
+/** The branch a checkout is on; for a detached checkout, the branch whose tip
+ *  is that commit (there has to be exactly one for the provenance to be
+ *  unambiguous). */
+const branchOf = (repo) => {
+    const current = git(repo, "branch", "--show-current");
+    if (current) return current;
+    const atHead = git(repo, "branch", "--points-at", "HEAD", "--format=%(refname:short)")
+        .split("\n")
+        // A detached worktree lists itself as "(no branch)" or "(HEAD detached …)".
+        .filter((name) => name && !name.startsWith("("));
+    if (atHead.length !== 1) {
+        console.error(
+            `error: ${repo} is detached and ${atHead.length} branches point at its HEAD ` +
+                `(${atHead.join(", ") || "none"}); check out the branch the fixtures come from`
+        );
+        process.exit(1);
+    }
+    return atHead[0];
+};
+
 for (const [name, repo] of [
     ["perimeter", perimeterRoot],
     ["zero", zeroRoot],
@@ -56,6 +76,7 @@ const FIXTURES = [
     // [fixture file, artifact path relative to its repo root, repo root]
     ["ExitFeeController.json", "out/ExitFeeController.sol/ExitFeeController.json", perimeterRoot],
     ["ExitFeeVault.json", "out/ExitFeeVault.sol/ExitFeeVault.json", perimeterRoot],
+    ["ExitDelayQueue.json", "out/ExitDelayQueue.sol/ExitDelayQueue.json", perimeterRoot],
     ["ERC1967Proxy.json", "out/ERC1967Proxy.sol/ERC1967Proxy.json", perimeterRoot],
     [
         "BorrowerOperationsPerimeter.json",
@@ -68,8 +89,18 @@ const FIXTURES = [
         zeroRoot,
     ],
     [
+        "BorrowerOperationsPerimeterOps.json",
+        "artifacts/contracts/Dependencies/BorrowerOperationsPerimeterOps.sol/BorrowerOperationsPerimeterOps.json",
+        zeroRoot,
+    ],
+    [
         "PriceFeedTestnet.json",
         "artifacts/contracts/TestContracts/PriceFeedTestnet.sol/PriceFeedTestnet.json",
+        zeroRoot,
+    ],
+    [
+        "TroveManagerLiquidationFix.json",
+        "artifacts/contracts/TroveManager.sol/TroveManager.json",
         zeroRoot,
     ],
 ];
@@ -93,7 +124,7 @@ for (const [fixtureFile, artifactRel, repoRoot] of FIXTURES) {
     const before = JSON.stringify({ a: fixture.abi, b: fixture.bytecode });
     fixture.abi = artifact.abi;
     fixture.bytecode = bytecode;
-    fixture._provenance.branch = git(repoRoot, "branch", "--show-current");
+    fixture._provenance.branch = branchOf(repoRoot);
     fixture._provenance.commit = git(repoRoot, "rev-parse", "--short", "HEAD");
 
     fs.writeFileSync(fixturePath, JSON.stringify(fixture, null, 4) + "\n");
@@ -102,4 +133,4 @@ for (const [fixtureFile, artifactRel, repoRoot] of FIXTURES) {
     if (before !== after) changed++;
     console.log(`${fixtureFile}: ${delta} (commit ${fixture._provenance.commit})`);
 }
-console.log(`done: 6 fixtures written, ${changed} with new bytes`);
+console.log(`done: ${FIXTURES.length} fixtures written, ${changed} with new bytes`);

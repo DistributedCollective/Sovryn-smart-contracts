@@ -44,6 +44,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
@@ -86,7 +87,7 @@ contract("Perimeter — Rollover no-touch coverage (Phase 3 / regression)", (acc
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
