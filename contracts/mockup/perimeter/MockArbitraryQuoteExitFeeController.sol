@@ -133,6 +133,10 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
         return (0, rawOriginator, owner);
     }
 
+    function admin() external view returns (address) {
+        return address(0);
+    }
+
     function securityPerimeterEnabled() external view returns (bool) {
         return false;
     }
@@ -150,13 +154,47 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
 
     function actorBypass(bytes32, address) external view returns (DelayBypassPolicy memory p) {}
 
+    function surfaceBypassKeys() external view returns (bytes32[] memory keys) {
+        return keys;
+    }
+
+    function subProductBypassKeys(bytes32) external view returns (address[] memory keys) {
+        return keys;
+    }
+
+    function actorBypassKeys(bytes32) external view returns (address[] memory keys) {
+        return keys;
+    }
+
+    function bypassSurfaceIds() external view returns (bytes32[] memory ids) {
+        return ids;
+    }
+
+    function setAdmin(address) external {}
+
     function setSecurityPerimeterEnabled(bool) external {}
 
     function setGlobalDelaySeconds(uint32) external {}
 
     function setSurfaceBypass(bytes32, DelayBypassPolicy calldata) external {}
 
+    function removeSurfaceBypass(bytes32) external {}
+
     function setSubProductBypass(bytes32, address, DelayBypassPolicy calldata) external {}
 
+    function setSubProductBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
+
     function setActorBypass(bytes32, address, DelayBypassPolicy calldata) external {}
+
+    function setActorBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
+
+    function removeSubProductBypass(bytes32, address) external {}
+
+    function removeSubProductBypasses(bytes32, address[] calldata) external {}
+
+    function removeActorBypass(bytes32, address) external {}
+
+    function removeActorBypasses(bytes32, address[] calldata) external {}
+
+    function revokeExemption(bytes32, address) external {}
 }

@@ -119,7 +119,7 @@ interface IExitDelayQueue {
 
     error UnregisteredSource(address caller); //  onlyAllowedSource — DISTINCT record-path halt selector
     error ActorBlocked(address actor, BlockState state); // execution-gate revert (event: AccountBlocked)
-    error NotExecutor(address caller); //         msg.sender ∉ {originator, owner}
+    error NotExecutor(address caller); //         delivery: msg.sender ∉ {originator, owner} and the owner has no code; recovery: ∉ {originator, owner, receiver}
     error NotUnlocked(uint256 id, uint64 unlockAt);
     error QueuePaused();
     error AlreadyTerminal(uint256 id); //         status != Queued at a transition (also duplicate-batch-id)
@@ -132,12 +132,15 @@ interface IExitDelayQueue {
     error RouteInactive(bytes32 routeId);
     error RouteProvenanceMismatch(uint256 id, bytes32 routeId);
     error TopUpInfeasibleSurface(bytes32 surfaceId); // setRecoveryRoute topUpPool guard
+    error TopUpDestinationMismatch(address destination, address subProduct); // top-up must pay its own pool
     error SourceNotBlacklisted(address src); //   Leg-2 OR-predicate not satisfied
-    error NotBlacklisted(address a); //           unblacklist on a non-Blacklisted address
+    error NotBlacklisted(address a); //           unblacklist / downgradeToFrozen on a non-Blacklisted address
     error NotFrozen(address a); //                unfreeze on a non-Frozen address
+    error AlreadyBlacklisted(address a); //       evidence-free freeze over a Blacklisted address
     error NotResolvableByOwner(uint256 id); //      Leg-3 bounded predicate not satisfied
     error UnwrapNonWrbtc(); //                    unwrapOnDelivery set on a non-WRBTC token
     error InvalidAltReceiver(address altReceiver); // recoverStuckExit altReceiver ∈ {0,this,token,wrbtc}
+    error InvalidReceiver(address receiver); //   ingress: the queue itself, or WRBTC when delivery sends native RBTC
     error SelfOnly(); //                          payoutExternal trampoline is self-call-only
     error ZeroAddress();
     error EmptyIds();
@@ -153,9 +156,9 @@ interface IExitDelayQueue {
     ///      is the caller's responsibility and MUST be preceded by the caller's own
     ///      `require(userAmount <= type(uint128).max)` (`AmountTooLarge`) so a value
     ///      that would silently truncate is rejected UPSTREAM, before any escrow
-    ///      accounting. The queue keeps `AmountTooLarge` as a defensive
-    ///      queue-boundary guard on the narrowing path — it is NOT dead code: it is
-    ///      the last line of defense if a caller ever omits its own check. Keeping
+    ///      accounting. The queue itself CANNOT re-assert this on an
+    ///      already-`uint128` argument — the `AmountTooLarge` error is declared for
+    ///      that CALLER-side hook boundary, not re-checked here. Keeping
     ///      the ABI at `uint128` also packs `amount` into `ExitRequest` word 1 —
     ///      widening would cost a whole extra storage word per request.
 
@@ -208,10 +211,11 @@ interface IExitDelayQueue {
 
     function executeExits(uint256[] calldata ids) external;
 
-    /// @notice Verify-by-attempting stuck-exit recovery. Callable ONLY by the
-    ///         frozen-metadata `{originator, owner}` set (same as `executeExit`; the
-    ///         receiver is NEVER an executor). Requires the request Queued, unlocked,
-    ///         and the queue not paused.
+    /// @notice Verify-by-attempting stuck-exit recovery. Callable by the
+    ///         request's originator, its owner, or its recorded receiver — never
+    ///         widened when the owner has code, unlike delivery, because this call
+    ///         names a destination. Requires the request Queued, unlocked, and the
+    ///         queue not paused.
     ///
     ///         Attempts the STORED-receiver payout FIRST; pays `altReceiver` ONLY if
     ///         the stored-receiver payout genuinely bounces — so a HEALTHY exit is
@@ -260,6 +264,14 @@ interface IExitDelayQueue {
     function unfreeze(address a) external;
     function unblacklist(address a) external;
 
+    /// @notice Move a Blacklisted address down to Frozen in one call — the
+    ///         remedy for an address blacklisted in haste that should only be held
+    ///         while it is investigated. There is no window in which the address is
+    ///         unblocked, unlike unblacklist-then-freeze. Reverts `NotBlacklisted`
+    ///         on any other state; the recorded trigger is kept, because a
+    ///         downgrade means "still under investigation", not "exonerated".
+    function downgradeToFrozen(address a) external;
+
     // Batch by-address: each reverts `EmptyIds()` on
     // an empty array, for API consistency with the by-id batch variants
     // (`executeExits` / batch `freezeFromRequest` / `resolveToProtocol` /
@@ -268,6 +280,7 @@ interface IExitDelayQueue {
     function blacklist(address[] calldata a) external;
     function unfreeze(address[] calldata a) external;
     function unblacklist(address[] calldata a) external;
+    function downgradeToFrozen(address[] calldata a) external;
 
     // ─── Pause ───────────────────────────────────────────────────
 

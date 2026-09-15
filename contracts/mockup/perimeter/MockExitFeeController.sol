@@ -39,6 +39,7 @@ contract MockExitFeeController is IExitFeeController {
     bool public revertOnQuote;
 
     // ── Delay extension (security perimeter) ────────────────────────────────
+    address private _admin;
     bool private _perimeterEnabled;
     uint32 private _globalDelaySeconds;
     // When set, `quoteExitDelayFor` reverts — exercises the hook's fail-CLOSED
@@ -266,6 +267,10 @@ contract MockExitFeeController is IExitFeeController {
 
     // ── Delay extension: IExitFeeController state views ─────────────────────
 
+    function admin() external view returns (address) {
+        return _admin;
+    }
+
     function securityPerimeterEnabled() external view returns (bool) {
         return _perimeterEnabled;
     }
@@ -293,7 +298,27 @@ contract MockExitFeeController is IExitFeeController {
         p.bypass = _actorBypassValue[surfaceId][actor];
     }
 
+    function surfaceBypassKeys() external view returns (bytes32[] memory keys) {
+        return keys;
+    }
+
+    function subProductBypassKeys(bytes32) external view returns (address[] memory keys) {
+        return keys;
+    }
+
+    function actorBypassKeys(bytes32) external view returns (address[] memory keys) {
+        return keys;
+    }
+
+    function bypassSurfaceIds() external view returns (bytes32[] memory ids) {
+        return ids;
+    }
+
     // ── Delay extension: IExitFeeController admin (no-ops / minimal) ─────────
+
+    function setAdmin(address newAdmin) external {
+        _admin = newAdmin;
+    }
 
     function setSecurityPerimeterEnabled(bool e) external {
         _perimeterEnabled = e;
@@ -305,7 +330,11 @@ contract MockExitFeeController is IExitFeeController {
 
     function setSurfaceBypass(bytes32, DelayBypassPolicy calldata) external {}
 
+    function removeSurfaceBypass(bytes32) external {}
+
     function setSubProductBypass(bytes32, address, DelayBypassPolicy calldata) external {}
+
+    function setSubProductBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
 
     function setActorBypass(
         bytes32 surfaceId,
@@ -315,4 +344,16 @@ contract MockExitFeeController is IExitFeeController {
         _actorBypassActive[surfaceId][actor] = policy.active;
         _actorBypassValue[surfaceId][actor] = policy.bypass;
     }
+
+    function setActorBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
+
+    function removeSubProductBypass(bytes32, address) external {}
+
+    function removeSubProductBypasses(bytes32, address[] calldata) external {}
+
+    function removeActorBypass(bytes32, address) external {}
+
+    function removeActorBypasses(bytes32, address[] calldata) external {}
+
+    function revokeExemption(bytes32, address) external {}
 }
