@@ -334,7 +334,11 @@ contract MockExitFeeController is IExitFeeController {
 
     function setSubProductBypass(bytes32, address, DelayBypassPolicy calldata) external {}
 
-    function setSubProductBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
+    function setSubProductBypasses(
+        bytes32,
+        address[] calldata,
+        DelayBypassPolicy[] calldata
+    ) external {}
 
     function setActorBypass(
         bytes32 surfaceId,
@@ -345,7 +349,11 @@ contract MockExitFeeController is IExitFeeController {
         _actorBypassValue[surfaceId][actor] = policy.bypass;
     }
 
-    function setActorBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
+    function setActorBypasses(
+        bytes32,
+        address[] calldata,
+        DelayBypassPolicy[] calldata
+    ) external {}
 
     function removeSubProductBypass(bytes32, address) external {}
 

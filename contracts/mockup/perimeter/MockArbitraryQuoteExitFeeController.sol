@@ -182,11 +182,19 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
 
     function setSubProductBypass(bytes32, address, DelayBypassPolicy calldata) external {}
 
-    function setSubProductBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
+    function setSubProductBypasses(
+        bytes32,
+        address[] calldata,
+        DelayBypassPolicy[] calldata
+    ) external {}
 
     function setActorBypass(bytes32, address, DelayBypassPolicy calldata) external {}
 
-    function setActorBypasses(bytes32, address[] calldata, DelayBypassPolicy[] calldata) external {}
+    function setActorBypasses(
+        bytes32,
+        address[] calldata,
+        DelayBypassPolicy[] calldata
+    ) external {}
 
     function removeSubProductBypass(bytes32, address) external {}
 
