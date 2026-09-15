@@ -102,7 +102,7 @@ task(
         logger.info(`Call:       ${known.signature}`);
         logger.warn(`This will ${known.meaning}.`);
 
-        await sendWithMultisig(hre, multisigAddress, queue, data, signerAcc);
+        await sendWithMultisig(multisigAddress, queue, data, signerAcc);
 
         logger.info(
             "Submitted. It needs the remaining confirmations before it executes — sign with " +
@@ -138,7 +138,7 @@ task(
                 ? `Call:      ${known.signature} — ${known.meaning}`
                 : "Call:      NOT an ExitDelayQueue block lever"
         );
-        await multisigCheckTx(hre, id, multisigAddress);
+        await multisigCheckTx(id, multisigAddress);
     });
 
 /**
