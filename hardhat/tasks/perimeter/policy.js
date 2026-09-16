@@ -257,6 +257,13 @@ const requireBypass = (bypass, label) => {
  * "%" suffix — the field is bps, not percent, and that mistake is 100x.
  */
 const parseRate = (input) => {
+    if (
+        input === null ||
+        input === undefined ||
+        (typeof input === "string" && input.trim() === "")
+    ) {
+        throw new Error("parseRate: no rate was given — pass an integer 0..10000, or 'inactive'");
+    }
     if (typeof input === "string" && input.trim().toLowerCase() === "inactive") {
         return { active: false, rateBps: 0 };
     }

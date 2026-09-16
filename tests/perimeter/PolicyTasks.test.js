@@ -106,6 +106,18 @@ describe("Perimeter policy — parseRate", () => {
     it("rejects a percentage, and says bps are meant", () => {
         expect(() => policy.parseRate("1%")).to.throw(/basis points|bps/);
     });
+
+    it("rejects an empty string instead of reading it as an active zero-rate entry", () => {
+        expect(() => policy.parseRate("")).to.throw(/no rate was given/);
+    });
+
+    it("rejects a whitespace-only string instead of reading it as an active zero-rate entry", () => {
+        expect(() => policy.parseRate("   ")).to.throw(/no rate was given/);
+    });
+
+    it("rejects null instead of reading it as an active zero-rate entry", () => {
+        expect(() => policy.parseRate(null)).to.throw(/no rate was given/);
+    });
 });
 
 describe("Perimeter policy — buildCall / decodeCall", () => {
