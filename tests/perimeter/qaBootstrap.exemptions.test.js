@@ -48,6 +48,13 @@ const DELAY_BUILD_ONLY = [
     "globalDelaySeconds",
     "setSecurityPerimeterEnabled",
     "setGlobalDelaySeconds",
+    // The bypass enumeration the arming guard reads to find a bypass nobody
+    // registered — a fee-only controller carries no bypass of any kind.
+    "bypassSurfaceIds",
+    "surfaceBypass",
+    "subProductBypassKeys",
+    "subProductBypass",
+    "actorBypassKeys",
 ];
 const RECORDED = [
     "actorPolicy",

@@ -13,6 +13,14 @@
  * reads both entries from the live controller and refuses to certify go-live
  * until both read back as the exemption, and whenever either cannot be read.
  *
+ * It also asks the controller itself which delay bypasses actually exist, at
+ * every tier, rather than only walking the registry's own list: a bypass
+ * written at the surface or sub-product tier, or at the actor tier for an
+ * address the registry never named, makes withdrawals on that surface (or
+ * that pool, or that address) instant while the switch still reads on. The
+ * check enumerates every active bypass from `bypassSurfaceIds()` outward and
+ * refuses to certify one the registry cannot account for.
+ *
  * Run:
  *   npx hardhat test tests/perimeter/ArmingGuard.contractCallers.test.js
  */
@@ -25,7 +33,9 @@ const {
     CONTRACT_CALLERS,
     SWITCH_UNREAD,
     readRegistrations,
+    readActiveBypasses,
     evaluateExemptions,
+    evaluateActiveBypasses,
     assertContractCallersExempt,
 } = require("../../hardhat/tasks/perimeter/contractCallerExemptions");
 
@@ -521,6 +531,103 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
         });
 
         it("returns quietly once the chain carries the pair", async () => {
+            await writePair();
+            const result = await assertContractCallersExempt(controller, {
+                callers: exemptCaller(),
+            });
+            expect(result.certified).to.be.true;
+        });
+    });
+
+    describe("bypasses the controller carries that the registry does not name", () => {
+        const thrownBy = async (target, callers = exemptCaller()) => {
+            try {
+                await assertContractCallersExempt(target, { callers });
+            } catch (thrown) {
+                return thrown;
+            }
+            return null;
+        };
+
+        const SUBPRODUCT = ethers.utils.getAddress(`0x${"11".repeat(20)}`);
+        const UNREGISTERED_ACTOR = ethers.utils.getAddress(`0x${"22".repeat(20)}`);
+
+        it("refuses an active surface-tier bypass nobody registered, naming the surface", async () => {
+            await writePair();
+            await controller.setSurfaceBypassTest(SURFACE_IDS[LENDER_WITHDRAW], true, true);
+            const error = await thrownBy(controller);
+            expect(error, "an unregistered surface bypass must refuse certification").to.not.be
+                .null;
+            expect(error.message).to.include("[unregistered-surface-bypass]");
+            expect(error.message).to.include(LENDER_WITHDRAW);
+            expect(error.message).to.include("Every withdrawal on this surface pays out with no hold");
+        });
+
+        it("refuses an active sub-product-tier bypass nobody registered, naming the pool", async () => {
+            await writePair();
+            await controller.setSubProductBypassTest(
+                SURFACE_IDS[LENDER_WITHDRAW],
+                SUBPRODUCT,
+                true,
+                true
+            );
+            const error = await thrownBy(controller);
+            expect(error, "an unregistered sub-product bypass must refuse certification").to.not
+                .be.null;
+            expect(error.message).to.include("[unregistered-subproduct-bypass]");
+            expect(error.message).to.include(SUBPRODUCT);
+        });
+
+        it("refuses an active actor-tier bypass for an address the registry does not name", async () => {
+            await writePair();
+            await controller.setActorBypassTest(
+                SURFACE_IDS[LENDER_WITHDRAW],
+                UNREGISTERED_ACTOR,
+                true,
+                true
+            );
+            const error = await thrownBy(controller);
+            expect(error, "an unregistered actor bypass must refuse certification").to.not.be
+                .null;
+            expect(error.message).to.include("[unregistered-actor-bypass]");
+            expect(error.message).to.include(UNREGISTERED_ACTOR);
+        });
+
+        it("does not confuse the registered collector's own bypass with an unregistered one", async () => {
+            await writePair();
+            // The registered pair alone must never trip the new check — this
+            // is the same state "returns quietly once the chain carries the
+            // pair" certifies, re-asserted here against the bypass judgement
+            // directly rather than only the combined certification.
+            const { entries, unreadable } = await readActiveBypasses(controller);
+            const verdict = evaluateActiveBypasses({
+                entries,
+                unreadable,
+                callers: exemptCaller(),
+            });
+            expect(verdict.certified, JSON.stringify(verdict.failures)).to.be.true;
+        });
+
+        it("refuses when an enumeration view throws, never reading it as no bypasses", async () => {
+            await writePair();
+            const target = {
+                actorPolicy: (...args) => controller.actorPolicy(...args),
+                actorBypass: (...args) => controller.actorBypass(...args),
+                securityPerimeterEnabled: () => controller.securityPerimeterEnabled(),
+                globalDelaySeconds: () => controller.globalDelaySeconds(),
+                bypassSurfaceIds: async () => {
+                    throw new Error("call revert exception");
+                },
+            };
+            const error = await thrownBy(target);
+            expect(error, "an unreadable enumeration view must refuse certification").to.not.be
+                .null;
+            expect(error.message).to.include("[bypass-enumeration-unread]");
+            expect(error.message).to.include("bypassSurfaceIds()");
+            expect(error.message).to.not.include("is not a function");
+        });
+
+        it("still certifies the configuration it is supposed to accept", async () => {
             await writePair();
             const result = await assertContractCallersExempt(controller, {
                 callers: exemptCaller(),

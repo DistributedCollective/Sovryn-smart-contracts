@@ -58,6 +58,15 @@ const SURFACE_IDS = {
     PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS: surfaceId("PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS"),
 };
 
+/** The reverse of `SURFACE_IDS`, for naming a surface discovered by id off
+ *  the controller's own enumeration rather than looked up by name. */
+const SURFACE_NAME_BY_ID = Object.freeze(
+    Object.fromEntries(
+        Object.entries(SURFACE_IDS).map(([name, id]) => [String(id).toLowerCase(), name])
+    )
+);
+const surfaceNameOrId = (id) => SURFACE_NAME_BY_ID[String(id).toLowerCase()] || String(id);
+
 /** The one registration kind: the actor fee policy at rate zero plus the actor
  *  delay bypass, both on the entry's surface. */
 const EXEMPTION = "bypass";
@@ -206,6 +215,201 @@ const readSwitch = async (controller) => {
     };
 };
 
+/** A shape check for an enumeration view that must return an array — the
+ *  surface, sub-product-key and actor-key lists. A throw or a non-array
+ *  comes back through `attempt` as `{ error }`, the same as every other
+ *  guarded read. */
+const asArray = (label) => (value) => {
+    if (!Array.isArray(value)) {
+        throw new Error(`${label} returned a value that is not an array: ${value}`);
+    }
+    return value;
+};
+
+/**
+ * Read every ACTIVE delay bypass the live controller actually carries, at
+ * every tier — discovered from the controller itself rather than assumed
+ * from a list. `bypassSurfaceIds()` is the any-tier master set every bypass
+ * writer adds to (`setSurfaceBypass`, `setSubProductBypass` and
+ * `setActorBypass` all add to it), so walking it and then, for each surface,
+ * its sub-product and actor key sets reaches every bypass entry that exists
+ * on the controller, registered or not.
+ *
+ * An entry is kept only when it reads `{active: true, bypass: true}` — an
+ * inactive or non-bypassing entry is retained in the enumeration on
+ * soft-retire and is not a live bypass.
+ *
+ * A throw or an uninterpretable value from any enumeration or entry read is
+ * recorded in `unreadable` and never folded into "no bypasses", the same
+ * rule `readRegistrations` and `readSwitch` follow. Once the master list
+ * itself cannot be read, nothing under it can be either, so enumeration
+ * stops there.
+ */
+const readActiveBypasses = async (controller) => {
+    const entries = [];
+    const unreadable = [];
+
+    const surfaceIds = await attempt(
+        () => controller.bypassSurfaceIds(),
+        asArray("bypassSurfaceIds()")
+    );
+    if (surfaceIds.error !== undefined) {
+        unreadable.push({ where: "bypassSurfaceIds()" });
+        return { entries, unreadable };
+    }
+
+    for (const surfaceId of surfaceIds) {
+        const surfaceEntry = await attempt(() => controller.surfaceBypass(surfaceId), delayShape);
+        if (surfaceEntry.error !== undefined) {
+            unreadable.push({ where: `surfaceBypass(${surfaceId})` });
+        } else if (surfaceEntry.active === true && surfaceEntry.bypass === true) {
+            entries.push({ tier: "surface", surfaceId, address: undefined });
+        }
+
+        const subProductKeys = await attempt(
+            () => controller.subProductBypassKeys(surfaceId),
+            asArray(`subProductBypassKeys(${surfaceId})`)
+        );
+        if (subProductKeys.error !== undefined) {
+            unreadable.push({ where: `subProductBypassKeys(${surfaceId})` });
+        } else {
+            for (const subProduct of subProductKeys) {
+                const entry = await attempt(
+                    () => controller.subProductBypass(surfaceId, subProduct),
+                    delayShape
+                );
+                if (entry.error !== undefined) {
+                    unreadable.push({ where: `subProductBypass(${surfaceId}, ${subProduct})` });
+                } else if (entry.active === true && entry.bypass === true) {
+                    entries.push({ tier: "sub-product", surfaceId, address: subProduct });
+                }
+            }
+        }
+
+        const actorKeys = await attempt(
+            () => controller.actorBypassKeys(surfaceId),
+            asArray(`actorBypassKeys(${surfaceId})`)
+        );
+        if (actorKeys.error !== undefined) {
+            unreadable.push({ where: `actorBypassKeys(${surfaceId})` });
+        } else {
+            for (const actor of actorKeys) {
+                const entry = await attempt(
+                    () => controller.actorBypass(surfaceId, actor),
+                    delayShape
+                );
+                if (entry.error !== undefined) {
+                    unreadable.push({ where: `actorBypass(${surfaceId}, ${actor})` });
+                } else if (entry.active === true && entry.bypass === true) {
+                    entries.push({ tier: "actor", surfaceId, address: actor });
+                }
+            }
+        }
+    }
+
+    return { entries, unreadable };
+};
+
+/** The only tier a registered entry can ever name — `CONTRACT_CALLERS`
+ *  registers an owner's exemption, and an exemption is an actor-tier pair.
+ *  A surface- or sub-product-tier bypass is never something the registry
+ *  can account for, by the registry's own shape. */
+const REGISTERED_TIER = "actor";
+
+/** A stable key for matching a discovered bypass entry against the registry:
+ *  tier, surface and address, address lower-cased so a checksum difference
+ *  is never mistaken for a different address. */
+const bypassKey = (tier, surfaceId, address) =>
+    `${tier}|${String(surfaceId).toLowerCase()}|${address ? String(address).toLowerCase() : ""}`;
+
+/**
+ * Judge the bypasses the controller actually carries against the registry.
+ * Pure: no chain, no I/O.
+ *
+ * A surface- or sub-product-tier bypass always fails, whatever it names —
+ * the registry has no way to account for one, so its mere existence, active,
+ * is unregistered by definition. An actor-tier bypass fails unless its
+ * (surface, address) is a registered exemption.
+ *
+ * An unreadable enumeration view refuses on its own: it is never taken to
+ * mean the controller carries no bypasses.
+ */
+const evaluateActiveBypasses = ({
+    entries = [],
+    unreadable = [],
+    callers = CONTRACT_CALLERS,
+} = {}) => {
+    const failures = [];
+
+    for (const { where } of unreadable) {
+        failures.push({
+            name: "(bypass enumeration)",
+            reason: "bypass-enumeration-unread",
+            detail:
+                `${where} could not be read on this controller. An enumeration view that ` +
+                "cannot be read is never taken to mean the controller carries no bypasses — " +
+                "check that the address is the ExitFeeController on the delay build, then run " +
+                "this again.",
+        });
+    }
+    if (unreadable.length > 0) {
+        return { certified: false, failures };
+    }
+
+    const registered = new Set(
+        callers
+            .filter((caller) => caller.registration === EXEMPTION && SURFACE_IDS[caller.surface])
+            .map((caller) =>
+                bypassKey(REGISTERED_TIER, SURFACE_IDS[caller.surface], caller.address)
+            )
+    );
+
+    for (const entry of entries) {
+        if (registered.has(bypassKey(entry.tier, entry.surfaceId, entry.address))) continue;
+        const surfaceName = surfaceNameOrId(entry.surfaceId);
+
+        if (entry.tier === "actor") {
+            failures.push({
+                name: "(unregistered bypass)",
+                reason: "unregistered-actor-bypass",
+                detail:
+                    `an active delay bypass exists at the actor tier for ${entry.address} on ` +
+                    `${surfaceName}, and the registry does not name it. This address's ` +
+                    "withdrawals on this surface pay out with no hold. Record the owner's " +
+                    "decision in DECISIONS.md and add it to the registry before it is written, " +
+                    `or remove the bypass with removeActorBypass(${entry.surfaceId}, ` +
+                    `${entry.address}).`,
+            });
+        } else if (entry.tier === "sub-product") {
+            failures.push({
+                name: "(unregistered bypass)",
+                reason: "unregistered-subproduct-bypass",
+                detail:
+                    `an active delay bypass exists at the sub-product tier for ${entry.address} ` +
+                    `on ${surfaceName}, and the registry has no entry at that tier at all. Every ` +
+                    "withdrawal from this pool pays out with no hold. Record the owner's " +
+                    "decision in DECISIONS.md and add it to the registry before it is written, " +
+                    `or remove the bypass with removeSubProductBypass(${entry.surfaceId}, ` +
+                    `${entry.address}).`,
+            });
+        } else {
+            failures.push({
+                name: "(unregistered bypass)",
+                reason: "unregistered-surface-bypass",
+                detail:
+                    `an active delay bypass exists at the surface tier on ${surfaceName}, and ` +
+                    "the registry has no entry at that tier at all. Every withdrawal on this " +
+                    "surface pays out with no hold, whatever any pool or address entry says. " +
+                    "Record the owner's decision in DECISIONS.md and add it to the registry " +
+                    `before it is written, or remove the bypass with ` +
+                    `removeSurfaceBypass(${entry.surfaceId}).`,
+            });
+        }
+    }
+
+    return { certified: failures.length === 0, failures };
+};
+
 /**
  * Judge the observations. Pure: no chain, no I/O.
  *
@@ -347,37 +551,87 @@ const evaluateExemptions = ({ armed = false, globalDelaySeconds = 0, observation
     };
 };
 
+/** Reasons that mean "this check could not tell", never "here is what is
+ *  wrong" — an unread switch or an unread bypass enumeration. Grouped so the
+ *  lead sentence never claims a specific defect it could not actually see. */
+const UNVERIFIABLE_REASONS = new Set(["arming-state-unread", "bypass-enumeration-unread"]);
+
+/** Reasons that mean the controller carries a bypass the registry cannot
+ *  account for — the fail-open direction: something extra is exempt that
+ *  should not be. */
+const UNEXPECTED_BYPASS_REASONS = new Set([
+    "unregistered-actor-bypass",
+    "unregistered-subproduct-bypass",
+    "unregistered-surface-bypass",
+]);
+
 /**
  * The check itself: read the controller, judge it, and refuse loudly.
  *
+ * Two independent judgements feed one certification: `evaluateExemptions`
+ * asks whether every registered address carries both halves of its
+ * exemption, and `evaluateActiveBypasses` asks the controller itself which
+ * delay bypasses actually exist and refuses any the registry does not
+ * account for. Either can refuse on its own; both must certify for this to
+ * certify.
+ *
  * Run it before arming (it is the runbook's blocker step), and again from the
  * rehearsal once the delay is on, so a fixture can never hand back an armed
- * stack that holds or charges an exempted address.
+ * stack that holds or charges an exempted address, or that carries a bypass
+ * nobody decided on.
  */
 const assertContractCallersExempt = async (controller, { callers = CONTRACT_CALLERS } = {}) => {
     const observations = await readRegistrations(controller, callers);
     const { armed, globalDelaySeconds } = await readSwitch(controller);
-    const verdict = evaluateExemptions({ armed, globalDelaySeconds, observations });
+    const exemptionVerdict = evaluateExemptions({ armed, globalDelaySeconds, observations });
 
-    if (verdict.certified) return verdict;
+    const { entries, unreadable } = await readActiveBypasses(controller);
+    const bypassVerdict = evaluateActiveBypasses({ entries, unreadable, callers });
 
-    const exemptionMissing = verdict.failures.some(
-        (failure) => failure.reason !== "arming-state-unread"
+    const failures = [...exemptionVerdict.failures, ...bypassVerdict.failures];
+    if (failures.length === 0) {
+        return {
+            certified: true,
+            holding: exemptionVerdict.holding,
+            armed: exemptionVerdict.armed,
+            failures: [],
+        };
+    }
+
+    const onlyUnverifiable = failures.every((failure) => UNVERIFIABLE_REASONS.has(failure.reason));
+    const hasUnexpectedBypass = failures.some((failure) =>
+        UNEXPECTED_BYPASS_REASONS.has(failure.reason)
     );
-    const lead = !exemptionMissing
-        ? "the delay switch could not be read, so this check cannot tell whether withdrawals " +
-          "are already held, and it certifies nothing"
-        : verdict.holding
-          ? "the delay is ARMED and holding, and an exempted address does not carry its whole " +
-            "exemption, so its withdrawals may already be charged or held"
-          : "an exempted address does not carry its whole exemption, so arming the delay in " +
-            "this state would charge or hold its withdrawals";
+    const hasMissingExemption = failures.some(
+        (failure) =>
+            !UNVERIFIABLE_REASONS.has(failure.reason) &&
+            !UNEXPECTED_BYPASS_REASONS.has(failure.reason)
+    );
+
+    let lead;
+    if (onlyUnverifiable) {
+        lead =
+            "the delay switch or the bypass enumeration could not be read, so this check cannot " +
+            "tell what the controller actually carries, and it certifies nothing";
+    } else if (hasUnexpectedBypass && !hasMissingExemption) {
+        lead = exemptionVerdict.holding
+            ? "the delay is ARMED and holding, and the controller carries an active delay " +
+              "bypass this registry does not account for, so some withdrawals may already be " +
+              "paying out with no hold"
+            : "the controller carries an active delay bypass this registry does not account " +
+              "for, and arming the delay in this state would let those withdrawals pay out " +
+              "with no hold";
+    } else {
+        lead = exemptionVerdict.holding
+            ? "the delay is ARMED and holding, and an exempted address does not carry its whole " +
+              "exemption, so its withdrawals may already be charged or held"
+            : "an exempted address does not carry its whole exemption, so arming the delay in " +
+              "this state would charge or hold its withdrawals";
+    }
 
     throw new Error(
         `Perimeter arming guard: ${lead}.\n\n` +
-            verdict.failures
-                .map((failure) => `  - [${failure.reason}] ${failure.detail}`)
-                .join("\n\n") +
+            failures.map((failure) => `  - [${failure.reason}] ${failure.detail}`).join("\n\n") +
             "\n\nEach entry is an owner call on the ExitFeeController. Re-run this check " +
             "after they execute."
     );
@@ -389,6 +643,8 @@ module.exports = {
     SWITCH_UNREAD,
     readRegistrations,
     readSwitch,
+    readActiveBypasses,
     evaluateExemptions,
+    evaluateActiveBypasses,
     assertContractCallersExempt,
 };

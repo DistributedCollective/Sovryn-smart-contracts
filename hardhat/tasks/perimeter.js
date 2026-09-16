@@ -178,6 +178,14 @@ task(
                 "function globalDelaySeconds() view returns (uint32)",
                 "function actorPolicy(bytes32,address) view returns (tuple(bool active, uint16 rateBps))",
                 "function actorBypass(bytes32,address) view returns (tuple(bool active, bool bypass))",
+                // The enumeration views: what the controller actually carries,
+                // at every tier, rather than only the registry's own list.
+                "function bypassSurfaceIds() view returns (bytes32[])",
+                "function surfaceBypassKeys() view returns (bytes32[])",
+                "function subProductBypassKeys(bytes32) view returns (address[])",
+                "function actorBypassKeys(bytes32) view returns (address[])",
+                "function surfaceBypass(bytes32) view returns (tuple(bool active, bool bypass))",
+                "function subProductBypass(bytes32,address) view returns (tuple(bool active, bool bypass))",
             ],
             address
         );
@@ -201,7 +209,8 @@ task(
 
         await assertContractCallersExempt(live);
         logger.success(
-            "Every exempted address carries both halves of its exemption on the controller. " +
-                "Nothing here blocks arming."
+            "Every exempted address carries both halves of its exemption, and the controller " +
+                "carries no active delay bypass this registry does not account for. Nothing here " +
+                "blocks arming."
         );
     });

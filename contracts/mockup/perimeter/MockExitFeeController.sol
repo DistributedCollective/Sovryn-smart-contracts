@@ -49,6 +49,33 @@ contract MockExitFeeController is IExitFeeController {
     mapping(bytes32 => mapping(address => bool)) private _actorBypassActive;
     mapping(bytes32 => mapping(address => bool)) private _actorBypassValue;
 
+    // Surface- and sub-product-tier bypass storage, and the enumeration
+    // indexes the real controller keeps so the arming guard can discover a
+    // bypass at any tier from the controller itself, the way it discovers
+    // them on chain. Mirrors `_surfaceBypass`, `_subProductBypass`,
+    // `_bypassSurfaceIds`, `_subProductBypassKeys` and `_actorBypassKeys`.
+    mapping(bytes32 => bool) private _surfaceBypassActive;
+    mapping(bytes32 => bool) private _surfaceBypassValue;
+    mapping(bytes32 => mapping(address => bool)) private _subProductBypassActive;
+    mapping(bytes32 => mapping(address => bool)) private _subProductBypassValue;
+
+    bytes32[] private _bypassSurfaceIdsList;
+    mapping(bytes32 => bool) private _bypassSurfaceSeen;
+    mapping(bytes32 => address[]) private _subProductBypassKeysList;
+    mapping(bytes32 => mapping(address => bool)) private _subProductBypassSeen;
+    mapping(bytes32 => address[]) private _actorBypassKeysList;
+    mapping(bytes32 => mapping(address => bool)) private _actorBypassSeen;
+
+    /// @notice Record `surfaceId` in the any-tier master set once, the way
+    ///         every real bypass writer does regardless of which tier it
+    ///         touched.
+    function _recordBypassSurface(bytes32 surfaceId) private {
+        if (!_bypassSurfaceSeen[surfaceId]) {
+            _bypassSurfaceSeen[surfaceId] = true;
+            _bypassSurfaceIdsList.push(surfaceId);
+        }
+    }
+
     // ── Test-only configuration ────────────────────────────────────────────
 
     function setRate(uint16 rateBps) external {
@@ -228,6 +255,10 @@ contract MockExitFeeController is IExitFeeController {
         revertOnDelayQuote = v;
     }
 
+    /// @notice Write a surface-scoped actor delay bypass, as the owner's
+    ///         `setActorBypass` does, and register it in the same
+    ///         enumeration indexes so the arming guard's enumeration reader
+    ///         can discover it from the controller itself.
     function setActorBypassTest(
         bytes32 surfaceId,
         address actor,
@@ -236,6 +267,34 @@ contract MockExitFeeController is IExitFeeController {
     ) external {
         _actorBypassActive[surfaceId][actor] = active_;
         _actorBypassValue[surfaceId][actor] = bypass_;
+        if (!_actorBypassSeen[surfaceId][actor]) {
+            _actorBypassSeen[surfaceId][actor] = true;
+            _actorBypassKeysList[surfaceId].push(actor);
+        }
+        _recordBypassSurface(surfaceId);
+    }
+
+    /// @notice Write a surface-tier delay bypass, enumerated the same way.
+    function setSurfaceBypassTest(bytes32 surfaceId, bool active_, bool bypass_) external {
+        _surfaceBypassActive[surfaceId] = active_;
+        _surfaceBypassValue[surfaceId] = bypass_;
+        _recordBypassSurface(surfaceId);
+    }
+
+    /// @notice Write a sub-product-tier delay bypass, enumerated the same way.
+    function setSubProductBypassTest(
+        bytes32 surfaceId,
+        address subProduct,
+        bool active_,
+        bool bypass_
+    ) external {
+        _subProductBypassActive[surfaceId][subProduct] = active_;
+        _subProductBypassValue[surfaceId][subProduct] = bypass_;
+        if (!_subProductBypassSeen[surfaceId][subProduct]) {
+            _subProductBypassSeen[surfaceId][subProduct] = true;
+            _subProductBypassKeysList[surfaceId].push(subProduct);
+        }
+        _recordBypassSurface(surfaceId);
     }
 
     // ── Delay extension: IExitFeeController quote API ───────────────────────
@@ -279,15 +338,17 @@ contract MockExitFeeController is IExitFeeController {
         return _globalDelaySeconds;
     }
 
-    function surfaceBypass(bytes32) external view returns (DelayBypassPolicy memory p) {
-        return p;
+    function surfaceBypass(bytes32 surfaceId) external view returns (DelayBypassPolicy memory p) {
+        p.active = _surfaceBypassActive[surfaceId];
+        p.bypass = _surfaceBypassValue[surfaceId];
     }
 
     function subProductBypass(
-        bytes32,
-        address
+        bytes32 surfaceId,
+        address subProduct
     ) external view returns (DelayBypassPolicy memory p) {
-        return p;
+        p.active = _subProductBypassActive[surfaceId][subProduct];
+        p.bypass = _subProductBypassValue[surfaceId][subProduct];
     }
 
     function actorBypass(
@@ -298,20 +359,20 @@ contract MockExitFeeController is IExitFeeController {
         p.bypass = _actorBypassValue[surfaceId][actor];
     }
 
-    function surfaceBypassKeys() external view returns (bytes32[] memory keys) {
-        return keys;
+    function surfaceBypassKeys() external view returns (bytes32[] memory) {
+        return _bypassSurfaceIdsList;
     }
 
-    function subProductBypassKeys(bytes32) external view returns (address[] memory keys) {
-        return keys;
+    function subProductBypassKeys(bytes32 surfaceId) external view returns (address[] memory) {
+        return _subProductBypassKeysList[surfaceId];
     }
 
-    function actorBypassKeys(bytes32) external view returns (address[] memory keys) {
-        return keys;
+    function actorBypassKeys(bytes32 surfaceId) external view returns (address[] memory) {
+        return _actorBypassKeysList[surfaceId];
     }
 
-    function bypassSurfaceIds() external view returns (bytes32[] memory ids) {
-        return ids;
+    function bypassSurfaceIds() external view returns (bytes32[] memory) {
+        return _bypassSurfaceIdsList;
     }
 
     // ── Delay extension: IExitFeeController admin (no-ops / minimal) ─────────
@@ -328,11 +389,32 @@ contract MockExitFeeController is IExitFeeController {
         _globalDelaySeconds = s;
     }
 
-    function setSurfaceBypass(bytes32, DelayBypassPolicy calldata) external {}
+    /// @notice Mirrors the real controller's `setSurfaceBypass`: stores the
+    ///         policy and registers the surface in the enumeration the arming
+    ///         guard's bypass check reads.
+    function setSurfaceBypass(bytes32 surfaceId, DelayBypassPolicy calldata policy) external {
+        _surfaceBypassActive[surfaceId] = policy.active;
+        _surfaceBypassValue[surfaceId] = policy.bypass;
+        _recordBypassSurface(surfaceId);
+    }
 
     function removeSurfaceBypass(bytes32) external {}
 
-    function setSubProductBypass(bytes32, address, DelayBypassPolicy calldata) external {}
+    /// @notice Mirrors the real controller's `setSubProductBypass`, enumerated
+    ///         the same way.
+    function setSubProductBypass(
+        bytes32 surfaceId,
+        address subProduct,
+        DelayBypassPolicy calldata policy
+    ) external {
+        _subProductBypassActive[surfaceId][subProduct] = policy.active;
+        _subProductBypassValue[surfaceId][subProduct] = policy.bypass;
+        if (!_subProductBypassSeen[surfaceId][subProduct]) {
+            _subProductBypassSeen[surfaceId][subProduct] = true;
+            _subProductBypassKeysList[surfaceId].push(subProduct);
+        }
+        _recordBypassSurface(surfaceId);
+    }
 
     function setSubProductBypasses(
         bytes32,
@@ -340,6 +422,10 @@ contract MockExitFeeController is IExitFeeController {
         DelayBypassPolicy[] calldata
     ) external {}
 
+    /// @notice Mirrors the real controller's `setActorBypass`, enumerated the
+    ///         same way, so an owner call written through the real admin
+    ///         function — not just the test setter — is discoverable by the
+    ///         arming guard's enumeration reader.
     function setActorBypass(
         bytes32 surfaceId,
         address actor,
@@ -347,6 +433,11 @@ contract MockExitFeeController is IExitFeeController {
     ) external {
         _actorBypassActive[surfaceId][actor] = policy.active;
         _actorBypassValue[surfaceId][actor] = policy.bypass;
+        if (!_actorBypassSeen[surfaceId][actor]) {
+            _actorBypassSeen[surfaceId][actor] = true;
+            _actorBypassKeysList[surfaceId].push(actor);
+        }
+        _recordBypassSurface(surfaceId);
     }
 
     function setActorBypasses(
