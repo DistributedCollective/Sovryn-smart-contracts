@@ -33,6 +33,26 @@ const bytecodeOf = (file) => {
     return { hex: (d.bytecode || "").toLowerCase(), provenance: d._provenance || {} };
 };
 
+/// Whether a fixture's provenance block is well-formed enough to trust: a
+/// non-empty repo name, and a commit that is a plausible hex abbreviation
+/// (7-40 hex characters — this repo's own established convention is 7, and
+/// git's practical floor for an unambiguous one). `expect(x).to.be.a("string")`
+/// alone accepts an empty string, which then satisfies `"anything".startsWith("")`
+/// against ANY head — that gap is exactly what this closes.
+const isValidProvenance = (provenance) =>
+    Boolean(
+        provenance &&
+            typeof provenance.repo === "string" &&
+            provenance.repo.length > 0 &&
+            typeof provenance.commit === "string" &&
+            /^[0-9a-f]{7,40}$/i.test(provenance.commit)
+    );
+
+/// A fixture whose source repo is not on disk is UNVERIFIED, not presumed
+/// fresh: freshness fails closed the moment even one fixture cannot be
+/// checked, not only once every fixture is unchecked (the previous gate).
+const hasUnverifiedFixtures = (unchecked) => unchecked.length > 0;
+
 /// Any surviving Phase-1 preimage means the fixture predates the re-cut.
 const STALE_MARKERS = [
     "COLFEE:SURFACE_LENDING_LENDER_WITHDRAW",
@@ -91,8 +111,11 @@ contract("Perimeter — rehearsal fixtures are current", () => {
     it("every fixture records where its bytes came from", () => {
         files.forEach((file) => {
             const { provenance } = bytecodeOf(file);
-            expect(provenance.repo, `${file} has no provenance repo`).to.be.a("string");
-            expect(provenance.commit, `${file} has no provenance commit`).to.be.a("string");
+            expect(
+                isValidProvenance(provenance),
+                `${file}'s provenance is missing repo, or commit is not a plausible hex commit ` +
+                    "abbreviation (7-40 hex characters)"
+            ).to.be.true;
         });
     });
 
@@ -150,7 +173,15 @@ contract("Perimeter — rehearsal fixtures are current", () => {
             }
             const ref = hasRef ? branchRef : "HEAD";
             const head = git("rev-parse", ref);
-            if (!head.startsWith(provenance.commit)) {
+            // Prefix match against the resolved full head: provenance.commit
+            // is this repo's established 7-character abbreviation, not a
+            // full hash, so exact string equality would refuse every
+            // genuinely fresh fixture. What made startsWith unsound was
+            // never the prefix comparison itself - it was that an empty
+            // provenance.commit satisfies it trivially; the length/format
+            // check above closes exactly that gap, so the same comparison
+            // is sound again once its input cannot be empty.
+            if (!head.startsWith(provenance.commit.toLowerCase())) {
                 stale.push(
                     `${file}: pinned ${provenance.commit}, ${provenance.repo} ${ref} is at ` +
                         head.slice(0, 7)
@@ -158,10 +189,16 @@ contract("Perimeter — rehearsal fixtures are current", () => {
             }
         });
 
-        if (unchecked.length === files.length) {
+        // A fixture whose source repo is unavailable on disk is UNVERIFIED,
+        // not presumed fresh — this used to fail only when every fixture was
+        // unchecked, so one repository being present let every fixture
+        // pointing at an absent repository go completely unverified while
+        // the suite still reported green.
+        if (hasUnverifiedFixtures(unchecked)) {
             expect.fail(
-                `no source repo was available, so fixture freshness was not ` +
-                    `verified at all: ${unchecked.join(", ")}`
+                `fixture freshness could not be verified for: ${unchecked.join(", ")} — the ` +
+                    "source repo is not on disk. Check it out beside this repository, or the " +
+                    "fixtures it built cannot be trusted as current."
             );
         }
         expect(
@@ -174,5 +211,77 @@ contract("Perimeter — rehearsal fixtures are current", () => {
                 `repo's fixtures alone) from this repo's root. Never edit a fixture's ` +
                 `_provenance fields by hand.`
         ).to.deep.equal([]);
+    });
+});
+
+/**
+ * Regression for CON-R2-5, isolated from the real fixtures and the sibling
+ * repos on disk so it cannot depend on their live state: three confirmed
+ * gaps let a fixture pass "freshness" entirely unverified. (1) the
+ * provenance check only required `repo`/`commit` to be strings, so an empty
+ * string passed; (2) the freshness comparison used
+ * `head.startsWith(provenance.commit)`, which an empty `provenance.commit`
+ * trivially satisfies against any head; (3) a fixture whose source repo was
+ * not checked out was pushed onto an `unchecked` list, and the only
+ * assertion consulting that list failed solely when EVERY fixture was
+ * unchecked — one present repository let every fixture pointing at an
+ * absent one go completely unverified while the suite still reported green.
+ */
+describe("Perimeter — fixture provenance validation", () => {
+    it("accepts this repo's own established provenance shape", () => {
+        expect(isValidProvenance({ repo: "perimeter", commit: "442b9fc" })).to.be.true;
+    });
+
+    it("accepts a full 40-character hash too", () => {
+        expect(isValidProvenance({ repo: "perimeter", commit: "a".repeat(40) })).to.be.true;
+    });
+
+    it("rejects an empty commit - the exact gap that made startsWith('') trivially pass", () => {
+        expect(isValidProvenance({ repo: "perimeter", commit: "" })).to.be.false;
+    });
+
+    it("rejects an empty repo", () => {
+        expect(isValidProvenance({ repo: "", commit: "442b9fc" })).to.be.false;
+    });
+
+    it("rejects a missing commit field entirely", () => {
+        expect(isValidProvenance({ repo: "perimeter" })).to.be.false;
+    });
+
+    it("rejects a commit that is not hex", () => {
+        expect(isValidProvenance({ repo: "perimeter", commit: "not-a-hash" })).to.be.false;
+    });
+
+    it("rejects a commit shorter than a plausible abbreviation", () => {
+        expect(isValidProvenance({ repo: "perimeter", commit: "abc" })).to.be.false;
+    });
+
+    it("rejects a missing provenance block", () => {
+        expect(isValidProvenance(undefined)).to.be.false;
+        expect(isValidProvenance({})).to.be.false;
+    });
+});
+
+describe("Perimeter — fixture freshness fails closed on an unverifiable fixture", () => {
+    it("flags a single unchecked fixture among otherwise-verified ones", () => {
+        // The exact control-flow gap this replaces:
+        // `if (unchecked.length === files.length)` only fired when NOTHING
+        // could be verified — one checked-and-fresh fixture let any number
+        // of unchecked ones through silently.
+        expect(hasUnverifiedFixtures(["StaleRepoFixture.json (perimeter not on disk)"])).to.be
+            .true;
+    });
+
+    it("flags every fixture unchecked too", () => {
+        expect(
+            hasUnverifiedFixtures([
+                "A.json (perimeter not on disk)",
+                "B.json (zero-contracts not on disk)",
+            ])
+        ).to.be.true;
+    });
+
+    it("says nothing is unverified when the unchecked list is empty", () => {
+        expect(hasUnverifiedFixtures([])).to.be.false;
     });
 });
