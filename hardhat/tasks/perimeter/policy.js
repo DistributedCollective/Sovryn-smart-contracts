@@ -165,17 +165,53 @@ const SECURITY_PERIMETER_ENABLED_SELECTOR = ethers.utils
     .toLowerCase();
 
 /**
+ * Selectors every supported controller build must carry — the fee-tier
+ * surface shared by both the fee-only and the delay build. Computed from
+ * `CONTROLLER_ABI` itself via `controllerInterface`, so it can never drift
+ * from what the ABI actually declares. Used to tell a genuinely unrecognized
+ * implementation (a bad upgrade, a wrong storage slot read, a future third
+ * build) apart from the fee-only build, rather than treating "the delay
+ * selector is absent" as proof of "fee-only".
+ */
+const FEE_BUILD_REQUIRED_SELECTORS = [
+    "exitFeeEnabled",
+    "feeReceiver",
+    "setExitFeeEnabled",
+    "setFeeReceiver",
+    "setSurfacePolicy",
+    "setActorPolicy",
+].map((name) => controllerInterface().getSighash(name).slice(2).toLowerCase());
+
+/**
  * Decide "fee-only" or "delay" purely from deployed bytecode — no chain call,
  * so a network error or a reverting call can never be mistaken for "fee-only".
  * The caller reads the bytecode once (the same read it already needs to
  * refuse an empty-code address) and hands it here.
+ *
+ * Both classifications are POSITIVE checks: "delay" requires the
+ * `securityPerimeterEnabled` selector; "fee-only" requires every one of
+ * `FEE_BUILD_REQUIRED_SELECTORS` to be present. Bytecode that carries
+ * neither full set — a bad upgrade, a wrong slot read, a future third build
+ * — throws rather than being silently classified as the less-protected
+ * "fee-only", which would make a policy write believe it cleared a delay
+ * bypass that this implementation was never capable of holding in the first
+ * place.
  */
-const buildFromCode = (code) =>
-    String(code || "")
-        .toLowerCase()
-        .includes(SECURITY_PERIMETER_ENABLED_SELECTOR)
-        ? "delay"
-        : "fee-only";
+const buildFromCode = (code) => {
+    const normalized = String(code || "").toLowerCase();
+    if (normalized.includes(SECURITY_PERIMETER_ENABLED_SELECTOR)) {
+        return "delay";
+    }
+    if (FEE_BUILD_REQUIRED_SELECTORS.every((selector) => normalized.includes(selector))) {
+        return "fee-only";
+    }
+    throw new Error(
+        "buildFromCode: this implementation's bytecode matches neither the fee-only nor the " +
+            "delay controller build — refusing to default it to 'fee-only'. If this is a " +
+            "genuine new build, extend policy.FEE_BUILD_REQUIRED_SELECTORS/buildFromCode " +
+            "deliberately rather than letting it fall through."
+    );
+};
 
 /**
  * Extract an ERC-1967 implementation address from the value read out of a
@@ -744,6 +780,7 @@ module.exports = {
     surfaceLabel,
     CONTROLLER_ABI,
     controllerInterface,
+    FEE_BUILD_REQUIRED_SELECTORS,
     buildFromCode,
     implementationFromSlot,
     parseRate,

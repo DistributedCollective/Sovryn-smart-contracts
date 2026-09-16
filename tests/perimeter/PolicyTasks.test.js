@@ -502,6 +502,14 @@ describe("Perimeter policy — buildFromCode", () => {
         .id("securityPerimeterEnabled()")
         .slice(2, 10);
 
+    // Synthetic bytecode carrying every FEE_BUILD_REQUIRED_SELECTORS entry,
+    // the way real PUSH4-dispatch bytecode carries a function's selector
+    // as a literal 4-byte constant.
+    const feeOnlyCode =
+        "0x6080604052348015600f57600080fd5b50" +
+        policy.FEE_BUILD_REQUIRED_SELECTORS.map((s) => `${s}14`).join("") +
+        "6101a057";
+
     it("reads as 'delay' when the bytecode contains the securityPerimeterEnabled selector", () => {
         const code = `0x600035${SECURITY_PERIMETER_ENABLED_SELECTOR}146101a057`;
         expect(policy.buildFromCode(code)).to.equal("delay");
@@ -512,13 +520,33 @@ describe("Perimeter policy — buildFromCode", () => {
         expect(policy.buildFromCode(code)).to.equal("delay");
     });
 
-    it("reads as 'fee-only' when the selector is absent from the bytecode", () => {
-        expect(policy.buildFromCode("0x6080604052348015600f57600080fd5b50")).to.equal("fee-only");
+    // Regression for CON-R2-4: buildFromCode used to classify ANY bytecode
+    // lacking the delay selector as "fee-only" unconditionally - a bad
+    // upgrade, a wrong slot read, or a future third build all silently read
+    // as the less-protected build, and an operator "revoking" an exemption
+    // under that false read would have removed only the fee half, leaving
+    // any real delay bypass live.
+    it("reads as 'fee-only' only when every one of its own required selectors is present", () => {
+        expect(policy.buildFromCode(feeOnlyCode)).to.equal("fee-only");
     });
 
-    it("reads as 'fee-only' for empty or missing code", () => {
-        expect(policy.buildFromCode("0x")).to.equal("fee-only");
-        expect(policy.buildFromCode(undefined)).to.equal("fee-only");
+    it("throws for bytecode carrying neither the delay selector nor the full fee-build selector set", () => {
+        expect(() => policy.buildFromCode("0x6080604052348015600f57600080fd5b50")).to.throw(
+            /matches neither/
+        );
+    });
+
+    it("throws when only some of the fee-build selectors are present, not all", () => {
+        const partial =
+            "0x6080604052" +
+            policy.FEE_BUILD_REQUIRED_SELECTORS.slice(0, 2).join("") +
+            "146101a057";
+        expect(() => policy.buildFromCode(partial)).to.throw(/matches neither/);
+    });
+
+    it("throws for empty or missing code, rather than defaulting to 'fee-only'", () => {
+        expect(() => policy.buildFromCode("0x")).to.throw(/matches neither/);
+        expect(() => policy.buildFromCode(undefined)).to.throw(/matches neither/);
     });
 });
 
