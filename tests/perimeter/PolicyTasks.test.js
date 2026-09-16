@@ -606,3 +606,127 @@ describe("Perimeter policy — survivingBypassWarning", () => {
         ).to.be.undefined;
     });
 });
+
+describe("Perimeter policy — pairingViolationAfterCall", () => {
+    // Regression for CON-R2-3: perimeter:policy:check-tx decoded a submitted
+    // transaction and printed its meaning, but never evaluated whether
+    // executing it would leave the actor's fee/delay pair half-applied - a
+    // co-signer reading a clean decode had a description, not a guarantee.
+    const notHeld = { active: true, bypass: true }; // bypassing
+    const held = { active: true, bypass: false }; // active, no bypass
+    const noDelayEntry = { active: false, bypass: false };
+    const exemptFee = { active: true, rateBps: 0 };
+    const chargedFee = { active: true, rateBps: 25 };
+    const noFeeEntry = { active: false, rateBps: 0 };
+
+    it("flags setActorPolicy granting a zero rate while the delay is not bypassing", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "setActorPolicy",
+            args: [null, null, [true, 0]],
+            currentFee: chargedFee,
+            currentBypass: held,
+        });
+        expect(violates).to.equal(true);
+    });
+
+    it("does not flag setActorPolicy granting a zero rate while the delay already bypasses", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "setActorPolicy",
+            args: [null, null, [true, 0]],
+            currentFee: chargedFee,
+            currentBypass: notHeld,
+        });
+        expect(violates).to.equal(false);
+    });
+
+    it("flags setActorPolicy charging a real rate while the delay already bypasses - paid but not held", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "setActorPolicy",
+            args: [null, null, [true, 25]],
+            currentFee: exemptFee,
+            currentBypass: notHeld,
+        });
+        expect(violates).to.equal(true);
+    });
+
+    it("flags removeActorPolicy falling through to charged while the delay already bypasses", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "removeActorPolicy",
+            args: [null, null],
+            currentFee: exemptFee,
+            currentBypass: notHeld,
+        });
+        expect(violates).to.equal(true);
+    });
+
+    it("flags setActorBypass granting bypass while the fee is not exempt", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "setActorBypass",
+            args: [null, null, [true, true]],
+            currentFee: chargedFee,
+            currentBypass: noDelayEntry,
+        });
+        expect(violates).to.equal(true);
+    });
+
+    it("does not flag setActorBypass granting bypass while the fee is already exempt", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "setActorBypass",
+            args: [null, null, [true, true]],
+            currentFee: exemptFee,
+            currentBypass: held,
+        });
+        expect(violates).to.equal(false);
+    });
+
+    it("flags removeActorBypass falling through to held while the fee stays exempt", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "removeActorBypass",
+            args: [null, null],
+            currentFee: exemptFee,
+            currentBypass: notHeld,
+        });
+        expect(violates).to.equal(true);
+    });
+
+    it("does not flag an ordinary (non-exempt) actor left ordinary", () => {
+        const violates = policy.pairingViolationAfterCall({
+            kind: "setActorPolicy",
+            args: [null, null, [true, 25]],
+            currentFee: noFeeEntry,
+            currentBypass: noDelayEntry,
+        });
+        expect(violates).to.equal(false);
+    });
+
+    for (const kind of ["grantExemption", "revokeExemption"]) {
+        it(`says ${kind} carries no pairing to assess - it writes both halves atomically`, () => {
+            expect(
+                policy.pairingViolationAfterCall({
+                    kind,
+                    args: [null, null],
+                    currentFee: chargedFee,
+                    currentBypass: held,
+                })
+            ).to.be.undefined;
+        });
+    }
+
+    for (const kind of [
+        "setSurfacePolicy",
+        "setSubProductPolicy",
+        "setExitFeeEnabled",
+        "setFeeReceiver",
+    ]) {
+        it(`says ${kind} carries no actor-tier pairing to assess`, () => {
+            expect(
+                policy.pairingViolationAfterCall({
+                    kind,
+                    args: [null, null, [true, 0]],
+                    currentFee: chargedFee,
+                    currentBypass: held,
+                })
+            ).to.be.undefined;
+        });
+    }
+});

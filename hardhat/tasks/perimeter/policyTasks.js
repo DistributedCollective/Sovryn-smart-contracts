@@ -733,7 +733,7 @@ task("perimeter:fee:receiver", "Set the Perimeter fee receiver, through the Exch
 
 task(
     "perimeter:policy:check-tx",
-    "Print a submitted controller-policy transaction and decode which call it makes"
+    "Decode a submitted controller-policy transaction and refuse to bless anything it cannot vouch for"
 )
     .addParam("id", "Multisig transaction id", undefined, types.string)
     .addOptionalParam("multisig", "Multisig address (defaults to the MultiSigWallet deployment)")
@@ -744,7 +744,11 @@ task(
     .setAction(async ({ id, multisig, controller }, hre) => {
         const { ethers: hreEthers } = hre;
         const multisigAddress = await resolveMultisigAddress(hre, multisig);
-        const { address: controllerAddress } = await attachController(hre, controller);
+        const {
+            address: controllerAddress,
+            controller: controllerContract,
+            build,
+        } = await attachController(hre, controller);
 
         const ms = await hreEthers.getContractAt("MultiSigWallet", multisigAddress);
         const tx = await ms.transactions(id);
@@ -759,12 +763,51 @@ task(
             );
         }
 
+        // A controller policy call never moves value. Non-zero here means
+        // this transaction does something check-tx cannot see in the
+        // decoded call alone — refuse rather than silently ignore it.
+        if (!tx.value.isZero()) {
+            throw new Error(
+                `perimeter:policy:check-tx: transaction ${id} carries non-zero value ` +
+                    `(${tx.value.toString()}) to the controller — a policy call never does; ` +
+                    "refusing to describe this as safe to confirm"
+            );
+        }
+
         const decoded = policy.decodeCall(tx.data);
-        logger.info(
-            decoded
-                ? `Call:     ${decoded.signature} — ${decoded.meaning}`
-                : "Call:     NOT a controller policy call"
-        );
+        if (!decoded) {
+            throw new Error(
+                `perimeter:policy:check-tx: transaction ${id}'s calldata does not decode as any ` +
+                    "known controller policy call - refusing to describe an unrecognized call as " +
+                    "safe to confirm. If this selector is expected (a controller upgrade added " +
+                    "one), extend policy.CONTROLLER_ABI/CALL_DEFS first."
+            );
+        }
+        logger.info(`Call:     ${decoded.signature} — ${decoded.meaning}`);
+
+        if (build === "delay") {
+            const surfaceIdArg = decoded.args[0];
+            const actorArg = decoded.args[1];
+            const currentFee = await controllerContract.actorPolicy(surfaceIdArg, actorArg);
+            const currentBypass = await controllerContract.actorBypass(surfaceIdArg, actorArg);
+            const violates = policy.pairingViolationAfterCall({
+                kind: decoded.kind,
+                args: decoded.args,
+                currentFee,
+                currentBypass,
+            });
+            if (violates === true) {
+                logger.warn(
+                    `Pairing:  executing this leaves ${actorArg} half-applied on ` +
+                        `${policy.surfaceLabel(surfaceIdArg)} - one of fee-exempt/delay-bypassed ` +
+                        "without the other. Confirming this alone does not finish an exemption."
+                );
+            } else if (violates === false) {
+                logger.info(
+                    "Pairing:  fee and delay stay matched for this actor after this call."
+                );
+            }
+        }
 
         await multisigCheckTx(id, multisigAddress);
     });

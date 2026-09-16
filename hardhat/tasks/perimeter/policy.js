@@ -660,6 +660,62 @@ const planRevoke = ({ build, fee, bypass } = {}) => {
     throw new Error(`planRevoke: build must be 'fee-only' or 'delay', got '${build}'`);
 };
 
+/** Whether a fee entry, in isolation, reads as the "exemption" shape: active
+ *  at a zero rate. */
+const isFeeExempt = (fee) => Boolean(fee && fee.active && toNumber(fee.rateBps) === 0);
+
+/** Whether a delay-bypass entry, in isolation, reads as bypassing. */
+const isDelayBypassing = (bypass) => Boolean(bypass && bypass.active && bypass.bypass === true);
+
+/** The single-half actor-tier calls `pairingViolationAfterCall` can assess —
+ *  the ones that can move only one side of an actor's fee/delay pair. */
+const SINGLE_HALF_ACTOR_CALLS = new Set([
+    "setActorPolicy",
+    "removeActorPolicy",
+    "setActorBypass",
+    "removeActorBypass",
+]);
+
+/**
+ * Would executing this ALREADY-DECODED controller call leave the named
+ * actor's fee/delay pair half-applied - one half reading as an exemption,
+ * the other not? `currentFee`/`currentBypass` are that actor's entries as
+ * they read NOW, for the `(surfaceId, actor)` the call names.
+ *
+ * Only the four single-half actor-tier setters can create this shape:
+ * `setActorPolicy`/`removeActorPolicy` move the fee half alone, leaving
+ * whatever the delay half currently reads; `setActorBypass`/
+ * `removeActorBypass` move the delay half alone, leaving the current fee
+ * half. `grantExemption`/`revokeExemption` write both halves together and so
+ * can never produce this shape; every other call (surface/sub-product
+ * entries, the fee switch, the fee receiver) carries no per-actor pairing at
+ * all. Both cases return `false` (not `undefined`) below the switch on
+ * `kind` — `undefined` is reserved for "this call has no pairing to assess".
+ *
+ * @return `true`/`false` once assessable, `undefined` when the call kind
+ *         carries no actor-tier fee/delay pairing to check.
+ */
+const pairingViolationAfterCall = ({ kind, args, currentFee, currentBypass }) => {
+    if (!SINGLE_HALF_ACTOR_CALLS.has(kind)) return undefined;
+
+    let resultFee = currentFee;
+    let resultBypass = currentBypass;
+    if (kind === "setActorPolicy") {
+        const rate = args[2];
+        resultFee = { active: rate[0], rateBps: toNumber(rate[1]) };
+    } else if (kind === "removeActorPolicy") {
+        resultFee = { active: false, rateBps: 0 };
+    } else if (kind === "setActorBypass") {
+        const bypass = args[2];
+        resultBypass = { active: bypass[0], bypass: bypass[1] };
+    } else {
+        // removeActorBypass
+        resultBypass = { active: false, bypass: false };
+    }
+
+    return isFeeExempt(resultFee) !== isDelayBypassing(resultBypass);
+};
+
 /**
  * The warning `perimeter:fee:set --actor` and `perimeter:fee:remove --actor`
  * print on the delay build when the actor still carries a delay bypass:
@@ -694,6 +750,9 @@ module.exports = {
     buildCall,
     decodeCall,
     unionAddresses,
+    isFeeExempt,
+    isDelayBypassing,
+    pairingViolationAfterCall,
     describeFeeEntry,
     describeDelayEntry,
     planExemption,
