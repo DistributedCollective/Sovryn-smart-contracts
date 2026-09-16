@@ -89,9 +89,15 @@ library PerimeterLib {
     ///             an active perimeter can never be silently bypassed.
     ///         Accepted residual: a missing pointer silently disables the
     ///         perimeter for that host until the Owner re-pins it. This is NOT
-    ///         attacker-reachable (setting the pointer is an Owner/SIP action)
-    ///         and is covered by the go-live wiring assertion plus
-    ///         off-chain pointer monitoring.
+    ///         attacker-reachable (setting the pointer is an Owner/SIP action).
+    ///         The go-live wiring assertion reads every live host's controller
+    ///         pointer back and requires it to equal the deployed controller —
+    ///         the same per-host loop that already requires the queue pointer to
+    ///         match — so a host going live with no controller pinned, or one
+    ///         knocked back to zero before go-live, is refused. That gate runs
+    ///         once, before activation; a pointer knocked back to zero AFTER
+    ///         go-live is caught only by off-chain pointer monitoring, not by
+    ///         this assertion.
     function safeControllerLookup(address host) internal view returns (address) {
         (bool ok, bytes memory ret) = host.staticcall(
             abi.encodeWithSignature("exitFeeController()")
