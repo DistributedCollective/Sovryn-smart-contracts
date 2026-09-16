@@ -388,12 +388,33 @@ const withdraw = async (s, opts = {}) => {
             note: "the perimeter is switched off — the product paid without queuing",
         };
     }
+    // A queued withdrawal must not ALSO have paid the receiver — that is the
+    // one thing "held" is supposed to guarantee. Gas never produces a
+    // positive delta (it only ever debits the signer's own balance), so
+    // `paidNow` reading positive here is unconditionally a hook that both
+    // queued and paid, never a false alarm from the receiver being the
+    // sender. Checked before describing the request: there is nothing
+    // useful to report about a "clean hold" that was not actually clean.
+    if (paidNow.gt(0)) {
+        throw new Error(
+            `perimeter:qa withdraw: ${surface} request ${result.id} was queued but ALSO paid ` +
+                `${paidNow.toString()} to ${receiver} — a hook that both queues and pays, not a ` +
+                "clean hold. Freezing the queued request would accomplish nothing here."
+        );
+    }
     const described = await describeRequest(s, result.id, now);
     log(
         `  QUEUED  ${surface} request ${described.id} for ${described.amount} ` +
             `(${described.remaining}s to go)`
     );
-    return { command: "withdraw", surface, as: originator, queued: true, ...described };
+    return {
+        command: "withdraw",
+        surface,
+        as: originator,
+        queued: true,
+        receiverDelta: paidNow.toString(),
+        ...described,
+    };
 };
 
 /** The ONLY command that moves the chain clock. */
