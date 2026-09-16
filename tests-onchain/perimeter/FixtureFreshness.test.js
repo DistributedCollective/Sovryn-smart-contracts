@@ -166,8 +166,13 @@ contract("Perimeter — rehearsal fixtures are current", () => {
         }
         expect(
             stale,
-            `fixtures were built from a commit their source repo has moved past. ` +
-                `Rebuild the source and re-run fixtures/regenerate.js.`
+            `fixtures were built from a commit their source repo has moved past. Rebuild ` +
+                `each stale repo (perimeter: \`forge build\`; zero-contracts: ` +
+                `\`__decryptionAlreadyDone__=TRUE npx hardhat compile --force\`), then run ` +
+                `\`node tests-onchain/perimeter/fixtures/regenerate.js --perimeter <path> ` +
+                `--zero <path>\` (or add \`--only perimeter\` / \`--only zero\` to refresh one ` +
+                `repo's fixtures alone) from this repo's root. Never edit a fixture's ` +
+                `_provenance fields by hand.`
         ).to.deep.equal([]);
     });
 });
