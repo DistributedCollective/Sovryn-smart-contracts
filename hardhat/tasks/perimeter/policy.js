@@ -273,6 +273,12 @@ const parseRate = (input) => {
                 "(bps), not percent. 100 bps = 1%."
         );
     }
+    if (typeof input === "string" && !/^\d+$/.test(input.trim())) {
+        throw new Error(
+            `parseRate: '${input}' is not a plain decimal integer — pass an integer 0..10000, ` +
+                "or 'inactive'"
+        );
+    }
     const n = typeof input === "number" ? input : Number(input);
     if (typeof input === "boolean" || Number.isNaN(n)) {
         throw new Error(
