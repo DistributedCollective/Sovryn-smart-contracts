@@ -428,6 +428,49 @@ describe("Perimeter policy — planRevoke", () => {
     });
 });
 
+describe("Perimeter policy — unionAddresses", () => {
+    // Regression for CON-R2-2: policy:show enumerated sub-products and
+    // actors solely through the fee-tier key list, so an address with an
+    // active delay bypass and no fee-tier entry (the FeeSharingCollector's
+    // own shape once its fee half is later removed) was invisible to the
+    // default inventory - visible only if the operator already knew the
+    // address and passed it explicitly.
+    it("includes an address present only in the bypass list", () => {
+        const result = policy.unionAddresses([COLLECTOR], [OTHER]);
+        expect(result.map((a) => a.toLowerCase())).to.have.members([
+            COLLECTOR.toLowerCase(),
+            OTHER.toLowerCase(),
+        ]);
+    });
+
+    it("dedupes an address present in both lists, case-insensitively", () => {
+        const result = policy.unionAddresses([COLLECTOR], [COLLECTOR.toLowerCase()]);
+        expect(result).to.have.lengthOf(1);
+        expect(ethers.utils.getAddress(result[0])).to.equal(ethers.utils.getAddress(COLLECTOR));
+    });
+
+    it("returns checksummed addresses", () => {
+        const result = policy.unionAddresses([COLLECTOR.toLowerCase()]);
+        expect(result[0]).to.equal(ethers.utils.getAddress(COLLECTOR));
+    });
+
+    it("handles empty or missing lists", () => {
+        expect(policy.unionAddresses([], [])).to.deep.equal([]);
+        expect(policy.unionAddresses()).to.deep.equal([]);
+        expect(policy.unionAddresses([COLLECTOR], undefined)).to.deep.equal([
+            ethers.utils.getAddress(COLLECTOR),
+        ]);
+    });
+
+    it("preserves first-seen order across lists", () => {
+        const result = policy.unionAddresses([OTHER], [COLLECTOR, OTHER]);
+        expect(result).to.deep.equal([
+            ethers.utils.getAddress(OTHER),
+            ethers.utils.getAddress(COLLECTOR),
+        ]);
+    });
+});
+
 describe("Perimeter policy — describeFeeEntry / describeDelayEntry", () => {
     it("describes an active fee entry with its rate", () => {
         expect(policy.describeFeeEntry({ active: true, rateBps: 10 }, "actor")).to.include(

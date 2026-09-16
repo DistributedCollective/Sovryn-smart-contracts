@@ -131,6 +131,9 @@ const CONTROLLER_ABI = [
     "function actorPolicy(bytes32, address) view returns (tuple(bool active, uint16 rateBps))",
     "function subProductKeys(bytes32) view returns (address[])",
     "function actorKeys(bytes32) view returns (address[])",
+    "function bypassSurfaceIds() view returns (bytes32[])",
+    "function subProductBypassKeys(bytes32) view returns (address[])",
+    "function actorBypassKeys(bytes32) view returns (address[])",
     "function quoteExitFee(bytes32, address, address, uint256) view returns (tuple(bool active, uint16 rateBps, uint256 feeAmount, uint256 netAmount, address feeReceiver, uint8 reason))",
     "function setExitFeeEnabled(bool)",
     "function setFeeReceiver(address)",
@@ -145,6 +148,7 @@ const CONTROLLER_ABI = [
     "function actorBypass(bytes32, address) view returns (tuple(bool active, bool bypass))",
     "function subProductBypass(bytes32, address) view returns (tuple(bool active, bool bypass))",
     "function surfaceBypass(bytes32) view returns (tuple(bool active, bool bypass))",
+    "function surfaceBypassKeys() view returns (bytes32[])",
     "function setActorBypass(bytes32, address, tuple(bool active, bool bypass))",
     "function removeActorBypass(bytes32, address)",
     "function revokeExemption(bytes32, address)",
@@ -502,6 +506,30 @@ const decodeCall = (data) => {
     return { signature: entry.signature, args, meaning: CALL_DEFS[entry.kind].meaning(args) };
 };
 
+/**
+ * The deduplicated union of one or more address lists, case-insensitively —
+ * checksummed and in first-seen order. Used to inventory a surface's
+ * sub-product/actor tier from BOTH the fee-tier key list and the
+ * delay-bypass key list together: an address with only a delay bypass and no
+ * fee-tier entry appears here even though it is absent from the fee list
+ * alone, which is what `subProductKeys`/`actorKeys` on their own miss.
+ */
+const unionAddresses = (...lists) => {
+    const seen = new Set();
+    const out = [];
+    for (const list of lists || []) {
+        for (const addr of list || []) {
+            const checksummed = ethers.utils.getAddress(addr);
+            const key = checksummed.toLowerCase();
+            if (!seen.has(key)) {
+                seen.add(key);
+                out.push(checksummed);
+            }
+        }
+    }
+    return out;
+};
+
 /** A short plain-words description of a fee entry at the given tier. */
 const describeFeeEntry = (entry, tier) => {
     if (!entry || !entry.active) {
@@ -665,6 +693,7 @@ module.exports = {
     parseRate,
     buildCall,
     decodeCall,
+    unionAddresses,
     describeFeeEntry,
     describeDelayEntry,
     planExemption,

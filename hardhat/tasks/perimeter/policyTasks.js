@@ -240,7 +240,18 @@ task(
             const supportsSubProduct = !policy.SURFACES_WITHOUT_SUBPRODUCT.has(resolved.name);
             if (supportsSubProduct) {
                 const subProductKeys = await controllerContract.subProductKeys(id);
-                for (const addr of subProductKeys) {
+                // On the delay build, a sub-product can carry an active delay
+                // bypass with no fee-tier entry at all — invisible to
+                // subProductKeys alone. Inventory the union of both key lists
+                // so that shape is never silently skipped.
+                const inventory =
+                    build === "delay"
+                        ? policy.unionAddresses(
+                              subProductKeys,
+                              await controllerContract.subProductBypassKeys(id)
+                          )
+                        : subProductKeys;
+                for (const addr of inventory) {
                     const feeEntry = await controllerContract.subProductPolicy(id, addr);
                     let line = `  sub-product ${addr}: ${policy.describeFeeEntry(feeEntry, "sub-product")}`;
                     if (build === "delay") {
@@ -252,7 +263,18 @@ task(
             }
 
             const actorKeys = await controllerContract.actorKeys(id);
-            for (const addr of actorKeys) {
+            // Same gap, actor tier: the FeeSharingCollector-style exemption is
+            // exactly a delay-only bypass with no fee-tier entry once its fee
+            // half is removed, so actorKeys alone would make it disappear
+            // from the default inventory.
+            const actorInventory =
+                build === "delay"
+                    ? policy.unionAddresses(
+                          actorKeys,
+                          await controllerContract.actorBypassKeys(id)
+                      )
+                    : actorKeys;
+            for (const addr of actorInventory) {
                 const feeEntry = await controllerContract.actorPolicy(id, addr);
                 let line = `  actor ${addr}: ${policy.describeFeeEntry(feeEntry, "actor")}`;
                 if (build === "delay") {
