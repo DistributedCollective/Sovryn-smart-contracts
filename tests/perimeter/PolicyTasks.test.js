@@ -118,6 +118,30 @@ describe("Perimeter policy — parseRate", () => {
     it("rejects null instead of reading it as an active zero-rate entry", () => {
         expect(() => policy.parseRate(null)).to.throw(/no rate was given/);
     });
+
+    it("rejects a hex spelling instead of reading it through numeric coercion", () => {
+        expect(() => policy.parseRate("0x0a")).to.throw(/plain decimal integer/);
+    });
+
+    it("rejects a binary spelling instead of reading it through numeric coercion", () => {
+        expect(() => policy.parseRate("0b11")).to.throw(/plain decimal integer/);
+    });
+
+    it("rejects an exponent spelling instead of reading it through numeric coercion", () => {
+        expect(() => policy.parseRate("1e2")).to.throw(/plain decimal integer/);
+    });
+
+    it("rejects a decimal-point spelling of a whole number of bps", () => {
+        expect(() => policy.parseRate("25.0")).to.throw(/plain decimal integer/);
+    });
+
+    it("rejects an explicit leading-sign spelling of the rate", () => {
+        expect(() => policy.parseRate("+25")).to.throw(/plain decimal integer/);
+    });
+
+    it("still accepts a decimal string with a redundant leading zero", () => {
+        expect(policy.parseRate("010")).to.deep.equal({ active: true, rateBps: 10 });
+    });
 });
 
 describe("Perimeter policy — buildCall / decodeCall", () => {
