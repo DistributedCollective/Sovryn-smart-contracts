@@ -319,7 +319,7 @@ contract FeeSharingCollector is
             // The pool pays `_receiver` directly; nothing is forwarded from this contract.
             _burnLoanTokenWrbtcToBtc(_receiver, amount);
         } else {
-            // Previously it directly send the loanToken to the user
+            // Any token other than the WRBTC pool token is sent to the user directly.
             require(
                 IERC20(_token).transfer(_receiver, amount),
                 "FeeSharingCollector::withdraw: withdrawal failed"
