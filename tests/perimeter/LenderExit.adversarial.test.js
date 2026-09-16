@@ -1,10 +1,10 @@
 /**
- * Phase 2 follow-up — Lender-exit ADVERSARIAL coverage (iToken tree).
+ * Lender-exit adversarial coverage (iToken tree).
  *
  * The protocol (borrower-exit) tree has its containment proven through the
  * BorrowerExitPerimeterOps delegatecall backstop; the iToken tree charges INLINE
  * (LoanTokenLogicShared._chargeExitFeeAndPay) and therefore needs its own
- * adversarial proofs. This suite closes the review gaps:
+ * adversarial proofs, covering:
  *
  *   1. The controller pointer is the PROTOCOL SINGLETON: the iToken keeps no
  *      copy (no setExitFeeController on the beacon), its exitFeeController()

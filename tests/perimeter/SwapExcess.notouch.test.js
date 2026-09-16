@@ -1,5 +1,5 @@
 /**
- * Phase 3 / Task 3.4 — Swap-excess refund no-touch coverage.
+ * Swap-excess refund no-touch coverage.
  *
  * `LoanClosingsShared._handleCollateralReturn` (line 969) and
  * `_handleLoanTokenReturn` (line 1004) handle the case where the swap
@@ -55,7 +55,7 @@ const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
-contract("Perimeter — Swap-excess refund no-touch coverage (Phase 3 / Task 3.4)", (accounts) => {
+contract("Perimeter — swap-excess refund is not double-charged", (accounts) => {
     let owner, account1, feeReceiver;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
     let controller;

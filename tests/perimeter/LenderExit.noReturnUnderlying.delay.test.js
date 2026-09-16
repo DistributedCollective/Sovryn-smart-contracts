@@ -3,13 +3,12 @@
  * underlying.
  *
  * The delayed pull path in `_payExitUserLeg` must APPROVE the queue for the
- * user leg. The pre-fix code called a raw high-level `IERC20(underlying)
- * .approve(queue, amount)` which decodes a `bool` return — that REVERTS for a
- * USDT-style no-return ERC20 and DoS-es EVERY delayed lender burn whenever the
- * perimeter quotes `d > 0`. The fix routes both approve sites through the
- * repo's optional-return `_safeApprove` (`_callOptionalReturn`), matching how
+ * user leg. Both approve sites route through the repo's optional-return
+ * `_safeApprove` (`_callOptionalReturn`), matching how
  * `_transferUnderlyingToken` / `_safeTransfer` already tolerate no-return
- * tokens.
+ * tokens. A raw high-level `IERC20(underlying).approve(queue, amount)` call
+ * decodes a `bool` return, which REVERTS for a USDT-style no-return ERC20 and
+ * would DoS EVERY delayed lender burn whenever the perimeter quotes `d > 0`.
  *
  * This suite backs an iToken with `TestTokenNoReturn` (approve/transfer/
  * transferFrom return NOTHING, plus USDT's zero-first approve guard) and
@@ -20,7 +19,7 @@
  *   - the zero-first approve guard on the token is never tripped, proving the
  *     allowance returns to 0 after the pull (no dangling allowance).
  * A perimeter-OFF direct burn over the same no-return underlying is also
- * asserted (the pre-fix path never approved, so this is the control).
+ * asserted as the control, because a direct burn never approves the queue.
  *
  * Run:
  *   npx hardhat test tests/perimeter/LenderExit.noReturnUnderlying.delay.test.js
@@ -160,7 +159,8 @@ contract("Perimeter delay — lender exit over a no-return (USDT-style) underlyi
             const nrtBefore = await NRT.balanceOf(user);
             const queueBefore = await NRT.balanceOf(queue.address);
 
-            // Pre-fix: this burn reverted inside `_payExitUserLeg`'s raw approve.
+            // The burn succeeds because `_payExitUserLeg` approves the queue
+            // through the optional-return path.
             const tx = await iNRT.burn(user, burnAmount, false, { from: user });
             const gross = grossFromSkipped(tx.logs);
 

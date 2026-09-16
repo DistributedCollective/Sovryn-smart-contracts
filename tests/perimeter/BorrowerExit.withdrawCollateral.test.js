@@ -1,18 +1,19 @@
 /**
- * Phase 3 / Task 3.1 — Borrower-exit (`LoanMaintenance.withdrawCollateral`)
+ * Borrower-exit (`LoanMaintenance.withdrawCollateral`)
  * Perimeter coverage.
  *
  * Surface: `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW`.
  *
- * Scenarios (the first three mirror Phase 2 lender shape; the last two are
- * regression tests for Phase 3 review findings):
+ * Scenarios (the first three mirror the lender-exit shape; the last two pin
+ * the sub-product key and the proxy routing):
  *
  *   1. Perimeter globally disabled  → full gross to borrower, ExitFeeSkipped(INACTIVE).
  *   2. Surface default 25 bps    → fee receiver gets 25 bps of withdrawal,
  *                                   borrower gets net; gross == net + fee.
  *   3. WRBTC collateral path     → fee leg unwraps WRBTC → native, sent to
  *                                   feeReceiver; borrower receives net RBTC.
- *   4. Sub-product override key  → REGRESSION for review Finding 1. With
+ *   4. Sub-product override key  → the policy key is the pool, not the loan
+ *                                   token. With
  *                                   `subProductPolicy[lender] = 50 bps` AND
  *                                   `subProductPolicy[loanParams.loanToken]
  *                                   = 999 bps` (the wrong key), the borrower
@@ -21,7 +22,8 @@
  *                                   the hook is wired to the wrong subProduct.
  *   5. INVALID_QUOTE fallback    → controller returns `fee > gross` → full
  *                                   gross to user, ExitFeeSkipped(INVALID_QUOTE).
- *   6. Proxy routing             → REGRESSION for review Finding 2.
+ *   6. Proxy routing             → the perimeter selectors are reachable
+ *                                   through sovrynProtocol.
  *                                   `sovryn.exitFeeController()` and
  *                                   `sovryn.setExitFeeController(addr)` are
  *                                   reachable through sovrynProtocol (proves
@@ -73,7 +75,7 @@ const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
 //   0 NONE  1 INACTIVE  2 DISABLED  3 INVALID_QUOTE  4 CONTROLLER_REVERT  5 VAULT_REVERT
 const REASON = { NONE: 0, INACTIVE: 1, DISABLED: 2, INVALID_QUOTE: 3 };
 
-contract("Perimeter — borrower-exit withdrawCollateral (Phase 3 / Task 3.1)", (accounts) => {
+contract("Perimeter — borrower-exit withdrawCollateral", (accounts) => {
     let owner, account1, feeReceiver;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
     let controller;
@@ -104,8 +106,8 @@ contract("Perimeter — borrower-exit withdrawCollateral (Phase 3 / Task 3.1)", 
         await controller.setRate(25); // surface default 25 bps
         await controller.setFeeReceiverTest(feeReceiver);
 
-        // Proves Finding 2's fix: `setExitFeeController` is reachable through
-        // sovrynProtocol because LoanMaintenance.initialize registered it.
+        // `setExitFeeController` is reachable through sovrynProtocol because
+        // LoanMaintenance.initialize registered it.
         await sovryn.setExitFeeController(controller.address, { from: owner });
     }
 
@@ -281,7 +283,7 @@ contract("Perimeter — borrower-exit withdrawCollateral (Phase 3 / Task 3.1)", 
         });
     });
 
-    describe("Sub-product override REGRESSION (Finding 1: subProduct == loanLocal.lender)", () => {
+    describe("the sub-product key is the pool, not the loan token", () => {
         it("policy keyed by iToken pool (loanLocal.lender) is honored; underlying-token key is NOT", async () => {
             await controller.setExitFeeEnabledTest(true);
 
@@ -372,7 +374,7 @@ contract("Perimeter — borrower-exit withdrawCollateral (Phase 3 / Task 3.1)", 
         });
     });
 
-    describe("Proxy routing REGRESSION (Finding 2: selectors registered on sovrynProtocol)", () => {
+    describe("the perimeter selectors are registered on sovrynProtocol", () => {
         it("sovryn.exitFeeController() returns the pinned address", async () => {
             // Set in the fixture; just confirm read-through.
             const got = await sovryn.exitFeeController();
