@@ -297,9 +297,16 @@ task(
     .addParam("actor", "Actor address", undefined, types.string)
     .addOptionalParam(
         "half",
-        "fee | delay | both (submit only; ignored for revoke)",
+        "fee | delay | both (submit only; ignored for revoke). 'both' plans the single " +
+            "atomic grantExemption call — 'fee'/'delay' alone need --confirmHalf",
         "both",
         types.string
+    )
+    .addFlag(
+        "confirmHalf",
+        "Required with --half fee or --half delay on submit: acknowledges the exemption " +
+            "is left half-applied on purpose (finishing an earlier partial grant), not " +
+            "granted as an ordinary two-step process"
     )
     .addFlag("dryRun", "Print the plan without submitting anything")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
@@ -309,7 +316,10 @@ task(
         "ExitFeeController address (defaults to the deployment record or the protocol pointer)"
     )
     .setAction(
-        async ({ action, surface, actor, half, dryRun, signer, multisig, controller }, hre) => {
+        async (
+            { action, surface, actor, half, confirmHalf, dryRun, signer, multisig, controller },
+            hre
+        ) => {
             const { ethers: hreEthers } = hre;
             if (!["submit", "revoke"].includes(action)) {
                 throw new Error(
@@ -345,7 +355,7 @@ task(
 
             const plan =
                 action === "submit"
-                    ? policy.planExemption({ half, fee, bypass, build })
+                    ? policy.planExemption({ half, fee, bypass, build, confirmHalf })
                     : policy.planRevoke({ build, fee, bypass });
 
             if (plan.calls.length === 0) {

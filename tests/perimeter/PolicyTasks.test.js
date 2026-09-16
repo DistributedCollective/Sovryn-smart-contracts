@@ -169,6 +169,7 @@ describe("Perimeter policy — buildCall / decodeCall", () => {
             },
             removeActorBypass: { surface: LENDER_WITHDRAW, actor: COLLECTOR },
             revokeExemption: { surface: LENDER_WITHDRAW, actor: COLLECTOR },
+            grantExemption: { surface: LENDER_WITHDRAW, actor: COLLECTOR },
         })[kind];
 
     for (const kind of policy.CALL_KINDS) {
@@ -226,6 +227,7 @@ describe("Perimeter policy — buildCall / decodeCall", () => {
             ],
             ["removeActorBypass", { surface: LENDER_WITHDRAW, actor: COLLECTOR }],
             ["revokeExemption", { surface: LENDER_WITHDRAW, actor: COLLECTOR }],
+            ["grantExemption", { surface: LENDER_WITHDRAW, actor: COLLECTOR }],
         ];
 
         for (const [kind, args] of addressBearing) {
@@ -240,7 +242,14 @@ describe("Perimeter policy — buildCall / decodeCall", () => {
 });
 
 describe("Perimeter policy — planExemption", () => {
-    it("plans both halves, in order fee then delay, on the delay build when neither is written", () => {
+    // --half "both" (the default) on the delay build plans exactly one call,
+    // grantExemption, never the old two-separate-multisig-transactions shape
+    // — the whole point being that no on-chain state can ever read only one
+    // half applied. Regression for CON-R2-1: granting an exemption through
+    // two separate calls left a real window where the actor was fee-exempt
+    // but still held, or paid instantly with no hold at all while still
+    // being charged, between the two executing.
+    it("plans the single atomic grantExemption call on the delay build when neither half is written", () => {
         const { calls, alreadyDone } = policy.planExemption({
             half: "both",
             fee: { active: false, rateBps: 0 },
@@ -248,30 +257,32 @@ describe("Perimeter policy — planExemption", () => {
             build: "delay",
         });
         expect(alreadyDone).to.be.empty;
-        expect(calls.map((c) => c.half)).to.deep.equal(["fee", "delay"]);
-        expect(calls.map((c) => c.kind)).to.deep.equal(["setActorPolicy", "setActorBypass"]);
+        expect(calls).to.have.lengthOf(1);
+        expect(calls[0].kind).to.equal("grantExemption");
     });
 
-    it("skips the fee half once it already reads {true, 0}", () => {
+    it("still plans the atomic grantExemption call when only the fee half already reads exempt", () => {
         const { calls, alreadyDone } = policy.planExemption({
             half: "both",
             fee: { active: true, rateBps: 0 },
             bypass: { active: false, bypass: false },
             build: "delay",
         });
-        expect(alreadyDone).to.deep.equal(["fee"]);
-        expect(calls.map((c) => c.half)).to.deep.equal(["delay"]);
+        expect(alreadyDone).to.be.empty;
+        expect(calls).to.have.lengthOf(1);
+        expect(calls[0].kind).to.equal("grantExemption");
     });
 
-    it("skips the delay half once it already reads {true, true}", () => {
+    it("still plans the atomic grantExemption call when only the delay half already reads exempt", () => {
         const { calls, alreadyDone } = policy.planExemption({
             half: "both",
             fee: { active: false, rateBps: 0 },
             bypass: { active: true, bypass: true },
             build: "delay",
         });
-        expect(alreadyDone).to.deep.equal(["delay"]);
-        expect(calls.map((c) => c.half)).to.deep.equal(["fee"]);
+        expect(alreadyDone).to.be.empty;
+        expect(calls).to.have.lengthOf(1);
+        expect(calls[0].kind).to.equal("grantExemption");
     });
 
     it("skips everything once both halves already read exempt", () => {
@@ -285,7 +296,7 @@ describe("Perimeter policy — planExemption", () => {
         expect(alreadyDone.sort()).to.deep.equal(["delay", "fee"]);
     });
 
-    it("plans the fee half alone on the fee-only build", () => {
+    it("plans the fee half alone on the fee-only build, no confirmHalf needed", () => {
         const { calls, alreadyDone } = policy.planExemption({
             half: "fee",
             fee: { active: false, rateBps: 0 },
@@ -318,6 +329,55 @@ describe("Perimeter policy — planExemption", () => {
 
     it("rejects an unknown half", () => {
         expect(() => policy.planExemption({ half: "bogus", build: "delay" })).to.throw();
+    });
+
+    // --half "fee" / "delay" alone, on the delay build, is the narrow
+    // repair path for finishing an already half-applied exemption — it must
+    // not be reachable as an ordinary grant mode.
+    it("refuses --half fee alone on the delay build without confirmHalf", () => {
+        expect(() =>
+            policy.planExemption({
+                half: "fee",
+                fee: { active: false, rateBps: 0 },
+                bypass: { active: false, bypass: false },
+                build: "delay",
+            })
+        ).to.throw(/half-applied/);
+    });
+
+    it("refuses --half delay alone on the delay build without confirmHalf", () => {
+        expect(() =>
+            policy.planExemption({
+                half: "delay",
+                fee: { active: false, rateBps: 0 },
+                bypass: { active: false, bypass: false },
+                build: "delay",
+            })
+        ).to.throw(/half-applied/);
+    });
+
+    it("accepts --half fee alone on the delay build with confirmHalf, for finishing a partial grant", () => {
+        const { calls, alreadyDone } = policy.planExemption({
+            half: "fee",
+            fee: { active: false, rateBps: 0 },
+            bypass: { active: true, bypass: true }, // the delay half already landed
+            build: "delay",
+            confirmHalf: true,
+        });
+        expect(alreadyDone).to.be.empty;
+        expect(calls).to.have.lengthOf(1);
+        expect(calls[0].kind).to.equal("setActorPolicy");
+    });
+
+    it("does not require confirmHalf for 'both', even on the delay build", () => {
+        expect(() =>
+            policy.planExemption({
+                half: "both",
+                fee: { active: false, rateBps: 0 },
+                bypass: { active: false, bypass: false },
+                build: "delay",
+            })
+        ).to.not.throw();
     });
 });
 

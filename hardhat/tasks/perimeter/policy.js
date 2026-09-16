@@ -148,6 +148,7 @@ const CONTROLLER_ABI = [
     "function setActorBypass(bytes32, address, tuple(bool active, bool bypass))",
     "function removeActorBypass(bytes32, address)",
     "function revokeExemption(bytes32, address)",
+    "function grantExemption(bytes32, address)",
 ];
 
 const controllerInterface = () => new ethers.utils.Interface(CONTROLLER_ABI);
@@ -212,6 +213,7 @@ const CALL_KINDS = Object.freeze([
     "setActorBypass",
     "removeActorBypass",
     "revokeExemption",
+    "grantExemption",
 ]);
 
 /** A BigNumber (from a decoded call) or a plain JS number (from a freshly
@@ -446,6 +448,16 @@ const CALL_DEFS = {
             `withdraws ${actor}'s exemption on ${surfaceLabel(id)}: charged at the surface rate ` +
             "again and held again even under a wider bypass",
     },
+
+    grantExemption: {
+        build: ({ surface, actor }) => [
+            surfaceIdOf(surface),
+            requireAddress(actor, "grantExemption: actor"),
+        ],
+        meaning: ([id, actor]) =>
+            `grants ${actor} a full exemption on ${surfaceLabel(id)} in one call: fee-exempt and ` +
+            "delay-bypassed together, never one without the other",
+    },
 };
 
 /** selector -> {kind, signature}, built once from the interface itself so the
@@ -511,14 +523,26 @@ const describeDelayEntry = (entry, tier) => {
 };
 
 /**
- * Decide which halves of an actor-tier exemption still need to be submitted.
- * `fee`/`bypass` are the entries currently on chain; `build` is "fee-only" or
- * "delay". The fee half is skipped once it already reads {true, 0}; the delay
- * half once it already reads {true, true}. Requesting the delay half (via
- * "delay" or "both") on the fee-only build throws — that half does not exist
- * there yet.
+ * Decide which call(s) grant an actor-tier exemption. `fee`/`bypass` are the
+ * entries currently on chain; `build` is "fee-only" or "delay". Requesting
+ * the delay half (via "delay" or "both") on the fee-only build throws — that
+ * half does not exist there yet.
+ *
+ * `half === "both"` (the default) on the delay build is the ONLY path that
+ * grants a fresh exemption: it plans the single atomic `grantExemption` call
+ * (mirroring `revokeExemption`), never the old two-separate-multisig-
+ * transactions shape, because between those two executing an actor could be
+ * fee-exempt but still held, or paid instantly with no hold at all while
+ * still being charged — a real, reachable gap this must not reintroduce.
+ * `half === "fee"` / `"delay"` alone still plan the individual call, for the
+ * narrow case of finishing an exemption a prior, already-executed partial
+ * grant left half-applied — but only with `confirmHalf: true`. Without it,
+ * on the delay build (the only build where a surviving other half is
+ * possible), this throws rather than silently building a call that leaves
+ * the exemption half-applied: that gap is a real fee/delay mismatch, not a
+ * display artifact, so it needs a deliberate acknowledgement, not a default.
  */
-const planExemption = ({ half = "both", fee, bypass, build } = {}) => {
+const planExemption = ({ half = "both", fee, bypass, build, confirmHalf = false } = {}) => {
     if (!["fee", "delay", "both"].includes(half)) {
         throw new Error(`planExemption: half must be 'fee', 'delay', or 'both', got '${half}'`);
     }
@@ -527,6 +551,24 @@ const planExemption = ({ half = "both", fee, bypass, build } = {}) => {
             "planExemption: the delay half does not exist on the fee-only build — submit it " +
                 "after the controller upgrade"
         );
+    }
+    if (half !== "both" && build === "delay" && !confirmHalf) {
+        throw new Error(
+            `planExemption: --half ${half} leaves the exemption half-applied on this surface ` +
+                "until the other half is submitted separately - a real fee/delay mismatch, not " +
+                "a display artifact. Omit --half (default 'both') for the single atomic " +
+                `grantExemption call, or pass --confirmHalf to submit just the ${half} half ` +
+                "anyway (finishing an earlier partial grant)."
+        );
+    }
+
+    if (half === "both" && build === "delay") {
+        const feeDone = Boolean(fee && fee.active && toNumber(fee.rateBps) === 0);
+        const delayDone = Boolean(bypass && bypass.active && bypass.bypass === true);
+        if (feeDone && delayDone) {
+            return { calls: [], alreadyDone: ["fee", "delay"] };
+        }
+        return { calls: [{ kind: "grantExemption" }], alreadyDone: [] };
     }
 
     const calls = [];
