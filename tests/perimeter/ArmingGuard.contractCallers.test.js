@@ -560,7 +560,9 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
                 .null;
             expect(error.message).to.include("[unregistered-surface-bypass]");
             expect(error.message).to.include(LENDER_WITHDRAW);
-            expect(error.message).to.include("Every withdrawal on this surface pays out with no hold");
+            expect(error.message).to.include(
+                "Every withdrawal on this surface pays out with no hold"
+            );
         });
 
         it("refuses an active sub-product-tier bypass nobody registered, naming the pool", async () => {
@@ -572,8 +574,8 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
                 true
             );
             const error = await thrownBy(controller);
-            expect(error, "an unregistered sub-product bypass must refuse certification").to.not
-                .be.null;
+            expect(error, "an unregistered sub-product bypass must refuse certification").to.not.be
+                .null;
             expect(error.message).to.include("[unregistered-subproduct-bypass]");
             expect(error.message).to.include(SUBPRODUCT);
         });
@@ -587,8 +589,7 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
                 true
             );
             const error = await thrownBy(controller);
-            expect(error, "an unregistered actor bypass must refuse certification").to.not.be
-                .null;
+            expect(error, "an unregistered actor bypass must refuse certification").to.not.be.null;
             expect(error.message).to.include("[unregistered-actor-bypass]");
             expect(error.message).to.include(UNREGISTERED_ACTOR);
         });
