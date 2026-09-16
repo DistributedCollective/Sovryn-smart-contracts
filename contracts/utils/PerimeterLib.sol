@@ -88,7 +88,7 @@ library PerimeterLib {
     ///             a quote that reverts reverts the whole exit, so
     ///             an active perimeter can never be silently bypassed.
     ///         Accepted residual: a missing pointer silently disables the
-    ///         perimeter for that host until governance re-pins it. This is NOT
+    ///         perimeter for that host until the Owner re-pins it. This is NOT
     ///         attacker-reachable (setting the pointer is an Owner/SIP action)
     ///         and is covered by the go-live wiring assertion plus
     ///         off-chain pointer monitoring.
@@ -114,7 +114,7 @@ library PerimeterLib {
         bytes32(uint256(keccak256("sovryn.perimeterExitDelayQueue")) - 1);
 
     /// @notice Read the calling contract's pinned queue from the shared slot
-    ///         (address(0) until governance pins one). An unwired queue pays
+    ///         (address(0) until the Owner pins one). An unwired queue pays
     ///         direct ONLY when the perimeter quotes `d == 0`; once `d > 0` the
     ///         caller must escrow, so an unresolvable queue fails CLOSED (the
     ///         exit reverts) — a delay can never be silently bypassed by an

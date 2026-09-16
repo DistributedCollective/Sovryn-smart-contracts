@@ -36,7 +36,7 @@ contract BorrowerExitPerimeter is ModuleCommonFunctionalities, VaultController {
     }
 
     /// @notice The ExitDelayQueue pinned on the protocol singleton (address(0)
-    ///         until governance pins one ⇒ the security-perimeter reroute is
+    ///         until the Owner pins one ⇒ the security-perimeter reroute is
     ///         unwired ⇒ borrower exits pay direct). Reads the shared slot on the
     ///         protocol proxy's own storage — no cross-contract call — because the
     ///         borrower/margin modules ALREADY run in the protocol singleton

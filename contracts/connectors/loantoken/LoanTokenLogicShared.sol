@@ -41,7 +41,7 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     }
 
     /// @notice The ExitDelayQueue, read from the protocol singleton via a
-    ///         fail-open staticcall (address(0) until governance pins one ⇒ the
+    ///         fail-open staticcall (address(0) until the Owner pins one ⇒ the
     ///         security-perimeter reroute is unwired ⇒ the burn pays direct).
     ///         Mirrors `exitFeeController()`: a single protocol-side pointer that
     ///         every iToken reads through, so rotation is one Owner/SIP action.
