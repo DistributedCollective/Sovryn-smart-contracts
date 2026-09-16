@@ -758,3 +758,40 @@ describe("Perimeter policy — pairingViolationAfterCall", () => {
         });
     }
 });
+
+describe("Perimeter policy — ACTOR_TIER_PAIR_CALLS", () => {
+    // Regression within CON-R2-3's own fix: policy:check-tx used
+    // decoded.args[0]/[1] as (surfaceId, actor) for EVERY recognized call
+    // kind, not only the ones actually shaped that way. setSurfacePolicy's
+    // second arg is a rate tuple, setSubProductPolicy/removeSubProductPolicy's
+    // second arg is a sub-product address (not an actor), and
+    // setExitFeeEnabled/setFeeReceiver do not carry a surfaceId at all -
+    // querying the controller with those as (surfaceId, actor) would have
+    // crashed check-tx outright for exactly the calls the arming guard and
+    // the fee tasks submit most often. This set is what check-tx gates on
+    // before attempting that query.
+    it("contains exactly the six calls whose first two args are (surfaceId, actor)", () => {
+        expect([...policy.ACTOR_TIER_PAIR_CALLS].sort()).to.deep.equal(
+            [
+                "setActorPolicy",
+                "removeActorPolicy",
+                "setActorBypass",
+                "removeActorBypass",
+                "grantExemption",
+                "revokeExemption",
+            ].sort()
+        );
+    });
+
+    for (const kind of [
+        "setSurfacePolicy",
+        "setSubProductPolicy",
+        "removeSubProductPolicy",
+        "setExitFeeEnabled",
+        "setFeeReceiver",
+    ]) {
+        it(`excludes ${kind} - its args are not (surfaceId, actor)`, () => {
+            expect(policy.ACTOR_TIER_PAIR_CALLS.has(kind)).to.be.false;
+        });
+    }
+});

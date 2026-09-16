@@ -713,6 +713,24 @@ const SINGLE_HALF_ACTOR_CALLS = new Set([
 ]);
 
 /**
+ * Every call kind whose first two decoded args are `(surfaceId, actor)` —
+ * the four single-half setters above plus the two atomic ones. A caller
+ * (namely `perimeter:policy:check-tx`) needs this to know when `args[0]`/
+ * `args[1]` are even safe to read as `(surfaceId, actor)` before querying
+ * the controller with them: `setSurfacePolicy`'s second arg is a rate
+ * tuple, `setSubProductPolicy`/`removeSubProductPolicy`'s second arg is a
+ * sub-product address (not an actor), and `setExitFeeEnabled`/
+ * `setFeeReceiver` do not carry a surfaceId at all — treating any of those
+ * as `(surfaceId, actor)` would query the controller with the wrong shape
+ * entirely, not just the wrong meaning.
+ */
+const ACTOR_TIER_PAIR_CALLS = new Set([
+    ...SINGLE_HALF_ACTOR_CALLS,
+    "grantExemption",
+    "revokeExemption",
+]);
+
+/**
  * Would executing this ALREADY-DECODED controller call leave the named
  * actor's fee/delay pair half-applied - one half reading as an exemption,
  * the other not? `currentFee`/`currentBypass` are that actor's entries as
@@ -789,6 +807,7 @@ module.exports = {
     unionAddresses,
     isFeeExempt,
     isDelayBypassing,
+    ACTOR_TIER_PAIR_CALLS,
     pairingViolationAfterCall,
     describeFeeEntry,
     describeDelayEntry,

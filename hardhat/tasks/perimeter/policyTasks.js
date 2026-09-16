@@ -785,7 +785,7 @@ task(
         }
         logger.info(`Call:     ${decoded.signature} — ${decoded.meaning}`);
 
-        if (build === "delay") {
+        if (build === "delay" && policy.ACTOR_TIER_PAIR_CALLS.has(decoded.kind)) {
             const surfaceIdArg = decoded.args[0];
             const actorArg = decoded.args[1];
             const currentFee = await controllerContract.actorPolicy(surfaceIdArg, actorArg);
