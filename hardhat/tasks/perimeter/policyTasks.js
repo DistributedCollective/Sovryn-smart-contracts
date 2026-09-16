@@ -424,8 +424,11 @@ task(
 
             const resolvedSurface = policy.resolveSurface(surface);
             const parsedRate = policy.parseRate(rate);
-            const { address: controllerAddress, controller: controllerContract } =
-                await attachController(hre, controller);
+            const {
+                address: controllerAddress,
+                controller: controllerContract,
+                build,
+            } = await attachController(hre, controller);
 
             let kind;
             let tier;
@@ -449,6 +452,20 @@ task(
             } else {
                 kind = "setSurfacePolicy";
                 tier = "surface";
+            }
+
+            if (tier === "actor") {
+                const bypass =
+                    build === "delay"
+                        ? await controllerContract.actorBypass(resolvedSurface.id, address)
+                        : undefined;
+                const warning = policy.survivingBypassWarning({
+                    build,
+                    bypass,
+                    actor: address,
+                    surfaceId: resolvedSurface.id,
+                });
+                if (warning) logger.warn(warning);
             }
 
             const current =
@@ -530,8 +547,11 @@ task(
             }
 
             const resolvedSurface = policy.resolveSurface(surface);
-            const { address: controllerAddress, controller: controllerContract } =
-                await attachController(hre, controller);
+            const {
+                address: controllerAddress,
+                controller: controllerContract,
+                build,
+            } = await attachController(hre, controller);
 
             let tier;
             let kind;
@@ -552,6 +572,20 @@ task(
                 }
                 tier = "actor";
                 kind = "removeActorPolicy";
+            }
+
+            if (tier === "actor") {
+                const bypass =
+                    build === "delay"
+                        ? await controllerContract.actorBypass(resolvedSurface.id, address)
+                        : undefined;
+                const warning = policy.survivingBypassWarning({
+                    build,
+                    bypass,
+                    actor: address,
+                    surfaceId: resolvedSurface.id,
+                });
+                if (warning) logger.warn(warning);
             }
 
             const entry =

@@ -417,3 +417,65 @@ describe("Perimeter policy — implementationFromSlot", () => {
         expect(() => policy.implementationFromSlot(slotValue)).to.throw(/not a plausible/);
     });
 });
+
+describe("Perimeter policy — survivingBypassWarning", () => {
+    const activeBypass = { active: true, bypass: true };
+    const surfaceId = policy.SURFACES[LENDER_WITHDRAW];
+
+    it("warns that the actor still bypasses the delay when the fee-tier tasks touch it on the delay build", () => {
+        const warning = policy.survivingBypassWarning({
+            build: "delay",
+            bypass: activeBypass,
+            actor: COLLECTOR,
+            surfaceId,
+        });
+        expect(warning).to.be.a("string");
+        expect(warning).to.include(COLLECTOR);
+        expect(warning).to.match(/withdrawal delay/);
+        expect(warning).to.match(/perimeter:exemption --action revoke/);
+    });
+
+    it("says nothing on the fee-only build, even with an active bypass shape passed in", () => {
+        expect(
+            policy.survivingBypassWarning({
+                build: "fee-only",
+                bypass: activeBypass,
+                actor: COLLECTOR,
+                surfaceId,
+            })
+        ).to.be.undefined;
+    });
+
+    it("says nothing when the bypass entry is inactive", () => {
+        expect(
+            policy.survivingBypassWarning({
+                build: "delay",
+                bypass: { active: false, bypass: true },
+                actor: COLLECTOR,
+                surfaceId,
+            })
+        ).to.be.undefined;
+    });
+
+    it("says nothing when the bypass entry is active without bypass set — that forces the delay, not lifts it", () => {
+        expect(
+            policy.survivingBypassWarning({
+                build: "delay",
+                bypass: { active: true, bypass: false },
+                actor: COLLECTOR,
+                surfaceId,
+            })
+        ).to.be.undefined;
+    });
+
+    it("says nothing when there is no bypass entry at all", () => {
+        expect(
+            policy.survivingBypassWarning({
+                build: "delay",
+                bypass: undefined,
+                actor: COLLECTOR,
+                surfaceId,
+            })
+        ).to.be.undefined;
+    });
+});

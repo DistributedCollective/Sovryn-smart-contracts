@@ -584,6 +584,26 @@ const planRevoke = ({ build, fee, bypass } = {}) => {
     throw new Error(`planRevoke: build must be 'fee-only' or 'delay', got '${build}'`);
 };
 
+/**
+ * The warning `perimeter:fee:set --actor` and `perimeter:fee:remove --actor`
+ * print on the delay build when the actor still carries a delay bypass:
+ * changing or removing the fee half never touches the bypass, so the address
+ * keeps skipping the withdrawal delay on this surface even though the
+ * operator's fee edit reads, on its own output, like the address's whole
+ * record. `undefined` when there is nothing to warn about — the fee-only
+ * build (the bypass field does not exist there yet), no bypass entry, or one
+ * that is not active-and-bypassing.
+ */
+const survivingBypassWarning = ({ build, bypass, actor, surfaceId } = {}) => {
+    if (build !== "delay") return undefined;
+    if (!bypass || bypass.active !== true || bypass.bypass !== true) return undefined;
+    return (
+        `${actor} still bypasses the withdrawal delay on ${surfaceLabel(surfaceId)} — this call ` +
+        "only changes the Perimeter fee. `perimeter:exemption --action revoke` is the call that " +
+        "withdraws both halves."
+    );
+};
+
 module.exports = {
     SURFACES,
     SURFACES_WITHOUT_SUBPRODUCT,
@@ -601,4 +621,5 @@ module.exports = {
     describeDelayEntry,
     planExemption,
     planRevoke,
+    survivingBypassWarning,
 };
