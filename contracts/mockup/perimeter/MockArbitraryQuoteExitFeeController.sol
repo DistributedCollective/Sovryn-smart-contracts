@@ -205,4 +205,6 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
     function removeActorBypasses(bytes32, address[] calldata) external {}
 
     function revokeExemption(bytes32, address) external {}
+
+    function grantExemption(bytes32, address) external {}
 }

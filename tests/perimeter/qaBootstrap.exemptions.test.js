@@ -55,6 +55,10 @@ const DELAY_BUILD_ONLY = [
     "subProductBypassKeys",
     "subProductBypass",
     "actorBypassKeys",
+    // The atomic grant `writeExemptionEntries` prefers over the two
+    // half-writes — the fee-only build has no delay half to grant, so it
+    // never serves this either.
+    "grantExemption",
 ];
 const RECORDED = [
     "actorPolicy",
@@ -87,8 +91,10 @@ describe("Perimeter — the QA fork writes the owner's exemptions before it arms
 
     /**
      * The mock as the bootstrap reaches it. `storesDelayWrite: false` accepts the
-     * delay entry without storing it; `feeReadFails: true` makes every fee read
-     * throw, whatever is stored.
+     * delay entry without storing it - through the two-call path (`setActorBypass`)
+     * and through the atomic one (`grantExemption`, which then stores only the fee
+     * half, the same partial outcome by a different route); `feeReadFails: true`
+     * makes every fee read throw, whatever is stored.
      */
     const controllerSeenByBootstrap = ({ storesDelayWrite = true, feeReadFails = false } = {}) => {
         const target = {};
@@ -105,6 +111,10 @@ describe("Perimeter — the QA fork writes the owner's exemptions before it arms
                 }
                 if (!storesDelayWrite && name === "setActorBypass") {
                     return { wait: async () => ({}) };
+                }
+                if (!storesDelayWrite && name === "grantExemption") {
+                    const [surfaceId, actor] = args;
+                    return mock.setActorPolicy(surfaceId, actor, { active: true, rateBps: 0 });
                 }
                 return mock[name](...args);
             };
@@ -225,18 +235,16 @@ describe("Perimeter — the QA fork writes the owner's exemptions before it arms
             servesDelayBuild = true;
         });
 
-        it("on a fork attached to after the upgrade, writes the fee entry, then the delay entry, and arms only once both read back", async () => {
+        it("on a fork attached to after the upgrade, grants the exemption atomically and arms only once both halves read back", async () => {
             await arm(controllerSeenByBootstrap());
 
             const order = names();
-            const feeWrite = order.indexOf("setActorPolicy");
-            const delayWrite = order.indexOf("setActorBypass");
+            const grant = order.indexOf("grantExemption");
             const armedAt = firstArming();
-            expect(feeWrite, "the fee entry is written").to.be.greaterThan(-1);
-            expect(feeWrite, "the fee entry goes in first").to.be.lessThan(delayWrite);
-            expect(delayWrite, "both entries go in before the hold").to.be.lessThan(armedAt);
+            expect(grant, "the exemption is granted").to.be.greaterThan(-1);
+            expect(grant, "the grant goes in before the hold").to.be.lessThan(armedAt);
             expect(
-                order.slice(delayWrite + 1, armedAt),
+                order.slice(grant + 1, armedAt),
                 "both halves read back before the hold"
             ).to.include.members(["actorPolicy", "actorBypass"]);
 
@@ -266,7 +274,10 @@ describe("Perimeter — the QA fork writes the owner's exemptions before it arms
 
             await arm(controllerSeenByBootstrap());
 
-            expect(names()).to.include.members(["setActorPolicy", "setActorBypass"]);
+            // Neither stored half reads as the exemption, so this is the
+            // "neither half exists yet" case as far as the bootstrap can
+            // tell - it grants atomically rather than patching either half.
+            expect(names()).to.include("grantExemption");
             await expectWholeExemptionStored();
         });
 

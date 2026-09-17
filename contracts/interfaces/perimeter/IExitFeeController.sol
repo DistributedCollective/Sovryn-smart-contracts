@@ -274,4 +274,10 @@ interface IExitFeeController {
     ///         inactive (surface rate applies), the delay entry active with no
     ///         bypass (delayed whatever a wider tier says). Owner-only.
     function revokeExemption(bytes32 surfaceId, address actor) external;
+
+    /// @notice Grant an actor-tier exemption in one call: the fee entry
+    ///         {active: true, rateBps: 0}, the delay entry {active: true,
+    ///         bypass: true} — both halves together, never one without the
+    ///         other. Owner-only.
+    function grantExemption(bytes32 surfaceId, address actor) external;
 }

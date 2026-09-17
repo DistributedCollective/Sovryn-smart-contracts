@@ -455,4 +455,21 @@ contract MockExitFeeController is IExitFeeController {
     function removeActorBypasses(bytes32, address[] calldata) external {}
 
     function revokeExemption(bytes32, address) external {}
+
+    /// @notice Mirrors the real controller's atomic `grantExemption`: the fee
+    ///         entry {active: true, rateBps: 0} and the delay entry
+    ///         {active: true, bypass: true}, both halves together, enumerated
+    ///         the same way `setActorBypass` is so the arming guard's reader
+    ///         discovers it.
+    function grantExemption(bytes32 surfaceId, address actor) external {
+        _actorPolicyActive[surfaceId][actor] = true;
+        _actorPolicyRate[surfaceId][actor] = 0;
+        _actorBypassActive[surfaceId][actor] = true;
+        _actorBypassValue[surfaceId][actor] = true;
+        if (!_actorBypassSeen[surfaceId][actor]) {
+            _actorBypassSeen[surfaceId][actor] = true;
+            _actorBypassKeysList[surfaceId].push(actor);
+        }
+        _recordBypassSurface(surfaceId);
+    }
 }
