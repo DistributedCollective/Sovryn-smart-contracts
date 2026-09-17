@@ -215,8 +215,7 @@ task(
         // (e.g. an unset shell variable interpolated into a wrapper script)
         // must refuse rather than silently widen a one-address/one-pool/
         // one-surface inspection into the "every surface" default listing.
-        const actorAddress =
-            actor !== undefined ? hreEthers.utils.getAddress(actor) : undefined;
+        const actorAddress = actor !== undefined ? hreEthers.utils.getAddress(actor) : undefined;
         const subProductAddress =
             subproduct !== undefined ? hreEthers.utils.getAddress(subproduct) : undefined;
 
