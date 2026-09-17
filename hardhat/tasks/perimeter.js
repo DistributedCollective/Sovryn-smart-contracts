@@ -166,9 +166,7 @@ task(
         let address;
         if (controller) {
             if (!hreEthers.utils.isAddress(controller)) {
-                throw new Error(
-                    `perimeter:verify-arming: '${controller}' is not a valid address`
-                );
+                throw new Error(`perimeter:verify-arming: '${controller}' is not a valid address`);
             }
             address = hreEthers.utils.getAddress(controller);
         } else {
