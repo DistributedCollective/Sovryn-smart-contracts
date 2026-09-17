@@ -649,13 +649,11 @@ const execute = async (s, id, opts = {}) => {
             if (after.status !== STATUS.Executed) {
                 return `request ${id} is ${STATUS_NAMES[after.status]}, not Executed`;
             }
-            const gas =
-                native &&
-                ethers.utils.getAddress(executor) === ethers.utils.getAddress(request.receiver)
-                    ? receipt.gasUsed.mul(receipt.effectiveGasPrice)
-                    : ethers.constants.Zero;
-            const want = before.add(request.amount).sub(gas);
-            const got = await balanceOf();
+            const raw = await balanceOf();
+            const got = native
+                ? gas.creditedDelta(raw, request.receiver, [gas.chargeOf(receipt)])
+                : raw;
+            const want = before.add(request.amount);
             return got.eq(want) ? true : `the receiver holds ${got}, not the expected ${want}`;
         },
     });
