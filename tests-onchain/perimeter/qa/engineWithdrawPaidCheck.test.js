@@ -240,7 +240,11 @@ describe("QA scenario engine — withdraw's direct-pay branch requires a real pa
             const before = await ethers.provider.getBalance(opts.receiver);
             // Defective: no request id (claims the perimeter paid direct) AND
             // no actual transfer to the receiver.
-            return { id: null, before: { receiver: before }, subProduct: ethers.constants.AddressZero };
+            return {
+                id: null,
+                before: { receiver: before },
+                subProduct: ethers.constants.AddressZero,
+            };
         };
 
         let raised = null;
@@ -305,7 +309,11 @@ describe("QA scenario engine — withdraw's direct-pay branch accepts a correctl
             // Nothing paid, nothing queued — but the controller's active
             // policy for this actor charges exactly 100%, so a genuine
             // direct-pay withdrawal nets the receiver 0 by construction.
-            return { id: null, before: { receiver: before }, subProduct: ethers.constants.AddressZero };
+            return {
+                id: null,
+                before: { receiver: before },
+                subProduct: ethers.constants.AddressZero,
+            };
         };
         fakeS.controller = {
             securityPerimeterEnabled: async () => true,
@@ -328,7 +336,11 @@ describe("QA scenario engine — withdraw's direct-pay branch accepts a correctl
     it("still refuses a zero payment when the controller's own quote does NOT net 0 — an ordinary rate", async () => {
         drivers.SURFACE_DRIVERS.__qaTestDirectZeroNetUnquoted = async (s, signer, opts) => {
             const before = await ethers.provider.getBalance(opts.receiver);
-            return { id: null, before: { receiver: before }, subProduct: ethers.constants.AddressZero };
+            return {
+                id: null,
+                before: { receiver: before },
+                subProduct: ethers.constants.AddressZero,
+            };
         };
         fakeS.controller = {
             securityPerimeterEnabled: async () => true,
