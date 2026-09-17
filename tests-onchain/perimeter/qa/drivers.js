@@ -200,9 +200,14 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         originator: await nativeBalance(originator),
         receiver: await nativeBalance(receiver),
     };
-    // The lender surface pays its fee leg in the iToken's underlying (WRBTC),
-    // never native — see LoanTokenLogicShared._chargeExitFeeAndPay.
-    const feeBefore = await s.wrbtc.balanceOf(feeReceiver);
+    // burnToBTC pays its fee leg in NATIVE RBTC, never the iToken's WRBTC
+    // underlying: it runs through LoanTokenLogicWrbtcLM
+    // ._chargeExitFeeAndPayAsNative, whose fee transfer is
+    // _transferNativeRBTC — unwrap WRBTC held by the iToken, then a
+    // low-level native call to the fee receiver. (The ERC20-underlying fee
+    // path, LoanTokenLogicShared._chargeExitFeeAndPay, belongs to the plain
+    // burn() entry point, which this driver never calls.)
+    const feeBefore = await nativeBalance(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
     const receipt = await (
         await s.iRBTC.connect(signer).burnToBTC(receiver, minted, false)
@@ -217,14 +222,14 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
     );
     if (!request) return { id, request, receipt, before };
     // owner == rawOriginator == msg.sender by construction on this surface —
-    // burn(receiver, amt) burns the CALLER's own iTokens; see
-    // LoanTokenLogicShared._payExitUserLeg.
+    // burnToBTC(receiver, amt) burns the CALLER's own iTokens; see
+    // LoanTokenLogicWrbtcLM._payExitUserLegNative.
     assertRequestParties("lender withdrawal", request, {
         originator,
         owner: originator,
         receiver,
     });
-    const feeAfter = await s.wrbtc.balanceOf(feeReceiver);
+    const feeAfter = await nativeBalance(feeReceiver);
     const fee = await assertExitFeeAccounted(s, {
         label: "lender withdrawal",
         surfaceId: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
