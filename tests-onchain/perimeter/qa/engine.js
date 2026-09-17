@@ -240,7 +240,10 @@ const POSTCONDITIONS = {
         }
         return true;
     },
-    refundResolved: async (s, { ids, wantStatus, token, destination, before, total, gasCharges }) => {
+    refundResolved: async (
+        s,
+        { ids, wantStatus, token, destination, before, total, gasCharges }
+    ) => {
         for (const id of ids) {
             const after = await s.queue.getRequest(id);
             if (after.status !== STATUS[wantStatus]) {
@@ -259,9 +262,7 @@ const POSTCONDITIONS = {
         // the receipt to hand.
         const raw = await balanceReader(token)(destination);
         const got =
-            token === ZERO_ADDRESS
-                ? gas.creditedDelta(raw, destination, gasCharges || [])
-                : raw;
+            token === ZERO_ADDRESS ? gas.creditedDelta(raw, destination, gasCharges || []) : raw;
         const want = ethers.BigNumber.from(before).add(total);
         return got.eq(want) ? true : `${destination} holds ${got}, not the expected ${want}`;
     },
@@ -344,7 +345,10 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
                 if (postcondition) {
                     postcondition.args = {
                         ...postcondition.args,
-                        gasCharges: [...(postcondition.args.gasCharges || []), gas.chargeOf(receipt)],
+                        gasCharges: [
+                            ...(postcondition.args.gasCharges || []),
+                            gas.chargeOf(receipt),
+                        ],
                     };
                 }
                 if (!(await s.multisig.transactions(txId)).executed) {
@@ -978,7 +982,10 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
             [[true, surfaceId, subProduct, token, destination, topUp]],
             {
                 ...opts,
-                postcondition: { kind: "recoveryRouteActive", args: { routeId, topUpPool: topUp } },
+                postcondition: {
+                    kind: "recoveryRouteActive",
+                    args: { routeId, topUpPool: topUp },
+                },
             }
         )
     );
