@@ -197,15 +197,84 @@ const calldataFor = (s, target, contract, signature, args) => {
 };
 
 /**
+ * Reconstructable checks for what a multisig-submitted command was supposed
+ * to establish, keyed by a `{kind, args}` descriptor plain enough to survive
+ * a round trip through the state file's JSON. `viaMultisig` runs one of these
+ * at submission time, and `confirm` — very often a SEPARATE process
+ * invocation, run after the transaction has gone pending — re-runs the exact
+ * same one, reading the state the wallet's own `executed` flag alone cannot
+ * speak to: whether the target contract actually ended up where the command
+ * meant to leave it.
+ */
+const POSTCONDITIONS = {
+    blockState: async (s, { addresses, want }) => {
+        const target = BLOCK[want];
+        for (const address of addresses) {
+            const state = await s.queue.blockStateOf(address);
+            if (state !== target) return `${address} is ${BLOCK_NAMES[state]}, not ${want}`;
+        }
+        return true;
+    },
+    queuePaused: async (s, { want }) =>
+        (await s.queue.securityPerimeterPaused()) === want
+            ? true
+            : `the queue reports paused=${!want}`,
+    perimeterEnabled: async (s, { want }) =>
+        (await s.controller.securityPerimeterEnabled()) === want
+            ? true
+            : `the controller reports enabled=${!want}`,
+    topUpFeasible: async (s, { surfaceId }) =>
+        (await s.queue.topUpFeasible(surfaceId)) ? true : "the surface is still marked infeasible",
+    recoveryRouteActive: async (s, { routeId }) =>
+        (await s.queue.getRecoveryRoute(routeId)).active ? true : `route ${routeId} is not active`,
+    refundResolved: async (s, { ids, wantStatus, token, destination, before, total }) => {
+        for (const id of ids) {
+            const after = await s.queue.getRequest(id);
+            if (after.status !== STATUS[wantStatus]) {
+                return `request ${id} is ${STATUS_NAMES[after.status]}, not ${wantStatus}`;
+            }
+        }
+        const got = await balanceReader(token)(destination);
+        const want = ethers.BigNumber.from(before).add(total);
+        return got.eq(want) ? true : `${destination} holds ${got}, not the expected ${want}`;
+    },
+};
+
+/**
+ * Re-run a persisted postcondition descriptor. A command with nothing to
+ * check (none of the levers below leave one unset) reads as trivially true;
+ * an UNRECOGNIZED kind throws rather than passing silently — that means this
+ * file's own postcondition table and its command sites have drifted apart,
+ * not that the command applied.
+ */
+const runPostcondition = async (s, postcondition) => {
+    if (!postcondition) return true;
+    const check = POSTCONDITIONS[postcondition.kind];
+    if (!check) {
+        throw new Error(
+            `perimeter:qa: no postcondition checker registered for '${postcondition.kind}'`
+        );
+    }
+    return check(s, postcondition.args || {});
+};
+
+/**
  * One operator lever, submitted to the Exchequer from the test key.
  *
  * At threshold 1 the submission executes on the spot. Above it the transaction
  * is left pending for `confirm`, which is a different outcome from a lever that
  * ran and did nothing — the two are never reported the same way.
+ *
+ * `opts.postcondition` is what the caller wants ESTABLISHED, not just the
+ * wallet's own `executed` flag — the same descriptor is carried on the
+ * returned record (and so into the state file `appendState` writes it to),
+ * so a later `confirm` on the same transaction id can re-run it rather than
+ * trusting `executed` alone.
  */
 const viaMultisig = async (s, label, target, contract, signature, args, opts = {}) => {
     const log = logOf(opts);
     const encoded = calldataFor(s, target, contract, signature, args);
+    const postcondition = opts.postcondition || null;
     if (opts.viaConsole) {
         log(`  CALLDATA  ${label}`);
         log(`    target             ${encoded.target}`);
@@ -215,7 +284,7 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
         log(`    calldata           ${encoded.calldata}`);
         log(`    multisig           ${encoded.multisig}`);
         log(`    submitTransaction  ${encoded.multisigCalldata}`);
-        return { ...encoded, sent: false, applied: null, txId: null };
+        return { ...encoded, sent: false, applied: null, txId: null, postcondition };
     }
 
     const key = testKeySigner(s);
@@ -243,7 +312,7 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
                     const why = await innerCallReason(s, contract, signature, args);
                     return `multisig swallowed the inner call${why ? `: ${why}` : ""}`;
                 }
-                return opts.verify ? opts.verify(receipt) : true;
+                return runPostcondition(s, postcondition);
             },
         }
     );
@@ -256,6 +325,7 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
             pending: false,
             txId: null,
             note: result.note,
+            postcondition,
         };
     }
     const entry = result.receipt.logs.find((l) => l.topics[0] === SUBMISSION_TOPIC);
@@ -266,7 +336,15 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
         `  ${state}  ${label}${result.applied ? "" : ` (${result.note})`}  ` +
             `[multisig tx ${txId}, gas ${result.gasUsed}]`
     );
-    return { ...encoded, sent: true, applied: result.applied, pending, txId, note: result.note };
+    return {
+        ...encoded,
+        sent: true,
+        applied: result.applied,
+        pending,
+        txId,
+        note: result.note,
+        postcondition,
+    };
 };
 
 const testKeySigner = (s) => new ethers.Wallet(s.state.testKey.privateKey, ethers.provider);
@@ -647,14 +725,9 @@ const blockFromRequests = async (s, kind, ids, opts = {}) => {
         [numeric, alsoReceiver, REASON_QA],
         {
             ...opts,
-            verify: async () => {
-                for (const party of parties) {
-                    const state = await s.queue.blockStateOf(party);
-                    if (state !== want) {
-                        return `${party} is ${BLOCK_NAMES[state]}, not ${BLOCK_NAMES[want]}`;
-                    }
-                }
-                return true;
+            postcondition: {
+                kind: "blockState",
+                args: { addresses: parties, want: kind === "freeze" ? "Frozen" : "Blacklisted" },
             },
         }
     );
@@ -690,10 +763,7 @@ const release = async (s, address, opts = {}) => {
         [[party]],
         {
             ...opts,
-            verify: async () => {
-                const state = await s.queue.blockStateOf(party);
-                return state === BLOCK.None ? true : `${party} is still ${BLOCK_NAMES[state]}`;
-            },
+            postcondition: { kind: "blockState", args: { addresses: [party], want: "None" } },
         }
     );
     return { command: "release", address: party, blacklisted, ...result, receipt: undefined };
@@ -709,10 +779,7 @@ const setPaused = async (s, paused, opts = {}) => {
         [paused],
         {
             ...opts,
-            verify: async () =>
-                (await s.queue.securityPerimeterPaused()) === paused
-                    ? true
-                    : `the queue reports paused=${!paused}`,
+            postcondition: { kind: "queuePaused", args: { want: paused } },
         }
     );
     return { command: paused ? "pause" : "unpause", paused, ...result, receipt: undefined };
@@ -734,10 +801,7 @@ const kill = async (s, on, opts = {}) => {
         [enabled],
         {
             ...opts,
-            verify: async () =>
-                (await s.controller.securityPerimeterEnabled()) === enabled
-                    ? true
-                    : `the controller reports enabled=${!enabled}`,
+            postcondition: { kind: "perimeterEnabled", args: { want: enabled } },
         }
     );
     return { command: "kill", enabled, ...result, receipt: undefined };
@@ -809,10 +873,7 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
                 [surfaceId, true],
                 {
                     ...opts,
-                    verify: async () =>
-                        (await s.queue.topUpFeasible(surfaceId))
-                            ? true
-                            : "the surface is still marked infeasible",
+                    postcondition: { kind: "topUpFeasible", args: { surfaceId } },
                 }
             )
         );
@@ -829,10 +890,7 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
             [[true, surfaceId, subProduct, token, destination, topUp]],
             {
                 ...opts,
-                verify: async () =>
-                    (await s.queue.getRecoveryRoute(routeId)).active
-                        ? true
-                        : `route ${routeId} is not active`,
+                postcondition: { kind: "recoveryRouteActive", args: { routeId } },
             }
         )
     );
@@ -923,7 +981,7 @@ const refund = async (s, ids, to, opts = {}) => {
         destination = ethers.utils.getAddress(to);
     }
 
-    const wantStatus = toPool ? STATUS.ResolvedToProtocol : STATUS.ResolvedByOwner;
+    const wantStatusName = toPool ? "ResolvedToProtocol" : "ResolvedByOwner";
     const read = balanceReader(token);
     const before = await read(destination);
     const result = await viaMultisig(
@@ -935,19 +993,16 @@ const refund = async (s, ids, to, opts = {}) => {
         toPool ? [numeric, routeId] : [numeric, destination],
         {
             ...opts,
-            verify: async () => {
-                for (const id of numeric) {
-                    const after = await s.queue.getRequest(id);
-                    if (after.status !== wantStatus) {
-                        return `request ${id} is ${STATUS_NAMES[after.status]}, not ${
-                            STATUS_NAMES[wantStatus]
-                        }`;
-                    }
-                }
-                const got = await read(destination);
-                return got.eq(before.add(total))
-                    ? true
-                    : `${destination} holds ${got}, not the expected ${before.add(total)}`;
+            postcondition: {
+                kind: "refundResolved",
+                args: {
+                    ids: numeric,
+                    wantStatus: wantStatusName,
+                    token,
+                    destination,
+                    before: before.toString(),
+                    total: total.toString(),
+                },
             },
         }
     );
@@ -966,6 +1021,17 @@ const refund = async (s, ids, to, opts = {}) => {
 /**
  * Add confirmations to a pending multisig transaction from the wallet's real
  * owners. Only needed on a fork booted with the threshold left alone.
+ *
+ * `executed` is the wallet's own bookkeeping — it means the inner call ran
+ * without reverting, not that it left the target contract in the state the
+ * submitted command meant to establish (that is exactly the class of thing an
+ * incident-response lever needs to be trusted for). So `applied` here is never
+ * read off `executed` alone: the postcondition the submission recorded for
+ * this transaction id (`opts.postcondition`, or looked up from the state file
+ * when not given explicitly) is re-run afterward, and `applied` reports
+ * whether THAT held. A transaction with no recorded postcondition — one this
+ * session did not submit itself, e.g. a live wallet backlog entry — falls
+ * back to `executed` alone, since there is nothing else to check it against.
  */
 const confirm = async (s, txId, opts = {}) => {
     const id = Number(txId);
@@ -980,8 +1046,21 @@ const confirm = async (s, txId, opts = {}) => {
         throw new Error(`perimeter:qa confirm: the wallet has no transaction ${id}`);
     }
     const log = logOf(opts);
+    const postcondition =
+        opts.postcondition !== undefined ? opts.postcondition : findPostconditionFor(id);
+    const noRecord = !postcondition
+        ? " — no postcondition was recorded for this transaction; trusting the wallet's " +
+          "executed flag alone"
+        : "";
+
     if ((await s.multisig.transactions(id)).executed) {
-        return { command: "confirm", txId: id, applied: true, note: "already executed" };
+        const held = await runPostcondition(s, postcondition);
+        return {
+            command: "confirm",
+            txId: id,
+            applied: held === true,
+            note: held === true ? `already executed${noRecord}` : `already executed, but ${held}`,
+        };
     }
     const owners = await s.multisig.getOwners();
     const added = [];
@@ -997,14 +1076,21 @@ const confirm = async (s, txId, opts = {}) => {
         added.push(owner);
     }
     const executed = (await s.multisig.transactions(id)).executed;
+    const held = executed ? await runPostcondition(s, postcondition) : "not executed";
+    const applied = executed && held === true;
     log(
-        `  ${executed ? "OK" : "NOT APPLIED"}  confirm ${id} ` +
-            `(+${added.length} confirmations)${executed ? "" : " — the inner call was swallowed"}`
+        `  ${applied ? "OK" : "NOT APPLIED"}  confirm ${id} ` +
+            `(+${added.length} confirmations)${applied ? "" : ` — ${executed ? held : "the inner call was swallowed"}`}`
     );
     return {
         command: "confirm",
         txId: id,
-        applied: executed,
+        applied,
+        note: applied
+            ? null
+            : executed
+              ? `the multisig executed the call, but ${held}${noRecord}`
+              : null,
         confirmedBy: added,
         confirmations: (await s.multisig.getConfirmationCount(id)).toNumber(),
         required: (await s.multisig.required()).toNumber(),
@@ -1052,6 +1138,30 @@ const appendState = (record) => {
     return LOG_FILE;
 };
 
+/**
+ * The postcondition a submission recorded for a multisig transaction id, read
+ * back from the state file `appendState` wrote it to. `confirm` is very often
+ * a separate process invocation from the submission it is confirming — the
+ * state file is the only thing connecting the two. The LAST matching entry
+ * wins, in case the same id was ever submitted more than once; a missing or
+ * unreadable file yields none, same as a fresh session that submitted nothing
+ * itself.
+ */
+const findPostconditionFor = (txId) => {
+    if (!fs.existsSync(LOG_FILE)) return null;
+    let entries;
+    try {
+        entries = JSON.parse(fs.readFileSync(LOG_FILE, "utf8"));
+    } catch (error) {
+        return null;
+    }
+    if (!Array.isArray(entries)) return null;
+    for (let i = entries.length - 1; i >= 0; i--) {
+        if (entries[i].txId === txId && entries[i].postcondition) return entries[i].postcondition;
+    }
+    return null;
+};
+
 module.exports = {
     LOG_FILE,
     OPERATOR_CALL_GAS,
@@ -1069,6 +1179,8 @@ module.exports = {
     routeIdOf,
     activeRouteFor,
     revertReason,
+    runPostcondition,
+    findPostconditionFor,
     appendState,
     status,
     withdraw,
