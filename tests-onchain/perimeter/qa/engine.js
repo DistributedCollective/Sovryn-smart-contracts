@@ -373,7 +373,16 @@ const withdraw = async (s, opts = {}) => {
         log,
     });
     const now = await chainNow();
-    const paidNow = (await ethers.provider.getBalance(receiver)).sub(result.before.receiver);
+    let paidNow = (await ethers.provider.getBalance(receiver)).sub(result.before.receiver);
+    // When the receiver IS the transaction's own signer (the default —
+    // `opts.receiver` omitted), gas is debited from the very balance this
+    // measures. Left unadjusted, a hook that leaks a payment no bigger than
+    // its own gas cost reads as zero or negative and slips past both checks
+    // below. Credited = after - before + gasUsed * effectiveGasPrice restores
+    // what was actually paid, independent of who footed the call's gas.
+    if (ethers.utils.getAddress(receiver) === originator) {
+        paidNow = paidNow.add(result.receipt.gasUsed.mul(result.receipt.effectiveGasPrice));
+    }
 
     if (!result.id) {
         log(`  PAID DIRECT  ${surface} withdrawal paid on the spot, nothing queued`);
@@ -389,11 +398,11 @@ const withdraw = async (s, opts = {}) => {
         };
     }
     // A queued withdrawal must not ALSO have paid the receiver — that is the
-    // one thing "held" is supposed to guarantee. Gas never produces a
-    // positive delta (it only ever debits the signer's own balance), so
-    // `paidNow` reading positive here is unconditionally a hook that both
-    // queued and paid, never a false alarm from the receiver being the
-    // sender. Checked before describing the request: there is nothing
+    // one thing "held" is supposed to guarantee. `paidNow` is already
+    // gas-normalized above, so a receiver that happens to be the signer can no
+    // longer mask a leak no bigger than its own gas cost: reading positive
+    // here is unconditionally a hook that both queued and paid, never a false
+    // alarm from gas. Checked before describing the request: there is nothing
     // useful to report about a "clean hold" that was not actually clean.
     if (paidNow.gt(0)) {
         throw new Error(

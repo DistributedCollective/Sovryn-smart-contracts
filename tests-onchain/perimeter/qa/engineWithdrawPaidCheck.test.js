@@ -113,3 +113,101 @@ describe("QA scenario engine — withdraw refuses to report a clean QUEUED when 
         delete drivers.SURFACE_DRIVERS.__qaTestQueueOnly;
     });
 });
+
+describe("QA scenario engine — withdraw's paid check is gas-normalized when the receiver is the signer", () => {
+    let funder;
+    let receiver;
+    let fakeS;
+
+    before(async () => {
+        [funder] = await ethers.getSigners();
+        receiver = ethers.Wallet.createRandom().address;
+        fakeS = { controller: { securityPerimeterEnabled: async () => true } };
+    });
+
+    beforeEach(async () => {
+        const testKey = ethers.Wallet.createRandom().connect(ethers.provider);
+        fakeS.state = { testKey };
+        // Unlike the fixture above, these tests need the signer itself to send
+        // a transaction (standing in for the real withdrawal call), so it needs
+        // gas to spend — every test here uses the DEFAULT receiver (the
+        // signer/originator), never the `receiver` fixture above.
+        await (
+            await funder.sendTransaction({
+                to: testKey.address,
+                value: ethers.utils.parseEther("1"),
+            })
+        ).wait();
+    });
+
+    it("rejects a driver that leaks a payment no bigger than its own gas cost, when receiver == signer", async () => {
+        // A leak far smaller than any real transaction's gas cost. Before the
+        // fix, `paidNow` was `after - before` with no gas add-back: for a
+        // receiver that IS the signer, that delta is dominated by the gas the
+        // signer's own withdrawal call spent, so a leak this size reads as
+        // negative — invisible to the old check.
+        const leak = ethers.BigNumber.from(1000);
+        drivers.SURFACE_DRIVERS.__qaTestGasMaskedLeak = async (s, signer, opts) => {
+            const before = await ethers.provider.getBalance(opts.receiver);
+            // The hook's own leak, paid from OUTSIDE the withdrawal call —
+            // standing in for a fee-vault or pool leak in the real contracts.
+            await (await funder.sendTransaction({ to: opts.receiver, value: leak })).wait();
+            // The withdrawal call itself, paid for by the signer, who is also
+            // the receiver here (the default when no --receiver is given).
+            const receipt = await (
+                await signer.sendTransaction({ to: funder.address, value: 0 })
+            ).wait();
+            return { id: 1, before: { receiver: before }, receipt };
+        };
+
+        let raised = null;
+        try {
+            await engine.withdraw(fakeS, {
+                surface: "__qaTestGasMaskedLeak",
+                as: "test",
+                log: () => {},
+            });
+        } catch (error) {
+            raised = error;
+        }
+        expect(raised, "expected the gas-normalized paid check to fire").to.not.equal(null);
+        expect(raised.message).to.match(/queued but ALSO paid/);
+
+        delete drivers.SURFACE_DRIVERS.__qaTestGasMaskedLeak;
+    });
+
+    it("still reports a clean QUEUED, gas-normalized to 0, when receiver == signer and nothing leaked", async () => {
+        drivers.SURFACE_DRIVERS.__qaTestGasSelfNoLeak = async (s, signer, opts) => {
+            const before = await ethers.provider.getBalance(opts.receiver);
+            const receipt = await (
+                await signer.sendTransaction({ to: funder.address, value: 0 })
+            ).wait();
+            return { id: 1, before: { receiver: before }, receipt };
+        };
+        fakeS.queue = {
+            getRequest: async () => ({
+                unlockAt: ethers.BigNumber.from(Math.floor(Date.now() / 1000) + 3600),
+                surfaceId: ethers.constants.HashZero,
+                status: 0,
+                originator: fakeS.state.testKey.address,
+                owner: fakeS.state.testKey.address,
+                receiver: fakeS.state.testKey.address,
+                token: ethers.constants.AddressZero,
+                subProduct: ethers.constants.AddressZero,
+                amount: ethers.BigNumber.from(0),
+                unwrapOnDelivery: false,
+            }),
+            blockStateOf: async () => 0,
+        };
+
+        const record = await engine.withdraw(fakeS, {
+            surface: "__qaTestGasSelfNoLeak",
+            as: "test",
+            log: () => {},
+        });
+        expect(record.queued).to.equal(true);
+        expect(record.receiverDelta).to.equal("0");
+
+        delete drivers.SURFACE_DRIVERS.__qaTestGasSelfNoLeak;
+    });
+});
