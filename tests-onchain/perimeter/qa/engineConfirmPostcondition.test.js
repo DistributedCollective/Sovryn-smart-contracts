@@ -1,13 +1,22 @@
 /**
  * Isolated regression for `confirm()`'s postcondition re-check.
  *
- * Before this fix, `confirm()` reported `applied` straight off the
- * MultiSigWallet's own `executed` flag — a boolean that means only "the inner
- * call ran without reverting", never "the target contract ended up where the
- * submitted command meant to leave it". A pause, freeze, blacklist or route
- * call whose inner execution succeeds without establishing the intended state
- * (a defect in the target contract itself) would still have reported
- * `applied: true`.
+ * `confirm()` never reads `applied` straight off the MultiSigWallet's own
+ * `executed` flag — a boolean that means only "the inner call ran without
+ * reverting", never "the target contract ended up where the submitted
+ * command meant to leave it". Three distinct outcomes:
+ *
+ *   - the wallet never executed the inner call at all: `applied: false`,
+ *     `verified: true` — nothing ran, so there is nothing to verify, but
+ *     that itself is a definite fact.
+ *   - the wallet executed it AND a postcondition was on file to re-check:
+ *     `verified: true`, `applied` reports whether it genuinely held.
+ *   - the wallet executed it but NO postcondition was on file (a
+ *     transaction this session never submitted itself — e.g. a live wallet
+ *     backlog entry): the engine has nothing to check the claim against, so
+ *     it must not report `applied: true`. `applied: null`, `verified:
+ *     false`, and the note says the transaction executed but was not
+ *     verified.
  *
  * `runPostcondition` is pure apart from the view calls its descriptor names,
  * so this runs against a fake controller/queue/multisig on Hardhat's own
@@ -24,11 +33,9 @@ const engine = require("./engine");
 const TX_ID = 4242;
 const silent = { log: () => {} };
 
-/** A fake multisig whose transaction TX_ID is already `executed` — the exact
+/** A fake multisig whose transaction TX_ID is already `executed` — the
  *  branch `confirm()` takes when a threshold-1 submission (or an earlier
- *  confirmation call) already carried the transaction to execution, and the
- *  one MED-8 is about: the old code returned `applied: true` from this branch
- *  on the flag alone. */
+ *  confirmation call) already carried the transaction to execution. */
 const executedMultisig = {
     transactionCount: async () => ethers.BigNumber.from(TX_ID + 1),
     transactions: async () => ({ executed: true }),
@@ -65,12 +72,12 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
         expect(raised.message).to.match(/no postcondition checker registered/);
     });
 
-    it("reports applied: false when the wallet says executed but the postcondition does not hold — the defect this closes", async () => {
-        // Exactly the class of defect MED-8 names: a pause/kill lever whose
-        // inner call ran (the wallet reports executed) but the target
-        // contract never actually reached the intended state — here, `kill
-        // off` was submitted (wants securityPerimeterEnabled == false) but
-        // the controller is still reporting enabled == true.
+    it("reports applied: false, verified: true when the wallet says executed but the postcondition does not hold", async () => {
+        // A pause/kill lever whose inner call ran (the wallet reports
+        // executed) but the target contract never actually reached the
+        // intended state — here, `kill off` was submitted (wants
+        // securityPerimeterEnabled == false) but the controller is still
+        // reporting enabled == true.
         const s = {
             multisig: executedMultisig,
             controller: { securityPerimeterEnabled: async () => true }, // defect: still enabled
@@ -83,10 +90,11 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
             record.applied,
             "a state that never actually changed must not report applied"
         ).to.equal(false);
+        expect(record.verified, "a real postcondition was checked").to.equal(true);
         expect(record.note).to.match(/enabled=true/);
     });
 
-    it("reports applied: true when the wallet says executed and the postcondition genuinely holds", async () => {
+    it("reports applied: true, verified: true when the wallet says executed and the postcondition genuinely holds", async () => {
         const s = {
             multisig: executedMultisig,
             controller: { securityPerimeterEnabled: async () => false },
@@ -96,22 +104,28 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
             postcondition: { kind: "perimeterEnabled", args: { want: false } },
         });
         expect(record.applied).to.equal(true);
+        expect(record.verified).to.equal(true);
     });
 
-    it("falls back to trusting executed alone when no postcondition was ever recorded for this transaction", async () => {
+    it("reports applied: null, verified: false — never true — when no postcondition was ever recorded for this transaction", async () => {
         // A transaction this session never submitted itself — e.g. the live
-        // wallet's own backlog — has nothing to re-check against.
+        // wallet's own backlog — has nothing to re-check against. The engine
+        // must not claim a state it did not read.
         const s = { multisig: executedMultisig };
         const record = await engine.confirm(s, TX_ID, { ...silent, postcondition: null });
-        expect(record.applied).to.equal(true);
-        expect(record.note).to.match(/no postcondition was recorded/);
+        expect(
+            record.applied,
+            "an unverified transaction must never report applied: true"
+        ).to.equal(null);
+        expect(record.verified).to.equal(false);
+        expect(record.note).to.match(/executed, not verified/);
     });
 
-    it("summarizeStep keeps a step's postcondition — the route regression this fix closes", () => {
-        // Before this fix, route()'s own per-step summary dropped
-        // `postcondition` even though `viaMultisig`'s result carried it —
-        // the only place a route step's postcondition could have survived
-        // to the state file at all.
+    it("summarizeStep keeps a step's postcondition", () => {
+        // route()'s own per-step summary must keep `postcondition` even
+        // though it only ever needs `label`/`applied`/`txId`/`note` for
+        // display — dropping it would be the only place a route step's
+        // postcondition could survive to the state file at all.
         const step = {
             signature: "setRecoveryRoute((bool,bytes32,address,address,address,bool))",
             applied: true,
@@ -171,13 +185,12 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
         }
     });
 
-    it("confirm() re-checks a route step's postcondition, not just executed — the RV-5 gap", async () => {
-        // Exactly the MED-8 defect, reopened for route: the wallet reports
-        // the step's transaction as executed, but the queue never actually
-        // reached topUpFeasible == true. Before this fix, findPostconditionFor
-        // never looked inside steps[], so confirm() found nothing and fell
-        // back to trusting `executed` alone — reporting applied: true for a
-        // command that never actually took effect.
+    it("confirm() re-checks a route step's own postcondition, not just executed", async () => {
+        // The wallet reports the step's transaction as executed, but the
+        // queue never actually reached topUpFeasible == true —
+        // findPostconditionFor has to look inside steps[] to find anything
+        // to re-check at all; without that, confirm() would find nothing
+        // and report the unverified shape instead of a genuine failure.
         const fs = require("fs");
         const { LOG_FILE } = engine;
         const existed = fs.existsSync(LOG_FILE);
@@ -213,6 +226,7 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
                 record.applied,
                 "a route step reported executed but never actually applied must not report applied"
             ).to.equal(false);
+            expect(record.verified, "a real postcondition was found and checked").to.equal(true);
             expect(record.note).to.match(/still marked infeasible/);
         } finally {
             if (existed) fs.writeFileSync(LOG_FILE, backup);
@@ -253,6 +267,7 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
             };
             const record = await engine.confirm(s, stepTxId, silent);
             expect(record.applied).to.equal(true);
+            expect(record.verified).to.equal(true);
         } finally {
             if (existed) fs.writeFileSync(LOG_FILE, backup);
             else if (fs.existsSync(LOG_FILE)) fs.unlinkSync(LOG_FILE);
@@ -260,12 +275,12 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
     });
 
     it("finds a postcondition persisted to the state file by an earlier submission, in a fresh call that does not pass one explicitly", async () => {
-        // This is the real scenario MED-8 is about: submission and
-        // confirmation are two SEPARATE `perimeter:qa` invocations, connected
-        // only by the state file appendState() writes to. Exercise that exact
-        // path rather than the opts.postcondition override the other tests
-        // use for isolation, backing up and restoring whatever the file
-        // already held so this never disturbs a real session's record.
+        // Submission and confirmation are two SEPARATE `perimeter:qa`
+        // invocations, connected only by the state file appendState()
+        // writes to. Exercise that exact path rather than the
+        // opts.postcondition override the other tests use for isolation,
+        // backing up and restoring whatever the file already held so this
+        // never disturbs a real session's record.
         const fs = require("fs");
         const { LOG_FILE } = engine;
         const existed = fs.existsSync(LOG_FILE);
@@ -287,6 +302,7 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
             // No opts.postcondition passed — confirm() must find it itself.
             const record = await engine.confirm(s, otherTxId, silent);
             expect(record.applied).to.equal(false);
+            expect(record.verified).to.equal(true);
             expect(record.note).to.match(/enabled=true/);
         } finally {
             if (existed) fs.writeFileSync(LOG_FILE, backup);

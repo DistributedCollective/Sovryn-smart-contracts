@@ -409,7 +409,15 @@ describe("QA scenario engine", () => {
         expect(paused.note).to.match(/threshold is 2/);
         expect(await s.queue.securityPerimeterPaused()).to.equal(false);
 
-        const confirmed = await engine.confirm(s, paused.txId, silent);
+        // Confirm re-checks the pause's OWN postcondition, passed explicitly
+        // here the way the state file would carry it in a real session
+        // (this test drives `engine.*` directly and never calls
+        // `appendState`, so nothing is on file to find automatically).
+        const confirmed = await engine.confirm(s, paused.txId, {
+            ...silent,
+            postcondition: paused.postcondition,
+        });
+        expect(confirmed.verified, "a real postcondition was passed in").to.equal(true);
         expect(confirmed.applied, "the confirmations did not carry the lever through").to.equal(
             true
         );
@@ -418,7 +426,14 @@ describe("QA scenario engine", () => {
 
         // Put the pause and the threshold back, both the same way.
         const unpaused = await engine.unpause(s, silent);
-        expect((await engine.confirm(s, unpaused.txId, silent)).applied).to.equal(true);
+        expect(
+            (
+                await engine.confirm(s, unpaused.txId, {
+                    ...silent,
+                    postcondition: unpaused.postcondition,
+                })
+            ).applied
+        ).to.equal(true);
         expect(await s.queue.securityPerimeterPaused()).to.equal(false);
         const lowered = await engine.viaMultisig(
             s,
@@ -429,7 +444,14 @@ describe("QA scenario engine", () => {
             [1],
             silent
         );
-        expect((await engine.confirm(s, lowered.txId, silent)).applied).to.equal(true);
+        // The wallet's own threshold is not a Perimeter policy lever, so it
+        // carries no postcondition of its own — confirming it genuinely has
+        // nothing to verify against. `applied` must not claim `true` here;
+        // the real effect is checked directly off the wallet below.
+        const loweredConfirm = await engine.confirm(s, lowered.txId, silent);
+        expect(loweredConfirm.verified).to.equal(false);
+        expect(loweredConfirm.applied).to.equal(null);
+        expect(loweredConfirm.note).to.match(/executed, not verified/);
         expect((await s.multisig.required()).toNumber()).to.equal(1);
     });
 

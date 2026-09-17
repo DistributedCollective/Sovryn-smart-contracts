@@ -1068,19 +1068,51 @@ const refund = async (s, ids, to, opts = {}) => {
 };
 
 /**
- * Add confirmations to a pending multisig transaction from the wallet's real
- * owners. Only needed on a fork booted with the threshold left alone.
+ * Decide `confirm()`'s verdict from whether the wallet's inner call executed
+ * and, if it did, whether a postcondition was on file to re-check it
+ * against.
  *
  * `executed` is the wallet's own bookkeeping — it means the inner call ran
  * without reverting, not that it left the target contract in the state the
  * submitted command meant to establish (that is exactly the class of thing an
- * incident-response lever needs to be trusted for). So `applied` here is never
- * read off `executed` alone: the postcondition the submission recorded for
- * this transaction id (`opts.postcondition`, or looked up from the state file
- * when not given explicitly) is re-run afterward, and `applied` reports
- * whether THAT held. A transaction with no recorded postcondition — one this
- * session did not submit itself, e.g. a live wallet backlog entry — falls
- * back to `executed` alone, since there is nothing else to check it against.
+ * incident-response lever needs to be trusted for). Three distinct outcomes:
+ *
+ *   - not executed at all: definitively not applied — nothing ran, so there
+ *     is nothing to verify. `applied: false`, `verified: true`.
+ *   - executed, postcondition on file: genuinely re-checked. `applied`
+ *     reports whether it held, `verified: true` either way.
+ *   - executed, NO postcondition on file (a transaction this session did not
+ *     submit itself — e.g. a live wallet backlog entry): there is nothing to
+ *     check it against, so the engine must not claim a state it did not
+ *     read. `applied: null` (unknown, not a silent `true`), `verified: false`.
+ */
+const confirmVerdict = async (s, postcondition, executed) => {
+    if (!executed) {
+        return { applied: false, verified: true, held: null };
+    }
+    if (!postcondition) {
+        return { applied: null, verified: false, held: null };
+    }
+    const held = await runPostcondition(s, postcondition);
+    return { applied: held === true, verified: true, held };
+};
+
+/** The note text for one `confirmVerdict()` outcome, shared by both of
+ *  `confirm()`'s return points so the wording never drifts between them. */
+const confirmNote = ({ applied, verified, held }, { executed, alreadyExecuted }) => {
+    if (!executed) return null;
+    if (!verified) {
+        return "executed, not verified — no postcondition was recorded for this transaction";
+    }
+    if (applied) return alreadyExecuted ? "already executed" : null;
+    return alreadyExecuted
+        ? `already executed, but ${held}`
+        : `the multisig executed the call, but ${held}`;
+};
+
+/**
+ * Add confirmations to a pending multisig transaction from the wallet's real
+ * owners. Only needed on a fork booted with the threshold left alone.
  */
 const confirm = async (s, txId, opts = {}) => {
     const id = Number(txId);
@@ -1097,18 +1129,15 @@ const confirm = async (s, txId, opts = {}) => {
     const log = logOf(opts);
     const postcondition =
         opts.postcondition !== undefined ? opts.postcondition : findPostconditionFor(id);
-    const noRecord = !postcondition
-        ? " — no postcondition was recorded for this transaction; trusting the wallet's " +
-          "executed flag alone"
-        : "";
 
     if ((await s.multisig.transactions(id)).executed) {
-        const held = await runPostcondition(s, postcondition);
+        const verdict = await confirmVerdict(s, postcondition, true);
         return {
             command: "confirm",
             txId: id,
-            applied: held === true,
-            note: held === true ? `already executed${noRecord}` : `already executed, but ${held}`,
+            applied: verdict.applied,
+            verified: verdict.verified,
+            note: confirmNote(verdict, { executed: true, alreadyExecuted: true }),
         };
     }
     const owners = await s.multisig.getOwners();
@@ -1125,21 +1154,27 @@ const confirm = async (s, txId, opts = {}) => {
         added.push(owner);
     }
     const executed = (await s.multisig.transactions(id)).executed;
-    const held = executed ? await runPostcondition(s, postcondition) : "not executed";
-    const applied = executed && held === true;
-    log(
-        `  ${applied ? "OK" : "NOT APPLIED"}  confirm ${id} ` +
-            `(+${added.length} confirmations)${applied ? "" : ` — ${executed ? held : "the inner call was swallowed"}`}`
-    );
+    const verdict = await confirmVerdict(s, postcondition, executed);
+    const note = confirmNote(verdict, { executed, alreadyExecuted: false });
+    const label = !executed
+        ? "NOT APPLIED"
+        : !verdict.verified
+          ? "NOT VERIFIED"
+          : verdict.applied
+            ? "OK"
+            : "NOT APPLIED";
+    const detail = !executed
+        ? " — the inner call was swallowed"
+        : !verdict.verified || !verdict.applied
+          ? ` — ${note}`
+          : "";
+    log(`  ${label}  confirm ${id} (+${added.length} confirmations)${detail}`);
     return {
         command: "confirm",
         txId: id,
-        applied,
-        note: applied
-            ? null
-            : executed
-              ? `the multisig executed the call, but ${held}${noRecord}`
-              : null,
+        applied: verdict.applied,
+        verified: verdict.verified,
+        note,
         confirmedBy: added,
         confirmations: (await s.multisig.getConfirmationCount(id)).toNumber(),
         required: (await s.multisig.required()).toNumber(),
