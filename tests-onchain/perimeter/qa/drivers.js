@@ -198,6 +198,8 @@ const assertRequestParties = (label, request, expected) => {
  * `feeReceiverBefore`/`feeReceiverAfter` are balances of `controller.feeReceiver()`
  * in whichever asset the surface actually pays its fee leg in — native RBTC or
  * an ERC20 — read by the caller immediately around the withdrawal call.
+ * `feeReceiver` is that same address, passed through so this can tell whether
+ * the withdrawal's own signer paid its own fee.
  */
 const assertExitFeeAccounted = async (
     s,
@@ -206,13 +208,22 @@ const assertExitFeeAccounted = async (
         surfaceId,
         subProduct,
         actor,
+        feeReceiver,
         feeReceiverBefore,
         feeReceiverAfter,
         netRecorded,
         receipt,
     }
 ) => {
-    const feeReceived = feeReceiverAfter.sub(feeReceiverBefore);
+    let feeReceived = feeReceiverAfter.sub(feeReceiverBefore);
+    // When the fee receiver IS the withdrawal's own signer, gas the signer
+    // paid for this same transaction is debited from the very balance this
+    // measures — the same contamination MED-4 already normalizes out of the
+    // receiver leg in engine.js's withdraw(). Credit it back the same way:
+    // after - before + gasUsed * effectiveGasPrice.
+    if (ethers.utils.getAddress(feeReceiver) === ethers.utils.getAddress(receipt.from)) {
+        feeReceived = feeReceived.add(receipt.gasUsed.mul(receipt.effectiveGasPrice));
+    }
     if (feeReceived.lt(0)) {
         throw new Error(
             `${label}: the fee destination's balance FELL by ${feeReceived.abs()} across the ` +
@@ -302,6 +313,7 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         surfaceId: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
         subProduct: s.iRBTC.address,
         actor: originator,
+        feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
@@ -487,6 +499,7 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         // s.iXUSD; see BorrowerExitPerimeter._chargeExitFeeReturnNet.
         subProduct: s.iXUSD.address,
         actor: originator,
+        feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
@@ -568,6 +581,7 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         surfaceId: PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
         subProduct: ZERO_ADDRESS,
         actor: originator,
+        feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
@@ -778,6 +792,7 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
         surfaceId: PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
         subProduct: ZERO_ADDRESS,
         actor: victim,
+        feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
