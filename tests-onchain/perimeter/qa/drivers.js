@@ -200,7 +200,11 @@ const assertRequestParties = (label, request, expected) => {
  * in whichever asset the surface actually pays its fee leg in — native RBTC or
  * an ERC20 — read by the caller immediately around the withdrawal call.
  * `feeReceiver` is that same address, passed through so this can tell whether
- * the withdrawal's own signer paid its own fee.
+ * the withdrawal's own signer paid its own fee. `feeAsset` is which asset that
+ * is (the zero address for native, a token address otherwise) — the caller
+ * already knows this statically, from choosing how to read `feeReceiverAfter`
+ * two lines above; passed through rather than guessed, because gas is never
+ * paid in an ERC20 and crediting it back to a token balance would be wrong.
  */
 const assertExitFeeAccounted = async (
     s,
@@ -212,6 +216,7 @@ const assertExitFeeAccounted = async (
         feeReceiver,
         feeReceiverBefore,
         feeReceiverAfter,
+        feeAsset,
         netRecorded,
         receipt,
     }
@@ -219,10 +224,13 @@ const assertExitFeeAccounted = async (
     // When the fee receiver IS the withdrawal's own signer, gas the signer
     // paid for this same transaction is debited from the very balance this
     // measures — the same contamination engine.js's withdraw() already
-    // normalizes out of the receiver leg. Credit it back the same way.
-    const feeReceived = gas.creditedDelta(feeReceiverAfter.sub(feeReceiverBefore), feeReceiver, [
-        gas.chargeOf(receipt),
-    ]);
+    // normalizes out of the receiver leg. Credit it back the same way, but
+    // only for a native fee leg: gas is never paid in an ERC20.
+    const rawFeeReceived = feeReceiverAfter.sub(feeReceiverBefore);
+    const feeReceived =
+        feeAsset === ZERO_ADDRESS
+            ? gas.creditedDelta(rawFeeReceived, feeReceiver, [gas.chargeOf(receipt)])
+            : rawFeeReceived;
     if (feeReceived.lt(0)) {
         throw new Error(
             `${label}: the fee destination's balance FELL by ${feeReceived.abs()} across the ` +
@@ -367,6 +375,7 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
         netRecorded: request.amount,
         receipt,
     });
@@ -579,6 +588,7 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
         netRecorded: request.amount,
         receipt,
     });
@@ -686,6 +696,7 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
         netRecorded: request.amount,
         receipt,
     });
@@ -913,6 +924,7 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
         feeReceiver,
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
         netRecorded: request.amount,
         receipt,
     });

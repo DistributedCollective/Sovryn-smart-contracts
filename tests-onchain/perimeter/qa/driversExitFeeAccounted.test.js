@@ -66,7 +66,10 @@ const skipLog = ({ surfaceId, actor, reason }) => {
 /** `receipt` is merged field-by-field with the default (rather than replaced
  *  wholesale) so a test overriding just `logs` still carries a valid `from`/
  *  `gasUsed`/`effectiveGasPrice` — required now that the gas-normalization
- *  check reads `receipt.from` unconditionally. */
+ *  check reads `receipt.from` unconditionally. `feeAsset` defaults to native
+ *  — every surface this engine drives pays its fee leg in native RBTC today
+ *  — so a test does not have to restate it just to exercise the
+ *  gas-normalization branch; a test of the ERC20 gate overrides it. */
 const call = (s, { receipt, ...overrides } = {}) =>
     drivers.assertExitFeeAccounted(s, {
         label: "test",
@@ -76,6 +79,7 @@ const call = (s, { receipt, ...overrides } = {}) =>
         feeReceiver: FEE_RECEIVER,
         feeReceiverBefore: bn(0),
         feeReceiverAfter: bn(0),
+        feeAsset: ethers.constants.AddressZero,
         netRecorded: bn(0),
         receipt: { logs: [], from: SIGNER, gasUsed: bn(0), effectiveGasPrice: bn(0), ...receipt },
         ...overrides,
@@ -217,6 +221,44 @@ describe("QA rehearsal drivers — Perimeter fee accounting", () => {
                 feeReceiverBefore: bn(0),
                 feeReceiverAfter: bn(10),
                 netRecorded: bn(990),
+                receipt: { from: SIGNER, gasUsed: bn(50), effectiveGasPrice: bn(1) },
+            });
+            expect(result.feeReceived.toString()).to.equal("10");
+        });
+    });
+
+    describe("gating the gas credit to a native fee leg, never a token one", () => {
+        it("credits gas back when the fee leg is native and the receiver is the signer", async () => {
+            // Restates the first case of the describe block above, explicitly
+            // against `feeAsset`, so the gate itself — not just its
+            // native-by-default test helper — has its own coverage.
+            const s = { controller: fakeController(100) };
+            const result = await call(s, {
+                feeReceiver: SIGNER,
+                feeReceiverBefore: bn(1000),
+                feeReceiverAfter: bn(960),
+                netRecorded: bn(990),
+                feeAsset: ethers.constants.AddressZero,
+                receipt: { from: SIGNER, gasUsed: bn(50), effectiveGasPrice: bn(1) },
+            });
+            expect(result.feeReceived.toString()).to.equal("10");
+        });
+
+        it("does NOT credit gas back when the fee leg is an ERC20, even though the receiver is the signer", async () => {
+            // A token balance is never contaminated by native gas. The raw
+            // delta here already equals the real fee (10) with nothing to
+            // correct for; a nonzero gas figure on the receipt (50) makes
+            // this test gate-proving on its own — if the credit were wrongly
+            // applied anyway, this would read 60, not 10, and the assertion
+            // below would fail.
+            const s = { controller: fakeController(100) };
+            const token = ethers.utils.getAddress(ethers.utils.hexZeroPad("0x70c3e", 20));
+            const result = await call(s, {
+                feeReceiver: SIGNER,
+                feeReceiverBefore: bn(0),
+                feeReceiverAfter: bn(10),
+                netRecorded: bn(990),
+                feeAsset: token,
                 receipt: { from: SIGNER, gasUsed: bn(50), effectiveGasPrice: bn(1) },
             });
             expect(result.feeReceived.toString()).to.equal("10");
