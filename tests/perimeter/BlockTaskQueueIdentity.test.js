@@ -198,9 +198,7 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
         // that it could not confirm the destination independently.
         const existing = await deployments.getOrNull("ExitDelayQueue");
         expect(existing, "this test assumes no queue record is already registered").to.not.exist;
-        await (
-            await multisig.connect(owner).submitTransaction(wrongQueue, 0, freezeData)
-        ).wait();
+        await (await multisig.connect(owner).submitTransaction(wrongQueue, 0, freezeData)).wait();
         const txId = (await multisig.transactionCount()).sub(1).toString();
 
         let raised = null;
