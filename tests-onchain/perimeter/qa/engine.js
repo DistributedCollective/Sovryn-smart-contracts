@@ -451,6 +451,13 @@ const withdraw = async (s, opts = {}) => {
         log,
     });
     const now = await chainNow();
+    // Reads the receiver's NATIVE balance for every surface — correct only
+    // because each current driver's direct-pay leg resolves to native RBTC
+    // (the lender driver always calls burnToBTC, the borrower driver always
+    // borrows against WRBTC collateral, and Zero/surplus are natively
+    // denominated by construction). A driver whose direct-pay leg paid out a
+    // plain ERC20 instead would silently have this watch the wrong balance;
+    // none of the surfaces this engine drives does that today.
     let paidNow = (await ethers.provider.getBalance(receiver)).sub(result.before.receiver);
     // When the receiver IS the transaction's own signer (the default —
     // `opts.receiver` omitted), gas is debited from the very balance this
