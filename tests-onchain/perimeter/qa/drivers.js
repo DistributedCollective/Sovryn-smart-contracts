@@ -119,6 +119,23 @@ const queuedBy = async (s, label, surfaceId, lastIdBefore, opts = {}) => {
 };
 
 /**
+ * Assert the queue recorded the parties a surface's own hooks say it must —
+ * never just the receiver. `expected` maps a role (`originator`, `owner`,
+ * `receiver`) on `request` to the address that surface's source resolves that
+ * role to (worked out by reading the hook, not assumed); a hook that
+ * misrecords one is caught here, rather than three steps downstream when a
+ * freeze or a recovery acts on the wrong address.
+ */
+const assertRequestParties = (label, request, expected) => {
+    for (const [role, want] of Object.entries(expected)) {
+        const got = request[role];
+        if (ethers.utils.getAddress(got) !== ethers.utils.getAddress(want)) {
+            throw new Error(`${label}: the queue recorded ${role} ${got}, not ${want}`);
+        }
+    }
+};
+
+/**
  * Lending, lender exit. Mint an iRBTC position with native RBTC and burn it
  * straight back: with the delay armed the burn escrows WRBTC in the queue and
  * unwraps to native at delivery. `opts.amount` is how much RBTC to lend, and so
@@ -151,16 +168,14 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         opts
     );
     if (!request) return { id, request, receipt, before };
-    if (ethers.utils.getAddress(request.originator) !== originator) {
-        throw new Error(
-            `lender withdrawal: the queue recorded originator ${request.originator}, not ${originator}`
-        );
-    }
-    if (ethers.utils.getAddress(request.receiver) !== ethers.utils.getAddress(receiver)) {
-        throw new Error(
-            `lender withdrawal: the queue recorded receiver ${request.receiver}, not ${receiver}`
-        );
-    }
+    // owner == rawOriginator == msg.sender by construction on this surface —
+    // burn(receiver, amt) burns the CALLER's own iTokens; see
+    // LoanTokenLogicShared._payExitUserLeg.
+    assertRequestParties("lender withdrawal", request, {
+        originator,
+        owner: originator,
+        receiver,
+    });
     return { id, request, receipt, before };
 };
 
@@ -318,11 +333,14 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         opts
     );
     if (!request) return { id, request, receipt, before, loanId: borrowEvent.args.loanId };
-    if (ethers.utils.getAddress(request.receiver) !== ethers.utils.getAddress(receiver)) {
-        throw new Error(
-            `borrower withdrawal: the queue recorded receiver ${request.receiver}, not ${receiver}`
-        );
-    }
+    // rawOriginator = msg.sender, owner = loanLocal.borrower — set to
+    // `originator` by this driver's own `borrow()` call above; see
+    // BorrowerExitPerimeter._maybeDelayBorrowerExit.
+    assertRequestParties("borrower withdrawal", request, {
+        originator,
+        owner: originator,
+        receiver,
+    });
     return { id, request, receipt, before, loanId: borrowEvent.args.loanId };
 };
 
@@ -332,7 +350,20 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
  */
 const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
     const originator = await addressOf(signer);
-    const receiver = opts.receiver || originator;
+    // withdrawColl() takes no receiver argument — Zero always pays the trove
+    // owner (== msg.sender on this surface); see
+    // BorrowerOperationsPerimeterOps.sendCollWithExitFee, which quotes and pays
+    // with `borrower` as originator, owner AND receiver. A caller asking for a
+    // different receiver is refused up front rather than left to discover, once
+    // the request is queued, that the override was silently ignored.
+    if (opts.receiver && ethers.utils.getAddress(opts.receiver) !== originator) {
+        throw new Error(
+            "Zero collateral withdrawal: this surface has no receiver argument to override — " +
+                "withdrawColl() always pays the trove owner, so a --receiver different from the " +
+                "originator cannot be honored here"
+        );
+    }
+    const receiver = originator;
     const troveManager = await ethers.getContract("TroveManager");
     // An account may hold only one trove, so a second withdrawal from the same
     // account takes collateral out of the trove it already has.
@@ -368,13 +399,14 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         opts
     );
     if (!request) return { id, request, receipt, before };
-    if (ethers.utils.getAddress(request.receiver) !== ethers.utils.getAddress(receiver)) {
-        throw new Error(
-            `Zero collateral withdrawal: the queue recorded receiver ${request.receiver}, not ` +
-                `${receiver} — Zero pays the trove owner, so a different receiver is not reachable ` +
-                "through this surface"
-        );
-    }
+    // Zero has no passthrough on this surface: originator == owner == receiver
+    // == the trove owner, all read off `borrower` in
+    // BorrowerOperationsPerimeterOps.sendCollWithExitFee.
+    assertRequestParties("Zero collateral withdrawal", request, {
+        originator,
+        owner: originator,
+        receiver: originator,
+    });
     return { id, request, receipt, before };
 };
 
@@ -407,7 +439,20 @@ const derivedActor = (from, tag) =>
  */
 const queueSurplusClaim = async (s, signer, opts = {}) => {
     const victim = await addressOf(signer);
-    const receiver = opts.receiver || victim;
+    // claimCollateral() takes no receiver argument — the pool always pays the
+    // caller; see BorrowerOperationsPerimeterOps.claimSurplusWithPerimeter,
+    // which quotes and pays with `claimant = msg.sender` as originator, owner
+    // AND receiver. A caller asking for a different receiver is refused up
+    // front rather than left to discover, once the claim is queued, that the
+    // override was silently ignored.
+    if (opts.receiver && ethers.utils.getAddress(opts.receiver) !== victim) {
+        throw new Error(
+            "surplus claim: this surface has no receiver argument to override — " +
+                "claimCollateral() always pays the caller, so a --receiver different from the " +
+                "claimant cannot be honored here"
+        );
+    }
+    const receiver = victim;
     const redeemerAddress = opts.redeemer || derivedActor(victim, "perimeter-qa-redeemer");
     const fundFrom = opts.fundFrom || [];
 
@@ -548,6 +593,15 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
         lastIdBefore,
         opts
     );
+    if (!request) return { id, request, receipt, before, surplusGross, redeemer: redeemerAddress };
+    // Zero has no passthrough on this surface: originator == owner == receiver
+    // == the claimant, all read off `claimant = msg.sender` in
+    // BorrowerOperationsPerimeterOps.claimSurplusWithPerimeter.
+    assertRequestParties("surplus claim", request, {
+        originator: victim,
+        owner: victim,
+        receiver: victim,
+    });
     return { id, request, receipt, before, surplusGross, redeemer: redeemerAddress };
 };
 
@@ -568,6 +622,7 @@ module.exports = {
     MAX_ZERO_FEE_PERCENTAGE,
     ERC20_ABI,
     ensureCollateralPrice,
+    assertRequestParties,
     queueLenderWithdrawal,
     queueBorrowerCollateralWithdraw,
     queueZeroCollWithdraw,
