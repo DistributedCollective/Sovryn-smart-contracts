@@ -14,6 +14,7 @@
 
 const { expect } = require("chai");
 const { ethers } = require("ethers");
+const hre = require("hardhat");
 
 const policy = require("../../hardhat/tasks/perimeter/policy");
 
@@ -254,6 +255,11 @@ describe("Perimeter policy — buildCall / decodeCall", () => {
             expect(decoded, `decodeCall must recognise its own ${kind} calldata`).to.exist;
             expect(decoded.signature).to.equal(built.signature);
             expect(decoded.meaning).to.equal(built.meaning);
+            // Regression for MED-1: decodeCall dropped `kind`, so
+            // perimeter:policy:check-tx's pairing-violation gate
+            // (`policy.ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`) was always
+            // false and the pairing check never ran, for any call.
+            expect(decoded.kind, `decodeCall must return kind for ${kind}`).to.equal(kind);
         });
     }
 
@@ -865,4 +871,125 @@ describe("Perimeter policy — ACTOR_TIER_PAIR_CALLS", () => {
             expect(policy.ACTOR_TIER_PAIR_CALLS.has(kind)).to.be.false;
         });
     }
+});
+
+describe("Perimeter policy tasks — perimeter:policy:check-tx (full task path)", () => {
+    // Regression for MED-1: `decodeCall` dropped `kind`, so `check-tx`'s
+    // pairing-violation gate (`policy.ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`)
+    // never ran, for any submitted call, on any network — the warning block
+    // was unreachable dead code even though `pairingViolationAfterCall` itself
+    // was correct and separately tested. This drives the actual task action —
+    // decoding a real submitted multisig transaction against a deployed
+    // controller and multisig, then reading what it logs — rather than calling
+    // `pairingViolationAfterCall` directly.
+
+    /** Redirects `console.log` (what `node-logs` writes through) for the
+     *  duration of `fn` and returns everything written, newline-joined. */
+    const captureConsole = async (fn) => {
+        const original = console.log;
+        const lines = [];
+        console.log = (...args) => {
+            lines.push(args.map(String).join(" "));
+        };
+        try {
+            await fn();
+        } finally {
+            console.log = original;
+        }
+        return lines.join("\n");
+    };
+
+    it("logs a pairing warning for a submitted actor-tier call that would leave an exemption half-applied", async () => {
+        const [owner1, owner2] = await hre.ethers.getSigners();
+
+        const MockExitFeeControllerFactory =
+            await hre.ethers.getContractFactory("MockExitFeeController");
+        const controller = await MockExitFeeControllerFactory.deploy();
+        await controller.deployed();
+
+        const MultiSigWalletFactory = await hre.ethers.getContractFactory("MultiSigWallet");
+        const multisig = await MultiSigWalletFactory.deploy(
+            [owner1.address, owner2.address],
+            2
+        );
+        await multisig.deployed();
+
+        // The actor starts held and charged (no fee entry, no delay bypass) —
+        // matched, not yet a violation. The submitted call grants the delay
+        // bypass alone, without the accompanying zero-rate fee entry: once it
+        // executes, the actor is exempt from the delay but still charged the
+        // surface's fee, exactly the "paid instantly, not held" shape the
+        // pairing check exists to catch.
+        const built = policy.buildCall("setActorBypass", {
+            surface: LENDER_WITHDRAW,
+            actor: OTHER,
+            bypass: { active: true, bypass: true },
+        });
+
+        const submitReceipt = await (
+            await multisig.connect(owner1).submitTransaction(controller.address, 0, built.data)
+        ).wait();
+        const submission = submitReceipt.events.find((e) => e.event === "Submission");
+        const txId = submission.args.transactionId;
+
+        // required = 2, only owner1 has confirmed via submitTransaction's
+        // auto-confirm — the transaction is submitted, not yet executed,
+        // exactly the state a co-signer reviews with check-tx before signing.
+        expect(await multisig.transactions(txId)).to.have.property("executed", false);
+
+        const output = await captureConsole(() =>
+            hre.run("perimeter:policy:check-tx", {
+                id: txId.toString(),
+                multisig: multisig.address,
+                controller: controller.address,
+            })
+        );
+
+        expect(output).to.include(OTHER);
+        expect(output.toLowerCase()).to.include("half-applied");
+    });
+
+    it("logs no pairing warning for a submitted actor-tier call that keeps the pair matched", async () => {
+        const [owner1, owner2] = await hre.ethers.getSigners();
+
+        const MockExitFeeControllerFactory =
+            await hre.ethers.getContractFactory("MockExitFeeController");
+        const controller = await MockExitFeeControllerFactory.deploy();
+        await controller.deployed();
+
+        const MultiSigWalletFactory = await hre.ethers.getContractFactory("MultiSigWallet");
+        const multisig = await MultiSigWalletFactory.deploy(
+            [owner1.address, owner2.address],
+            2
+        );
+        await multisig.deployed();
+
+        // The actor is already fee-exempt; the submitted call clears the fee
+        // entry back to inactive (falls through, charged) while no delay
+        // bypass exists either side — matched before and after.
+        const surfaceId = policy.SURFACES[LENDER_WITHDRAW];
+        await controller.setActorFeePolicyTest(surfaceId, OTHER, true, 0);
+
+        const built = policy.buildCall("removeActorPolicy", {
+            surface: LENDER_WITHDRAW,
+            actor: OTHER,
+        });
+
+        const submitReceipt = await (
+            await multisig.connect(owner1).submitTransaction(controller.address, 0, built.data)
+        ).wait();
+        const submission = submitReceipt.events.find((e) => e.event === "Submission");
+        const txId = submission.args.transactionId;
+
+        const output = await captureConsole(() =>
+            hre.run("perimeter:policy:check-tx", {
+                id: txId.toString(),
+                multisig: multisig.address,
+                controller: controller.address,
+            })
+        );
+
+        expect(output.toLowerCase()).to.not.include("half-applied");
+        expect(output).to.match(/fee and delay stay matched/);
+    });
 });

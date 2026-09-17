@@ -557,9 +557,11 @@ const buildCall = (kind, args) => {
     return { signature, data, meaning: def.meaning(positional) };
 };
 
-/** Decode calldata into {signature, args, meaning}, or `undefined` when the
- *  selector is not one of the controller's policy setters — the paste guard
- *  `perimeter:policy:check-tx` uses before it will describe a transaction. */
+/** Decode calldata into {signature, kind, args, meaning}, or `undefined` when
+ *  the selector is not one of the controller's policy setters — the paste
+ *  guard `perimeter:policy:check-tx` uses before it will describe a
+ *  transaction. `kind` is what that task gates its pairing-violation check
+ *  on (`ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`). */
 const decodeCall = (data) => {
     if (typeof data !== "string" || !/^0x[0-9a-fA-F]{8,}$/.test(data)) {
         return undefined;
@@ -568,7 +570,12 @@ const decodeCall = (data) => {
     const entry = SETTER_SELECTORS[selector];
     if (!entry) return undefined;
     const args = controllerInterface().decodeFunctionData(entry.kind, data);
-    return { signature: entry.signature, args, meaning: CALL_DEFS[entry.kind].meaning(args) };
+    return {
+        signature: entry.signature,
+        kind: entry.kind,
+        args,
+        meaning: CALL_DEFS[entry.kind].meaning(args),
+    };
 };
 
 /**
