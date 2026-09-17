@@ -662,6 +662,61 @@ const writeDelayEntries = async (controller, when, log) => {
 };
 
 /**
+ * Write every exemption that is not already fully written, preferring the
+ * delay build's atomic `grantExemption` over the two half-writes whenever
+ * neither half exists yet -- one transaction instead of two for the common
+ * case of arming a fork nobody has exempted anything on. A pair found
+ * half-written (an interrupted earlier run, or a fee-only-build entry
+ * inherited before the upgrade) is completed with only the missing half, so a
+ * half already there is never re-sent. Only the delay build carries
+ * `grantExemption`, and every call site here runs on that build. Read both
+ * halves of every entry back once done. Returns the entries it wrote.
+ */
+const writeExemptionEntries = async (controller, when, log) => {
+    const written = [];
+    for (const { address, surface, where } of exemptionEntries()) {
+        const hasFee = isFeeExemption(
+            await readOrNull(() => controller.actorPolicy(surface, address))
+        );
+        const hasDelay = isDelayExemption(
+            await readOrNull(() => controller.actorBypass(surface, address))
+        );
+        if (hasFee && hasDelay) continue;
+        if (!hasFee && !hasDelay) {
+            await (await controller.grantExemption(surface, address)).wait();
+            log(`  ${where}: exemption granted atomically ${when}`);
+            written.push(where);
+            continue;
+        }
+        if (!hasFee) {
+            await (
+                await controller.setActorPolicy(surface, address, { active: true, rateBps: 0 })
+            ).wait();
+            log(`  ${where}: actor fee policy written ${when}`);
+            written.push(where);
+        }
+        if (!hasDelay) {
+            await (
+                await controller.setActorBypass(surface, address, { active: true, bypass: true })
+            ).wait();
+            log(`  ${where}: actor delay bypass written ${when}`);
+            written.push(where);
+        }
+    }
+    for (const { address, surface, where } of exemptionEntries()) {
+        const fee = await readOrNull(() => controller.actorPolicy(surface, address));
+        const delay = await readOrNull(() => controller.actorBypass(surface, address));
+        if (!isFeeExemption(fee) || !isDelayExemption(delay)) {
+            throw new Error(
+                `perimeter QA: ${where} did not read back its exemption ${when}: actorPolicy ` +
+                    `${describeFee(fee)}, actorBypass ${describeDelay(delay)}`
+            );
+        }
+    }
+    return written;
+};
+
+/**
  * Upgrade the controller with the owner's exemptions in the runbook's order.
  *
  * The fee entry goes in first, on the fee build the proxy serves, because that
@@ -712,8 +767,9 @@ const armDelay = async (controller, { delaySeconds, fee }) => {
  *
  * On a fork this run upgraded, both halves are already written and are only
  * read back, after the release's proposals have executed. A fork attached to
- * was upgraded elsewhere, so a missing half is written here, the fee entry
- * first. A pair already written is left as it is.
+ * was upgraded elsewhere, so a missing entry is written here -- atomically,
+ * through `grantExemption`, when neither half exists yet. A pair already
+ * written is left as it is.
  *
  * `foundHolding` is what the controller said before this run touched it: true
  * when the fork was already armed with a hold. An exemption written then came
@@ -730,10 +786,7 @@ const armWithExemptions = async (controller, { delaySeconds, fee, foundHolding }
         );
     }
     const when = foundHolding ? "on a fork found armed" : "before arming";
-    const written = [
-        ...(await writeFeeEntries(controller, when, log)),
-        ...(await writeDelayEntries(controller, when, log)),
-    ];
+    const written = await writeExemptionEntries(controller, when, log);
     if (foundHolding && written.length > 0) {
         log(
             `  WARNING: this fork was armed without the whole exemption for ` +
