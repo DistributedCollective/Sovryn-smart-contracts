@@ -1165,14 +1165,22 @@ describe("Perimeter fee tasks — actor-tier fee/delay pairing guard (full task 
         return null;
     };
 
-    it("refuses fee:set --actor --rate 0 with no bypass, unless --confirmHalf is passed", async () => {
+    it("refuses fee:set --actor --rate 0 with no bypass, unless --confirmFeeOnly is passed", async () => {
         const error = await rejectionOf(runFeeSet({ actor: OTHER, rate: "0" }));
         expect(error, "expected fee:set to refuse").to.not.be.null;
         expect(error.message).to.match(/perimeter:exemption --action submit/);
     });
 
-    it("accepts fee:set --actor --rate 0 with no bypass when --confirmHalf is passed", async () => {
-        await runFeeSet({ actor: OTHER, rate: "0", confirmHalf: true });
+    it("does not accept perimeter:exemption's --confirmHalf as the acknowledgement", async () => {
+        // fee:set has its own flag, --confirmFeeOnly — passing exemption's
+        // --confirmHalf must not be read as satisfying it.
+        const error = await rejectionOf(runFeeSet({ actor: OTHER, rate: "0", confirmHalf: true }));
+        expect(error, "expected fee:set to still refuse").to.not.be.null;
+        expect(error.message).to.match(/perimeter:exemption --action submit/);
+    });
+
+    it("accepts fee:set --actor --rate 0 with no bypass when --confirmFeeOnly is passed", async () => {
+        await runFeeSet({ actor: OTHER, rate: "0", confirmFeeOnly: true });
     });
 
     it("refuses fee:remove --actor while an active bypass survives, with no flag to override", async () => {

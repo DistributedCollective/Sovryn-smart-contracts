@@ -451,7 +451,7 @@ task(
     .addOptionalParam("actor", "Actor address (mutually exclusive with --subproduct)")
     .addParam("rate", "Rate in bps, 0..10000, or 'inactive'", undefined, types.string)
     .addFlag(
-        "confirmHalf",
+        "confirmFeeOnly",
         "Required when this would leave the actor fee-exempt with no active delay bypass: " +
             "acknowledges the actor is held but not charged, on purpose"
     )
@@ -469,7 +469,7 @@ task(
                 subproduct,
                 actor,
                 rate,
-                confirmHalf,
+                confirmFeeOnly,
                 dryRun,
                 signer,
                 multisig,
@@ -529,11 +529,11 @@ task(
                             "the call that withdraws both halves."
                     );
                 }
-                if (divergence === "held" && !confirmHalf) {
+                if (divergence === "held" && !confirmFeeOnly) {
                     throw new Error(
                         `perimeter:fee:set: this leaves ${address} fee-exempt on ` +
                             `${policy.surfaceLabel(resolvedSurface.id)} with no active delay ` +
-                            "bypass — held, not charged, on its own. Pass --confirmHalf to " +
+                            "bypass — held, not charged, on its own. Pass --confirmFeeOnly to " +
                             "submit anyway, or use `perimeter:exemption --action submit` to " +
                             "grant the full exemption."
                     );
