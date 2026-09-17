@@ -30,6 +30,7 @@ const {
 } = require("../perimeterSipTestHelpers");
 const { assertLocalQaFork } = require("./guard");
 const drivers = require("./drivers");
+const gas = require("./gas");
 
 const { STATUS, BLOCK } = drivers;
 const ZERO_ADDRESS = ethers.constants.AddressZero;
@@ -239,14 +240,28 @@ const POSTCONDITIONS = {
         }
         return true;
     },
-    refundResolved: async (s, { ids, wantStatus, token, destination, before, total }) => {
+    refundResolved: async (s, { ids, wantStatus, token, destination, before, total, gasCharges }) => {
         for (const id of ids) {
             const after = await s.queue.getRequest(id);
             if (after.status !== STATUS[wantStatus]) {
                 return `request ${id} is ${STATUS_NAMES[after.status]}, not ${wantStatus}`;
             }
         }
-        const got = await balanceReader(token)(destination);
+        // When `destination` is also the account that paid to submit (or
+        // confirm) this refund's own multisig transaction — a realistic
+        // choice in a rehearsal, where "refund to an arbitrary address"
+        // commonly reuses the operator's own funded test key — gas spent in
+        // between the `before` snapshot and this read debits the very
+        // balance being measured. `gasCharges` is threaded in by the
+        // submitting/confirming code (`viaMultisig`, `confirm`), since a
+        // separately-confirmed transaction's own submission can be an
+        // earlier, different `perimeter:qa` invocation that no longer has
+        // the receipt to hand.
+        const raw = await balanceReader(token)(destination);
+        const got =
+            token === ZERO_ADDRESS
+                ? gas.creditedDelta(raw, destination, gasCharges || [])
+                : raw;
         const want = ethers.BigNumber.from(before).add(total);
         return got.eq(want) ? true : `${destination} holds ${got}, not the expected ${want}`;
     },
@@ -317,6 +332,21 @@ const viaMultisig = async (s, label, target, contract, signature, args, opts = {
                 const entry = receipt.logs.find((l) => l.topics[0] === SUBMISSION_TOPIC);
                 if (!entry) return "the multisig recorded no submission";
                 const txId = ethers.BigNumber.from(entry.topics[1]).toNumber();
+                // The submission's own gas is spent from `key`'s balance right
+                // here — before the inner call is known to be immediate or
+                // left pending for `confirm`. Persist it onto the
+                // postcondition's own args (the same object the returned
+                // record carries, and so `appendState` writes to the state
+                // file) so a balance-delta check reading a destination that
+                // might BE `key` — refund's own postcondition — can credit it
+                // back even from a later, separate `confirm` invocation that
+                // no longer has this receipt to hand.
+                if (postcondition) {
+                    postcondition.args = {
+                        ...postcondition.args,
+                        gasCharges: [...(postcondition.args.gasCharges || []), gas.chargeOf(receipt)],
+                    };
+                }
                 if (!(await s.multisig.transactions(txId)).executed) {
                     if (required > 1) {
                         return `pending as multisig tx ${txId}: threshold is ${required}, confirm it`;
@@ -470,16 +500,17 @@ const withdraw = async (s, opts = {}) => {
     // denominated by construction). A driver whose direct-pay leg paid out a
     // plain ERC20 instead would silently have this watch the wrong balance;
     // none of the surfaces this engine drives does that today.
-    let paidNow = (await ethers.provider.getBalance(receiver)).sub(result.before.receiver);
     // When the receiver IS the transaction's own signer (the default —
     // `opts.receiver` omitted), gas is debited from the very balance this
     // measures. Left unadjusted, a hook that leaks a payment no bigger than
     // its own gas cost reads as zero or negative and slips past both checks
-    // below. Credited = after - before + gasUsed * effectiveGasPrice restores
-    // what was actually paid, independent of who footed the call's gas.
-    if (ethers.utils.getAddress(receiver) === originator) {
-        paidNow = paidNow.add(result.receipt.gasUsed.mul(result.receipt.effectiveGasPrice));
-    }
+    // below. `gas.creditedDelta` restores what was actually paid, independent
+    // of who footed the call's gas.
+    const paidNow = gas.creditedDelta(
+        (await ethers.provider.getBalance(receiver)).sub(result.before.receiver),
+        receiver,
+        result.receipt ? [gas.chargeOf(result.receipt)] : []
+    );
 
     if (!result.id) {
         // The perimeter is switched off, so the product is supposed to pay on
@@ -706,16 +737,14 @@ const executeAll = async (s, opts = {}) => {
                 // Gas is native-only and paid by the executor regardless of
                 // which asset it is being paid in, so it only ever offsets a
                 // native payout to the executor itself.
-                const gas = receipt.gasUsed.mul(receipt.effectiveGasPrice);
+                const charge = gas.chargeOf(receipt);
                 for (const [key, entry] of expected) {
-                    const got = await balanceReader(entry.asset)(entry.receiver);
-                    const isExecutorNative =
-                        entry.asset === ZERO_ADDRESS &&
-                        ethers.utils.getAddress(entry.receiver) === who;
-                    const want = before
-                        .get(key)
-                        .add(entry.amount)
-                        .sub(isExecutorNative ? gas : ethers.constants.Zero);
+                    const raw = await balanceReader(entry.asset)(entry.receiver);
+                    const got =
+                        entry.asset === ZERO_ADDRESS
+                            ? gas.creditedDelta(raw, entry.receiver, [charge])
+                            : raw;
+                    const want = before.get(key).add(entry.amount);
                     if (!got.eq(want)) {
                         const assetName = entry.asset === ZERO_ADDRESS ? "native" : entry.asset;
                         return `${entry.receiver} holds ${got} of ${assetName}, not the expected ${want}`;
@@ -1158,12 +1187,21 @@ const confirm = async (s, txId, opts = {}) => {
         if ((await s.multisig.transactions(id)).executed) break;
         if (await s.multisig.confirmations(id, owner)) continue;
         const signer = await drivers.solventSigner(s, owner);
-        await (
+        const receipt = await (
             await s.multisig
                 .connect(signer)
                 .confirmTransaction(id, { gasLimit: OPERATOR_CALL_GAS })
         ).wait();
         added.push(owner);
+        // Mirrors `viaMultisig`'s own submission-gas credit: a confirmation
+        // is a transaction too, and a refund's `destination` could
+        // coincidentally be one of the owners confirming it here.
+        if (postcondition) {
+            postcondition.args = {
+                ...postcondition.args,
+                gasCharges: [...(postcondition.args.gasCharges || []), gas.chargeOf(receipt)],
+            };
+        }
     }
     const executed = (await s.multisig.transactions(id)).executed;
     const verdict = await confirmVerdict(s, postcondition, executed);

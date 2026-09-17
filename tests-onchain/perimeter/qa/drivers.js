@@ -34,6 +34,7 @@ const {
     collSurplusPoolFixture,
     forkOps,
 } = require("../perimeterSipTestHelpers");
+const gas = require("./gas");
 
 const ZERO_ADDRESS = ethers.constants.AddressZero;
 const ERC20_ABI = [
@@ -215,15 +216,13 @@ const assertExitFeeAccounted = async (
         receipt,
     }
 ) => {
-    let feeReceived = feeReceiverAfter.sub(feeReceiverBefore);
     // When the fee receiver IS the withdrawal's own signer, gas the signer
     // paid for this same transaction is debited from the very balance this
     // measures — the same contamination engine.js's withdraw() already
-    // normalizes out of the receiver leg. Credit it back the same way:
-    // after - before + gasUsed * effectiveGasPrice.
-    if (ethers.utils.getAddress(feeReceiver) === ethers.utils.getAddress(receipt.from)) {
-        feeReceived = feeReceived.add(receipt.gasUsed.mul(receipt.effectiveGasPrice));
-    }
+    // normalizes out of the receiver leg. Credit it back the same way.
+    const feeReceived = gas.creditedDelta(feeReceiverAfter.sub(feeReceiverBefore), feeReceiver, [
+        gas.chargeOf(receipt),
+    ]);
     if (feeReceived.lt(0)) {
         throw new Error(
             `${label}: the fee destination's balance FELL by ${feeReceived.abs()} across the ` +
