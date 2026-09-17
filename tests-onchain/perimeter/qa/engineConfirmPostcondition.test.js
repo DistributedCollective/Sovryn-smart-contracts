@@ -107,6 +107,158 @@ describe("QA scenario engine — confirm() re-checks the postcondition, not just
         expect(record.note).to.match(/no postcondition was recorded/);
     });
 
+    it("summarizeStep keeps a step's postcondition — the route regression this fix closes", () => {
+        // Before this fix, route()'s own per-step summary dropped
+        // `postcondition` even though `viaMultisig`'s result carried it —
+        // the only place a route step's postcondition could have survived
+        // to the state file at all.
+        const step = {
+            signature: "setRecoveryRoute((bool,bytes32,address,address,address,bool))",
+            applied: true,
+            txId: 77,
+            postcondition: { kind: "recoveryRouteActive", args: { routeId: "0xroute" } },
+            note: null,
+        };
+        expect(engine.summarizeStep(step)).to.deep.equal({
+            label: step.signature,
+            applied: true,
+            txId: 77,
+            postcondition: step.postcondition,
+            note: null,
+        });
+    });
+
+    it("finds a route step's postcondition nested under steps[], not just a top-level one", () => {
+        // route()'s own returned record cannot carry a single top-level
+        // txId/postcondition (it may submit two multisig transactions), so
+        // each step's own is nested under `steps[]` instead —
+        // findPostconditionFor has to look there too.
+        const fs = require("fs");
+        const { LOG_FILE } = engine;
+        const existed = fs.existsSync(LOG_FILE);
+        const backup = existed ? fs.readFileSync(LOG_FILE, "utf8") : null;
+        try {
+            const stepTxId = 909;
+            engine.appendState({
+                command: "route",
+                surface: "lender",
+                // No top-level txId/postcondition — route is a compound
+                // command and cannot have a single one.
+                steps: [
+                    {
+                        label: "setTopUpFeasible(bytes32,bool)",
+                        applied: true,
+                        txId: stepTxId,
+                        postcondition: {
+                            kind: "topUpFeasible",
+                            args: { surfaceId: ethers.constants.HashZero },
+                        },
+                        note: null,
+                    },
+                ],
+            });
+            expect(engine.findPostconditionFor(stepTxId)).to.deep.equal({
+                kind: "topUpFeasible",
+                args: { surfaceId: ethers.constants.HashZero },
+            });
+            expect(
+                engine.findPostconditionFor(stepTxId + 1),
+                "an unrelated txId must not match"
+            ).to.equal(null);
+        } finally {
+            if (existed) fs.writeFileSync(LOG_FILE, backup);
+            else if (fs.existsSync(LOG_FILE)) fs.unlinkSync(LOG_FILE);
+        }
+    });
+
+    it("confirm() re-checks a route step's postcondition, not just executed — the RV-5 gap", async () => {
+        // Exactly the MED-8 defect, reopened for route: the wallet reports
+        // the step's transaction as executed, but the queue never actually
+        // reached topUpFeasible == true. Before this fix, findPostconditionFor
+        // never looked inside steps[], so confirm() found nothing and fell
+        // back to trusting `executed` alone — reporting applied: true for a
+        // command that never actually took effect.
+        const fs = require("fs");
+        const { LOG_FILE } = engine;
+        const existed = fs.existsSync(LOG_FILE);
+        const backup = existed ? fs.readFileSync(LOG_FILE, "utf8") : null;
+        const stepTxId = 910;
+        try {
+            engine.appendState({
+                command: "route",
+                surface: "lender",
+                steps: [
+                    {
+                        label: "setTopUpFeasible(bytes32,bool)",
+                        applied: true,
+                        txId: stepTxId,
+                        postcondition: {
+                            kind: "topUpFeasible",
+                            args: { surfaceId: ethers.constants.HashZero },
+                        },
+                        note: null,
+                    },
+                ],
+            });
+
+            const s = {
+                multisig: {
+                    transactionCount: async () => ethers.BigNumber.from(stepTxId + 1),
+                    transactions: async () => ({ executed: true }),
+                },
+                queue: { topUpFeasible: async () => false }, // defect: never actually set
+            };
+            const record = await engine.confirm(s, stepTxId, silent);
+            expect(
+                record.applied,
+                "a route step reported executed but never actually applied must not report applied"
+            ).to.equal(false);
+            expect(record.note).to.match(/still marked infeasible/);
+        } finally {
+            if (existed) fs.writeFileSync(LOG_FILE, backup);
+            else if (fs.existsSync(LOG_FILE)) fs.unlinkSync(LOG_FILE);
+        }
+    });
+
+    it("confirm() reports applied: true for a route step whose postcondition genuinely holds", async () => {
+        const fs = require("fs");
+        const { LOG_FILE } = engine;
+        const existed = fs.existsSync(LOG_FILE);
+        const backup = existed ? fs.readFileSync(LOG_FILE, "utf8") : null;
+        const stepTxId = 911;
+        try {
+            engine.appendState({
+                command: "route",
+                surface: "lender",
+                steps: [
+                    {
+                        label: "setTopUpFeasible(bytes32,bool)",
+                        applied: true,
+                        txId: stepTxId,
+                        postcondition: {
+                            kind: "topUpFeasible",
+                            args: { surfaceId: ethers.constants.HashZero },
+                        },
+                        note: null,
+                    },
+                ],
+            });
+
+            const s = {
+                multisig: {
+                    transactionCount: async () => ethers.BigNumber.from(stepTxId + 1),
+                    transactions: async () => ({ executed: true }),
+                },
+                queue: { topUpFeasible: async () => true },
+            };
+            const record = await engine.confirm(s, stepTxId, silent);
+            expect(record.applied).to.equal(true);
+        } finally {
+            if (existed) fs.writeFileSync(LOG_FILE, backup);
+            else if (fs.existsSync(LOG_FILE)) fs.unlinkSync(LOG_FILE);
+        }
+    });
+
     it("finds a postcondition persisted to the state file by an earlier submission, in a fresh call that does not pass one explicitly", async () => {
         // This is the real scenario MED-8 is about: submission and
         // confirmation are two SEPARATE `perimeter:qa` invocations, connected

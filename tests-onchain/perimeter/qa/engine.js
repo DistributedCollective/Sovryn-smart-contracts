@@ -862,6 +862,20 @@ const provenanceOf = async (s, surfaceId) => {
     );
 };
 
+/** The compact record kept for one step of a compound (multi-transaction)
+ *  command — everything `findPostconditionFor` and a later `confirm` need to
+ *  re-verify that ONE step's transaction on its own, not just the wallet's
+ *  `executed` flag. Kept as a named function, not an inline map callback, so
+ *  it has one place to add a field to and one place a test can check
+ *  directly. */
+const summarizeStep = (step) => ({
+    label: step.signature,
+    applied: step.applied,
+    txId: step.txId,
+    postcondition: step.postcondition,
+    note: step.note,
+});
+
 /**
  * Register a recovery route for one surface.
  *
@@ -942,12 +956,14 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
         sent,
         applied: sent ? steps.every((step) => step.applied) : null,
         note: sent ? null : "nothing was sent — the calldata for each step was printed instead",
-        steps: steps.map((step) => ({
-            label: step.signature,
-            applied: step.applied,
-            txId: step.txId,
-            note: step.note,
-        })),
+        // route is the one command that submits more than one multisig
+        // transaction, so its own summary cannot carry a single top-level
+        // txId/postcondition the way every other command's can. Each step
+        // keeps its OWN txId and postcondition here instead — dropping
+        // postcondition would make a later, separate `confirm <txId>` on
+        // either step unable to find anything to re-verify and silently
+        // fall back to trusting the wallet's `executed` flag alone.
+        steps: steps.map(summarizeStep),
     };
 };
 
@@ -1190,7 +1206,19 @@ const findPostconditionFor = (txId) => {
     }
     if (!Array.isArray(entries)) return null;
     for (let i = entries.length - 1; i >= 0; i--) {
-        if (entries[i].txId === txId && entries[i].postcondition) return entries[i].postcondition;
+        const entry = entries[i];
+        if (entry.txId === txId && entry.postcondition) return entry.postcondition;
+        // A compound command (route) submits more than one multisig
+        // transaction, so it cannot carry a single txId/postcondition at its
+        // own top level — each of its steps carries its own instead. This is
+        // the only other place a transaction id this function is asked
+        // about can be recorded.
+        if (Array.isArray(entry.steps)) {
+            for (let j = entry.steps.length - 1; j >= 0; j--) {
+                const step = entry.steps[j];
+                if (step && step.txId === txId && step.postcondition) return step.postcondition;
+            }
+        }
     }
     return null;
 };
@@ -1211,6 +1239,7 @@ module.exports = {
     calldataFor,
     routeIdOf,
     activeRouteFor,
+    summarizeStep,
     revertReason,
     runPostcondition,
     findPostconditionFor,
