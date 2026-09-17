@@ -11,13 +11,13 @@
  *      and the two Zero implementation-only deploys, all on
  *      `--network rskForkedMainnet`.
  * The spec consumes that state: controller/vault proxies and the two Zero
- * implementations via env (PERIMETER_EXIT_FEE_CONTROLLER / EXIT_FEE_VAULT_PROXY /
+ * implementations via env (PERIMETER_EXIT_FEE_CONTROLLER / PERIMETER_EXIT_FEE_VAULT_PROXY /
  * PERIMETER_ZERO_BORROWER_OPERATIONS / PERIMETER_ZERO_COLL_SURPLUS_POOL, plus the
  * three codehash pins), the 7 lending modules via their fresh
  * rskForkedMainnet deployment records. It performs NO node reset and deploys
  * NO contract bytecode of its own; a redeploy sneaking in fails the run.
  *
- * Gate: set COLFEE_DRESS_RUN=TRUE (skipped otherwise — this spec is
+ * Gate: set PERIMETER_DRESS_RUN=TRUE (skipped otherwise — this spec is
  * meaningless without the pre-deployed stack).
  *
  * It executes all three proposals through real governance (the same
@@ -52,9 +52,9 @@
  *     stability pool, Zero redemption) charge nothing.
  *
  * Run (after the prerequisite deploys above, against the SAME node):
- *     COLFEE_DRESS_RUN=TRUE __decryptionAlreadyDone__=TRUE \
+ *     PERIMETER_DRESS_RUN=TRUE __decryptionAlreadyDone__=TRUE \
  *       PERIMETER_EXIT_FEE_CONTROLLER=... PERIMETER_EXIT_FEE_CONTROLLER_CODEHASH=... \
- *       EXIT_FEE_VAULT_PROXY=... \
+ *       PERIMETER_EXIT_FEE_VAULT_PROXY=... \
  *       PERIMETER_ZERO_BORROWER_OPERATIONS=... PERIMETER_ZERO_BORROWER_OPERATIONS_CODEHASH=... \
  *       PERIMETER_ZERO_COLL_SURPLUS_POOL=... PERIMETER_ZERO_COLL_SURPLUS_POOL_CODEHASH=... \
  *       npx hardhat test tests-onchain/perimeter/perimeterExecutionDayDressRun.test.js --network rskForkedMainnet
@@ -118,7 +118,7 @@ const requireEnvAddress = (name) => {
     return ethers.utils.getAddress(value);
 };
 
-const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
+const DRESS_RUN = process.env.PERIMETER_DRESS_RUN === "TRUE";
 
 (DRESS_RUN ? describe : describe.skip)(
     "Perimeter execution-day dress run (live-deployed stack)",
@@ -180,7 +180,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                 context.deployerSigner
             );
             const vault = new ethers.Contract(
-                requireEnvAddress("EXIT_FEE_VAULT_PROXY"),
+                requireEnvAddress("PERIMETER_EXIT_FEE_VAULT_PROXY"),
                 vaultFixture.abi,
                 context.deployerSigner
             );
@@ -1248,7 +1248,7 @@ const DRESS_RUN = process.env.COLFEE_DRESS_RUN === "TRUE";
                     expect(
                         gap.gte(ethers.utils.parseEther("0.0004")),
                         "live queue floor ICR grazes the MCR — no room to open the probe " +
-                            "below it; re-pin COLFEE_FORK_BLOCK or fully redeem the floor trove first"
+                            "below it; re-pin PERIMETER_FORK_BLOCK or fully redeem the floor trove first"
                     ).to.be.true;
                     probeIcr = mcr.add(gap.div(2));
                 }

@@ -110,4 +110,101 @@ contract MockArbitraryQuoteExitFeeController is IExitFeeController {
     function removeSubProductPolicies(bytes32, address[] calldata) external {}
     function removeActorPolicy(bytes32, address) external {}
     function removeActorPolicies(bytes32, address[] calldata) external {}
+
+    // ─── Delay extension (inert) ────────────────────────────────────────
+    //
+    // This stub exists to exercise the FEE quote gate, so every delay member
+    // is a no-op: `quoteExitDelayFor` reports no delay and returns the raw
+    // identities, which is the same answer a controller with the perimeter
+    // switched off gives. That keeps the fee-side tests driven by this mock
+    // independent of the delay extension.
+
+    function quoteExitDelay(bytes32, address, address) public view returns (uint32) {
+        return 0;
+    }
+
+    function quoteExitDelayFor(
+        address rawOriginator,
+        address owner,
+        address,
+        bytes32,
+        address
+    ) external view returns (uint32 d, address effOrig, address effOwner) {
+        return (0, rawOriginator, owner);
+    }
+
+    function admin() external view returns (address) {
+        return address(0);
+    }
+
+    function securityPerimeterEnabled() external view returns (bool) {
+        return false;
+    }
+
+    function globalDelaySeconds() external view returns (uint32) {
+        return 0;
+    }
+
+    function surfaceBypass(bytes32) external view returns (DelayBypassPolicy memory p) {}
+
+    function subProductBypass(
+        bytes32,
+        address
+    ) external view returns (DelayBypassPolicy memory p) {}
+
+    function actorBypass(bytes32, address) external view returns (DelayBypassPolicy memory p) {}
+
+    function surfaceBypassKeys() external view returns (bytes32[] memory keys) {
+        return keys;
+    }
+
+    function subProductBypassKeys(bytes32) external view returns (address[] memory keys) {
+        return keys;
+    }
+
+    function actorBypassKeys(bytes32) external view returns (address[] memory keys) {
+        return keys;
+    }
+
+    function bypassSurfaceIds() external view returns (bytes32[] memory ids) {
+        return ids;
+    }
+
+    function setAdmin(address) external {}
+
+    function setSecurityPerimeterEnabled(bool) external {}
+
+    function setGlobalDelaySeconds(uint32) external {}
+
+    function setSurfaceBypass(bytes32, DelayBypassPolicy calldata) external {}
+
+    function removeSurfaceBypass(bytes32) external {}
+
+    function setSubProductBypass(bytes32, address, DelayBypassPolicy calldata) external {}
+
+    function setSubProductBypasses(
+        bytes32,
+        address[] calldata,
+        DelayBypassPolicy[] calldata
+    ) external {}
+
+    function setActorBypass(bytes32, address, DelayBypassPolicy calldata) external {}
+
+    function setActorBypasses(
+        bytes32,
+        address[] calldata,
+        DelayBypassPolicy[] calldata
+    ) external {}
+
+    function removeSubProductBypass(bytes32, address) external {}
+
+    function removeSubProductBypasses(bytes32, address[] calldata) external {}
+
+    function removeActorBypass(bytes32, address) external {}
+
+    function removeActorBypasses(bytes32, address[] calldata) external {}
+
+    function revokeExemption(bytes32, address) external {}
+
+    function grantExemption(bytes32, address) external {}
 }

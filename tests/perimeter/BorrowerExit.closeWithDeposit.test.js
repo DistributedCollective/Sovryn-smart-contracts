@@ -1,8 +1,8 @@
 /**
- * Phase 3 / Task 3.2 — Borrower-exit (`LoanClosingsWith.closeWithDeposit`)
+ * Borrower-exit (`LoanClosingsWith.closeWithDeposit`)
  * Perimeter coverage.
  *
- * Surface: `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` (same as Task 3.1).
+ * Surface: `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` (same as `withdrawCollateral`).
  *
  * Scenarios:
  *
@@ -10,7 +10,8 @@
  *                                   ExitFeeSkipped(INACTIVE).
  *   2. Surface default 25 bps    → fee receiver gets 25 bps of the residual;
  *                                   borrower gets net; gross == net + fee.
- *   3. Sub-product override key  → REGRESSION for review Finding 1. With
+ *   3. Sub-product override key  → the policy key is the pool (loanLocal.lender),
+ *                                   not the loan token. With
  *                                   policy keyed by `loanLocal.lender`
  *                                   (the iToken proxy = `loanToken.address`)
  *                                   at 50 bps AND policy keyed by the
@@ -53,6 +54,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -62,7 +64,7 @@ const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
 
 const REASON = { NONE: 0, INACTIVE: 1, DISABLED: 2, INVALID_QUOTE: 3 };
 
-contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (accounts) => {
+contract("Perimeter — borrower-exit closeWithDeposit", (accounts) => {
     let owner, account1, feeReceiver;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
     let controller;
@@ -100,7 +102,7 @@ contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (a
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
@@ -209,7 +211,7 @@ contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (a
         });
     });
 
-    describe("Sub-product override REGRESSION (Finding 1: subProduct == loanLocal.lender)", () => {
+    describe("the sub-product key is the pool, not the loan token", () => {
         it("policy keyed by iToken pool (loanLocal.lender) is honored; underlying-token key is NOT", async () => {
             await controller.setExitFeeEnabledTest(true);
             // 50 bps on the iToken (correct key); 999 bps on the underlying

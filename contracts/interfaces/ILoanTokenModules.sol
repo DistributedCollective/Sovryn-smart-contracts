@@ -45,7 +45,7 @@ contract ILoanTokenModules is IPerimeterEvents {
 
     /** INTERFACE */
 
-    /** PERIMETER — controller view */
+    /** Perimeter — controller view */
     function exitFeeController() external view returns (address);
 
     /** START LOAN TOKEN SETTINGS LOWER ADMIN */
@@ -144,7 +144,14 @@ contract ILoanTokenModules is IPerimeterEvents {
 
     function mint(address receiver, uint256 depositAmount) external returns (uint256 mintAmount);
 
-    function burn(address receiver, uint256 burnAmount) external returns (uint256 loanAmountPaid);
+    /// @return gross The underlying that left the pool for this burn.
+    /// @return delivered What reached `receiver` in this call: `gross`, less the
+    ///         Perimeter fee when one is charged; 0 when the withdrawal delay
+    ///         escrows the payout in the delay queue or `gross` is 0.
+    function burn(
+        address receiver,
+        uint256 burnAmount
+    ) external returns (uint256 gross, uint256 delivered);
 
     function checkPause(string calldata funcId) external view returns (bool isPaused);
 
@@ -247,11 +254,15 @@ contract ILoanTokenModules is IPerimeterEvents {
         bool useLM
     ) external returns (uint256 minted);
 
+    /// @return gross The underlying that left the pool for this burn.
+    /// @return delivered What reached `receiver` in this call: `gross`, less the
+    ///         Perimeter fee when one is charged; 0 when the withdrawal delay
+    ///         escrows the payout in the delay queue or `gross` is 0.
     function burn(
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external returns (uint256 redeemed);
+    ) external returns (uint256 gross, uint256 delivered);
 
     /** START LOAN TOKEN LOGIC WRBTC */
     function mintWithBTC(
@@ -259,11 +270,16 @@ contract ILoanTokenModules is IPerimeterEvents {
         bool useLM
     ) external payable returns (uint256 mintAmount);
 
+    /// @return gross The WRBTC that left the pool for this burn.
+    /// @return delivered What reached `receiver` as native RBTC in this call:
+    ///         `gross`, less the Perimeter fee when one is charged; 0 when the
+    ///         withdrawal delay escrows the payout in the delay queue or `gross`
+    ///         is 0.
     function burnToBTC(
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external returns (uint256 loanAmountPaid);
+    ) external returns (uint256 gross, uint256 delivered);
 
     function marketLiquidity() external view returns (uint256);
 
