@@ -515,19 +515,57 @@ const execute = async (s, id, opts = {}) => {
     };
 };
 
+const balanceReader = (token) =>
+    token === ZERO_ADDRESS
+        ? (who) => ethers.provider.getBalance(who)
+        : (who) => new ethers.Contract(token, drivers.ERC20_ABI, ethers.provider).balanceOf(who);
+
+/** The asset a request actually pays out in — native RBTC when the escrowed
+ *  token itself is native OR the request unwraps WRBTC on delivery (the
+ *  lender surface's escrow), the escrowed token otherwise. Mirrors the same
+ *  test `execute()` uses for its own gas leg. */
+const payoutAssetOf = (r) =>
+    r.token === ZERO_ADDRESS || r.unwrapOnDelivery ? ZERO_ADDRESS : r.token;
+
 /** Every Queued request an actor may release, in one call. */
 const executeAll = async (s, opts = {}) => {
     const who = await addressForWho(s, opts.as);
     const last = (await s.queue.lastRequestId()).toNumber();
     const ids = [];
+    const requests = [];
     for (let id = 1; id <= last; id++) {
         const r = await s.queue.getRequest(id);
         if (r.status !== STATUS.Queued) continue;
-        if ([r.originator, r.owner].some((a) => ethers.utils.getAddress(a) === who)) ids.push(id);
+        if ([r.originator, r.owner].some((a) => ethers.utils.getAddress(a) === who)) {
+            ids.push(id);
+            requests.push(r);
+        }
     }
     if (!ids.length) {
         return { command: "execute-all", as: who, ids: [], applied: true, note: "nothing to do" };
     }
+
+    // Snapshot per (asset, receiver) balances BEFORE the batch, so a
+    // successful batch's payouts can be verified exactly — not just that
+    // every id's status moved to Executed, which says nothing about whether
+    // anyone was actually paid, or paid the right amount.
+    const expected = new Map();
+    for (const r of requests) {
+        const asset = payoutAssetOf(r);
+        const key = `${asset}:${ethers.utils.getAddress(r.receiver)}`;
+        const entry = expected.get(key) || {
+            asset,
+            receiver: r.receiver,
+            amount: ethers.constants.Zero,
+        };
+        entry.amount = entry.amount.add(r.amount);
+        expected.set(key, entry);
+    }
+    const before = new Map();
+    for (const [key, entry] of expected) {
+        before.set(key, await balanceReader(entry.asset)(entry.receiver));
+    }
+
     const signer = await signerFor(s, who);
     const result = await send(
         `execute-all ${ids.join(",")}`,
@@ -535,11 +573,29 @@ const executeAll = async (s, opts = {}) => {
         {
             ...opts,
             contract: s.queue,
-            verify: async () => {
+            verify: async (receipt) => {
                 for (const id of ids) {
                     const after = await s.queue.getRequest(id);
                     if (after.status !== STATUS.Executed) {
                         return `request ${id} is ${STATUS_NAMES[after.status]}, not Executed`;
+                    }
+                }
+                // Gas is native-only and paid by the executor regardless of
+                // which asset it is being paid in, so it only ever offsets a
+                // native payout to the executor itself.
+                const gas = receipt.gasUsed.mul(receipt.effectiveGasPrice);
+                for (const [key, entry] of expected) {
+                    const got = await balanceReader(entry.asset)(entry.receiver);
+                    const isExecutorNative =
+                        entry.asset === ZERO_ADDRESS &&
+                        ethers.utils.getAddress(entry.receiver) === who;
+                    const want = before
+                        .get(key)
+                        .add(entry.amount)
+                        .sub(isExecutorNative ? gas : ethers.constants.Zero);
+                    if (!got.eq(want)) {
+                        const assetName = entry.asset === ZERO_ADDRESS ? "native" : entry.asset;
+                        return `${entry.receiver} holds ${got} of ${assetName}, not the expected ${want}`;
                     }
                 }
                 return true;
@@ -817,11 +873,6 @@ const activeRouteFor = async (s, surfaceId, subProduct, token) => {
     }
     return null;
 };
-
-const balanceReader = (token) =>
-    token === ZERO_ADDRESS
-        ? (who) => ethers.provider.getBalance(who)
-        : (who) => new ethers.Contract(token, drivers.ERC20_ABI, ethers.provider).balanceOf(who);
 
 /**
  * Send escrow away from its receiver. The two legs do NOT have the same reach.
