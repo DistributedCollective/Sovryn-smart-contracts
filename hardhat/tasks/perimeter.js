@@ -59,21 +59,41 @@ const knownQueueAddress = async (hre) => {
     }
 };
 
-/** Refuse `address` when it does not match the independently-derived queue
- *  address, whenever one can be derived — the same identity check
- *  `perimeter:policy:check-tx` already applies to the controller before it
- *  will describe a transaction as safe to confirm. Carrying contract code is
- *  not enough on its own: this catches a wrong `--queue` (or a pending
- *  transaction's wrong destination) that happens to have code, submitting or
- *  displaying genuinely queue-shaped calldata against it. */
+/**
+ * Confirm `address` against the independently-derived queue address — the
+ * same identity check `perimeter:policy:check-tx` already applies to the
+ * controller before it will describe a transaction as safe to confirm —
+ * and say which of three outcomes happened, out loud, every time:
+ *
+ *   - no known queue address could be derived on this network: this check
+ *     did NOT run. Left unstated, that reads identically to having passed
+ *     it — a WARNING names exactly what was not verified and that it needs
+ *     confirming by hand, rather than staying silent and proceeding anyway.
+ *   - `address` matches: a distinct line says so, so a co-signer reading
+ *     the output can tell "verified" apart from "not verified" at a glance.
+ *   - `address` does not match a known one: refuse outright. Carrying
+ *     contract code is not enough on its own — this catches a wrong
+ *     `--queue` (or a pending transaction's wrong destination) that
+ *     happens to have code, submitting or displaying genuinely
+ *     queue-shaped calldata against it.
+ */
 const assertKnownQueue = async (hre, taskLabel, address) => {
     const known = await knownQueueAddress(hre);
-    if (known && hre.ethers.utils.getAddress(address) !== known) {
+    if (!known) {
+        logger.warn(
+            `${taskLabel}: the queue address ${address} could NOT be verified independently ` +
+                "(no deployment record and no protocol pointer on this network) — confirm it by " +
+                "hand before confirming this transaction"
+        );
+        return;
+    }
+    if (hre.ethers.utils.getAddress(address) !== known) {
         throw new Error(
             `${taskLabel}: ${address} does not match the known ExitDelayQueue (${known}) — ` +
                 "refusing to treat an address that is not the deployed queue as safe"
         );
     }
+    logger.info(`${taskLabel}: ${address} matches the deployed ExitDelayQueue`);
 };
 
 task(

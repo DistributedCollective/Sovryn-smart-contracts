@@ -18,6 +18,22 @@ const { ethers, deployments } = hre;
 
 const MockExitFeeController = artifacts.require("MockExitFeeController");
 
+/** Redirects `console.log` (what `node-logs` writes through) for the
+ *  duration of `fn` and returns everything written, newline-joined. */
+const captureConsole = async (fn) => {
+    const original = console.log;
+    const lines = [];
+    console.log = (...args) => {
+        lines.push(args.map(String).join(" "));
+    };
+    try {
+        await fn();
+    } finally {
+        console.log = original;
+    }
+    return lines.join("\n");
+};
+
 /** Registers a fake `ExitDelayQueue` deployment record for the duration of
  *  `fn`, restoring whatever this test network held before (or removing the
  *  record entirely if it held none) — this test network's own record is
@@ -77,12 +93,41 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
         });
     });
 
-    it("still submits when --queue matches the known ExitDelayQueue", async () => {
+    it("still submits when --queue matches the known ExitDelayQueue, and says so with a distinct verified line", async () => {
         await withKnownQueue(realQueue, async () => {
             let raised = null;
+            const output = await captureConsole(async () => {
+                try {
+                    await hre.run("perimeter:submit-block", {
+                        queue: realQueue,
+                        data: freezeData,
+                        signer: owner.address,
+                        multisig: multisig.address,
+                    });
+                } catch (error) {
+                    raised = error;
+                }
+            });
+            expect(raised, raised && raised.message).to.equal(null);
+            expect(output).to.include("matches the deployed ExitDelayQueue");
+        });
+    });
+
+    it("does not weaken the omitted-argument fallback: submits fine when no known queue can be derived at all, but says out loud that it could not verify it", async () => {
+        // No `withKnownQueue` wrapper here — this test network carries no
+        // `ExitDelayQueue`/`ISovryn` record by default (the same premise
+        // every other test in this file and in BlockCalldataDecoding.test.js
+        // already relies on), so the identity check must proceed rather than
+        // block a submission it has nothing to verify against — but it must
+        // not proceed SILENTLY: a co-signer reading the output has to be
+        // able to tell "not verified" apart from "verified".
+        const existing = await deployments.getOrNull("ExitDelayQueue");
+        expect(existing, "this test assumes no queue record is already registered").to.not.exist;
+        let raised = null;
+        const output = await captureConsole(async () => {
             try {
                 await hre.run("perimeter:submit-block", {
-                    queue: realQueue,
+                    queue: wrongQueue,
                     data: freezeData,
                     signer: owner.address,
                     multisig: multisig.address,
@@ -90,30 +135,10 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
             } catch (error) {
                 raised = error;
             }
-            expect(raised, raised && raised.message).to.equal(null);
         });
-    });
-
-    it("does not weaken the omitted-argument fallback: submits fine when no known queue can be derived at all", async () => {
-        // No `withKnownQueue` wrapper here — this test network carries no
-        // `ExitDelayQueue`/`ISovryn` record by default (the same premise
-        // every other test in this file and in BlockCalldataDecoding.test.js
-        // already relies on), so the identity check must silently no-op
-        // rather than block a submission it has nothing to verify against.
-        const existing = await deployments.getOrNull("ExitDelayQueue");
-        expect(existing, "this test assumes no queue record is already registered").to.not.exist;
-        let raised = null;
-        try {
-            await hre.run("perimeter:submit-block", {
-                queue: wrongQueue,
-                data: freezeData,
-                signer: owner.address,
-                multisig: multisig.address,
-            });
-        } catch (error) {
-            raised = error;
-        }
         expect(raised, raised && raised.message).to.equal(null);
+        expect(output).to.include("could NOT be verified independently");
+        expect(output).to.include(wrongQueue);
     });
 
     it("check-block refuses to describe a transaction whose destination is not the known queue, even though its calldata decodes as a real block lever", async () => {
@@ -141,7 +166,7 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
         });
     });
 
-    it("check-block still shows the decoded view when the destination matches the known queue", async () => {
+    it("check-block still shows the decoded view when the destination matches the known queue, and says so with a distinct verified line", async () => {
         await withKnownQueue(realQueue, async () => {
             await (
                 await multisig.connect(owner).submitTransaction(realQueue, 0, freezeData)
@@ -149,13 +174,47 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
             const txId = (await multisig.transactionCount()).sub(1).toString();
 
             let raised = null;
+            const output = await captureConsole(async () => {
+                try {
+                    await hre.run("perimeter:check-block", {
+                        id: txId,
+                        multisig: multisig.address,
+                    });
+                } catch (error) {
+                    raised = error;
+                }
+            });
+            expect(raised, raised && raised.message).to.equal(null);
+            expect(output).to.include("matches the deployed ExitDelayQueue");
+        });
+    });
+
+    it("check-block proceeds and warns, rather than staying silent, when no known queue can be derived at all", async () => {
+        // Same premise as submit-block's own version of this case: this test
+        // network carries no `ExitDelayQueue`/`ISovryn` record by default, so
+        // check-block has nothing to verify the destination against — it
+        // must still show the decoded view (this IS genuinely queue-shaped
+        // calldata, as far as this tool can tell), but must say out loud
+        // that it could not confirm the destination independently.
+        const existing = await deployments.getOrNull("ExitDelayQueue");
+        expect(existing, "this test assumes no queue record is already registered").to.not.exist;
+        await (
+            await multisig.connect(owner).submitTransaction(wrongQueue, 0, freezeData)
+        ).wait();
+        const txId = (await multisig.transactionCount()).sub(1).toString();
+
+        let raised = null;
+        const output = await captureConsole(async () => {
             try {
                 await hre.run("perimeter:check-block", { id: txId, multisig: multisig.address });
             } catch (error) {
                 raised = error;
             }
-            expect(raised, raised && raised.message).to.equal(null);
         });
+        expect(raised, raised && raised.message).to.equal(null);
+        expect(output).to.include("could NOT be verified independently");
+        expect(output).to.include(wrongQueue);
+        expect(output).to.include("freeze(address)");
     });
 
     it("check-block still falls back to its generic message for an unrelated transaction, even with a mismatched destination", async () => {
