@@ -908,10 +908,7 @@ describe("Perimeter policy tasks — perimeter:policy:check-tx (full task path)"
         await controller.deployed();
 
         const MultiSigWalletFactory = await hre.ethers.getContractFactory("MultiSigWallet");
-        const multisig = await MultiSigWalletFactory.deploy(
-            [owner1.address, owner2.address],
-            2
-        );
+        const multisig = await MultiSigWalletFactory.deploy([owner1.address, owner2.address], 2);
         await multisig.deployed();
 
         // The actor starts held and charged (no fee entry, no delay bypass) —
@@ -958,10 +955,7 @@ describe("Perimeter policy tasks — perimeter:policy:check-tx (full task path)"
         await controller.deployed();
 
         const MultiSigWalletFactory = await hre.ethers.getContractFactory("MultiSigWallet");
-        const multisig = await MultiSigWalletFactory.deploy(
-            [owner1.address, owner2.address],
-            2
-        );
+        const multisig = await MultiSigWalletFactory.deploy([owner1.address, owner2.address], 2);
         await multisig.deployed();
 
         // The actor is already fee-exempt; the submitted call clears the fee
