@@ -298,7 +298,7 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         lastIdBefore,
         opts
     );
-    if (!request) return { id, request, receipt, before };
+    if (!request) return { id, request, receipt, before, subProduct: s.iRBTC.address };
     // owner == rawOriginator == msg.sender by construction on this surface —
     // burnToBTC(receiver, amt) burns the CALLER's own iTokens; see
     // LoanTokenLogicWrbtcLM._payExitUserLegNative.
@@ -319,7 +319,7 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         netRecorded: request.amount,
         receipt,
     });
-    return { id, request, receipt, before, fee };
+    return { id, request, receipt, before, fee, subProduct: s.iRBTC.address };
 };
 
 const PRICE_FEEDS_ABI = [
@@ -481,7 +481,16 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         lastIdBefore,
         opts
     );
-    if (!request) return { id, request, receipt, before, loanId: borrowEvent.args.loanId };
+    if (!request) {
+        return {
+            id,
+            request,
+            receipt,
+            before,
+            loanId: borrowEvent.args.loanId,
+            subProduct: s.iXUSD.address,
+        };
+    }
     // rawOriginator = msg.sender, owner = loanLocal.borrower — set to
     // `originator` by this driver's own `borrow()` call above; see
     // BorrowerExitPerimeter._maybeDelayBorrowerExit.
@@ -505,7 +514,15 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         netRecorded: request.amount,
         receipt,
     });
-    return { id, request, receipt, before, loanId: borrowEvent.args.loanId, fee };
+    return {
+        id,
+        request,
+        receipt,
+        before,
+        loanId: borrowEvent.args.loanId,
+        fee,
+        subProduct: s.iXUSD.address,
+    };
 };
 
 /**
@@ -566,7 +583,7 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         lastIdBefore,
         opts
     );
-    if (!request) return { id, request, receipt, before };
+    if (!request) return { id, request, receipt, before, subProduct: ZERO_ADDRESS };
     // Zero has no passthrough on this surface: originator == owner == receiver
     // == the trove owner, all read off `borrower` in
     // BorrowerOperationsPerimeterOps.sendCollWithExitFee.
@@ -587,7 +604,7 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         netRecorded: request.amount,
         receipt,
     });
-    return { id, request, receipt, before, fee };
+    return { id, request, receipt, before, fee, subProduct: ZERO_ADDRESS };
 };
 
 /** An address derived from another one, so a driver that needs a second actor
@@ -777,7 +794,17 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
         lastIdBefore,
         opts
     );
-    if (!request) return { id, request, receipt, before, surplusGross, redeemer: redeemerAddress };
+    if (!request) {
+        return {
+            id,
+            request,
+            receipt,
+            before,
+            surplusGross,
+            redeemer: redeemerAddress,
+            subProduct: ZERO_ADDRESS,
+        };
+    }
     // Zero has no passthrough on this surface: originator == owner == receiver
     // == the claimant, all read off `claimant = msg.sender` in
     // BorrowerOperationsPerimeterOps.claimSurplusWithPerimeter.
@@ -807,7 +834,16 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
                 `held ${surplusGross} before the claim`
         );
     }
-    return { id, request, receipt, before, surplusGross, redeemer: redeemerAddress, fee };
+    return {
+        id,
+        request,
+        receipt,
+        before,
+        surplusGross,
+        redeemer: redeemerAddress,
+        fee,
+        subProduct: ZERO_ADDRESS,
+    };
 };
 
 const SURFACE_DRIVERS = {

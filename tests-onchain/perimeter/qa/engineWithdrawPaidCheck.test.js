@@ -220,7 +220,15 @@ describe("QA scenario engine — withdraw's direct-pay branch requires a real pa
     before(async () => {
         [funder] = await ethers.getSigners();
         receiver = ethers.Wallet.createRandom().address;
-        fakeS = { controller: { securityPerimeterEnabled: async () => true } };
+        fakeS = {
+            controller: {
+                securityPerimeterEnabled: async () => true,
+                // An ordinary, non-100% fee quote — the surface genuinely
+                // owes something on this gross, so a zero payment is a real
+                // defect, not a correctly-configured 100%-rate policy.
+                quoteExitFee: async () => ({ netAmount: ethers.utils.parseEther("1") }),
+            },
+        };
     });
 
     beforeEach(() => {
@@ -232,7 +240,7 @@ describe("QA scenario engine — withdraw's direct-pay branch requires a real pa
             const before = await ethers.provider.getBalance(opts.receiver);
             // Defective: no request id (claims the perimeter paid direct) AND
             // no actual transfer to the receiver.
-            return { id: null, before: { receiver: before } };
+            return { id: null, before: { receiver: before }, subProduct: ethers.constants.AddressZero };
         };
 
         let raised = null;
@@ -276,5 +284,100 @@ describe("QA scenario engine — withdraw's direct-pay branch requires a real pa
         expect(record.receiverDelta).to.equal(ethers.utils.parseEther("1").toString());
 
         delete drivers.SURFACE_DRIVERS.__qaTestDirectPaid;
+    });
+});
+
+describe("QA scenario engine — withdraw's direct-pay branch accepts a correctly-quoted 100% fee (RV-4)", () => {
+    let receiver;
+    let fakeS;
+
+    before(async () => {
+        receiver = ethers.Wallet.createRandom().address;
+    });
+
+    beforeEach(() => {
+        fakeS = { state: { testKey: ethers.Wallet.createRandom() } };
+    });
+
+    it("still reports a clean PAID DIRECT of 0 when the controller's own quote nets 0 (a 100%-rate policy)", async () => {
+        drivers.SURFACE_DRIVERS.__qaTestDirectZeroNetQuoted = async (s, signer, opts) => {
+            const before = await ethers.provider.getBalance(opts.receiver);
+            // Nothing paid, nothing queued — but the controller's active
+            // policy for this actor charges exactly 100%, so a genuine
+            // direct-pay withdrawal nets the receiver 0 by construction.
+            return { id: null, before: { receiver: before }, subProduct: ethers.constants.AddressZero };
+        };
+        fakeS.controller = {
+            securityPerimeterEnabled: async () => true,
+            quoteExitFee: async () => ({ netAmount: ethers.constants.Zero }),
+        };
+
+        const record = await engine.withdraw(fakeS, {
+            surface: "__qaTestDirectZeroNetQuoted",
+            as: "test",
+            receiver,
+            log: () => {},
+        });
+        expect(record.queued).to.equal(false);
+        expect(record.receiverDelta).to.equal("0");
+        expect(record.note).to.match(/100% Perimeter fee/);
+
+        delete drivers.SURFACE_DRIVERS.__qaTestDirectZeroNetQuoted;
+    });
+
+    it("still refuses a zero payment when the controller's own quote does NOT net 0 — an ordinary rate", async () => {
+        drivers.SURFACE_DRIVERS.__qaTestDirectZeroNetUnquoted = async (s, signer, opts) => {
+            const before = await ethers.provider.getBalance(opts.receiver);
+            return { id: null, before: { receiver: before }, subProduct: ethers.constants.AddressZero };
+        };
+        fakeS.controller = {
+            securityPerimeterEnabled: async () => true,
+            quoteExitFee: async () => ({ netAmount: ethers.utils.parseEther("0.5") }),
+        };
+
+        let raised = null;
+        try {
+            await engine.withdraw(fakeS, {
+                surface: "__qaTestDirectZeroNetUnquoted",
+                as: "test",
+                receiver,
+                log: () => {},
+            });
+        } catch (error) {
+            raised = error;
+        }
+        expect(raised, "expected the direct-pay branch to still refuse").to.not.equal(null);
+        expect(raised.message).to.match(/neither held nor paid/i);
+
+        delete drivers.SURFACE_DRIVERS.__qaTestDirectZeroNetUnquoted;
+    });
+
+    it("refuses when the driver does not report which sub-product the withdrawal resolves against", async () => {
+        drivers.SURFACE_DRIVERS.__qaTestDirectNoSubProduct = async (s, signer, opts) => {
+            const before = await ethers.provider.getBalance(opts.receiver);
+            return { id: null, before: { receiver: before } };
+        };
+        fakeS.controller = {
+            securityPerimeterEnabled: async () => true,
+            quoteExitFee: async () => ({ netAmount: ethers.constants.Zero }),
+        };
+
+        let raised = null;
+        try {
+            await engine.withdraw(fakeS, {
+                surface: "__qaTestDirectNoSubProduct",
+                as: "test",
+                receiver,
+                log: () => {},
+            });
+        } catch (error) {
+            raised = error;
+        }
+        expect(raised, "expected withdraw to refuse rather than guess a sub-product").to.not.equal(
+            null
+        );
+        expect(raised.message).to.match(/did not report which sub-product/);
+
+        delete drivers.SURFACE_DRIVERS.__qaTestDirectNoSubProduct;
     });
 });

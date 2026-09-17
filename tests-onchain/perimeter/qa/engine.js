@@ -473,13 +473,39 @@ const withdraw = async (s, opts = {}) => {
         // The perimeter is switched off, so the product is supposed to pay on
         // the spot — but a defective hook that neither queues nor pays would
         // also reach here with nothing to report. Require a real,
-        // gas-normalized, positive payment before calling this branch clean.
+        // gas-normalized, positive payment before calling this branch clean —
+        // UNLESS the Perimeter fee is independently active at a rate that
+        // genuinely nets the receiver 0 (a 100%-rate policy is a legal, if
+        // unusual, configuration: the delay and the fee are independent
+        // switches, and a zero net here is then the correct outcome, not a
+        // leak). Checked against the controller's OWN quote for this exact
+        // surface/actor, not assumed from `paidNow` alone.
+        let note = "the perimeter is switched off — the product paid without queuing";
         if (!paidNow.gt(0)) {
-            throw new Error(
-                `perimeter:qa withdraw: ${surface} was not queued (the perimeter is switched ` +
-                    `off) but ${receiver} was not paid either — credited ${paidNow.toString()} ` +
-                    "(gas-normalized). Neither held nor paid."
+            if (result.subProduct === undefined) {
+                throw new Error(
+                    `perimeter:qa withdraw: ${surface}'s driver did not report which sub-product ` +
+                        "this withdrawal resolves against, so a zero payment cannot be told apart " +
+                        "from a defect"
+                );
+            }
+            const quote = await s.controller.quoteExitFee(
+                SURFACE_IDS[surface],
+                result.subProduct,
+                originator,
+                ethers.constants.WeiPerEther
             );
+            if (!quote.netAmount.isZero()) {
+                throw new Error(
+                    `perimeter:qa withdraw: ${surface} was not queued (the perimeter is switched ` +
+                        `off) but ${receiver} was not paid either — credited ${paidNow.toString()} ` +
+                        "(gas-normalized), and the controller's own quote for this actor does not " +
+                        "charge a 100% fee. Neither held nor paid."
+                );
+            }
+            note =
+                "the perimeter is switched off — the controller's own quote charges " +
+                `${originator} a 100% Perimeter fee, so paying 0 is correct`;
         }
         log(`  PAID DIRECT  ${surface} withdrawal paid on the spot, nothing queued`);
         return {
@@ -490,7 +516,7 @@ const withdraw = async (s, opts = {}) => {
             queued: false,
             id: null,
             receiverDelta: paidNow.toString(),
-            note: "the perimeter is switched off — the product paid without queuing",
+            note,
         };
     }
     // A queued withdrawal must not ALSO have paid the receiver — that is the
