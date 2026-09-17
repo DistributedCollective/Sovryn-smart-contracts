@@ -779,16 +779,28 @@ describe("Perimeter policy — actorFeeDelayDivergence", () => {
 
     it("reports 'charged' when an active bypass survives with no matching zero-rate fee entry", () => {
         expect(
-            policy.actorFeeDelayDivergence({ build: "delay", resultFee: chargedFee, bypass: bypassing })
+            policy.actorFeeDelayDivergence({
+                build: "delay",
+                resultFee: chargedFee,
+                bypass: bypassing,
+            })
         ).to.equal("charged");
         expect(
-            policy.actorFeeDelayDivergence({ build: "delay", resultFee: noFeeEntry, bypass: bypassing })
+            policy.actorFeeDelayDivergence({
+                build: "delay",
+                resultFee: noFeeEntry,
+                bypass: bypassing,
+            })
         ).to.equal("charged");
     });
 
     it("reports 'held' when the resulting fee entry is exempt with no active bypass", () => {
         expect(
-            policy.actorFeeDelayDivergence({ build: "delay", resultFee: exemptFee, bypass: noBypass })
+            policy.actorFeeDelayDivergence({
+                build: "delay",
+                resultFee: exemptFee,
+                bypass: noBypass,
+            })
         ).to.equal("held");
         expect(
             policy.actorFeeDelayDivergence({ build: "delay", resultFee: exemptFee, bypass: held })
@@ -797,13 +809,21 @@ describe("Perimeter policy — actorFeeDelayDivergence", () => {
 
     it("reports nothing when both read exempt — a full exemption", () => {
         expect(
-            policy.actorFeeDelayDivergence({ build: "delay", resultFee: exemptFee, bypass: bypassing })
+            policy.actorFeeDelayDivergence({
+                build: "delay",
+                resultFee: exemptFee,
+                bypass: bypassing,
+            })
         ).to.be.undefined;
     });
 
     it("reports nothing for an ordinary actor: charged and held", () => {
         expect(
-            policy.actorFeeDelayDivergence({ build: "delay", resultFee: chargedFee, bypass: noBypass })
+            policy.actorFeeDelayDivergence({
+                build: "delay",
+                resultFee: chargedFee,
+                bypass: noBypass,
+            })
         ).to.be.undefined;
         expect(
             policy.actorFeeDelayDivergence({ build: "delay", resultFee: noFeeEntry, bypass: held })
@@ -812,7 +832,11 @@ describe("Perimeter policy — actorFeeDelayDivergence", () => {
 
     it("reports nothing on the fee-only build, whatever the shape passed in", () => {
         expect(
-            policy.actorFeeDelayDivergence({ build: "fee-only", resultFee: noFeeEntry, bypass: bypassing })
+            policy.actorFeeDelayDivergence({
+                build: "fee-only",
+                resultFee: noFeeEntry,
+                bypass: bypassing,
+            })
         ).to.be.undefined;
     });
 });

@@ -464,7 +464,17 @@ task(
     )
     .setAction(
         async (
-            { surface, subproduct, actor, rate, confirmHalf, dryRun, signer, multisig, controller },
+            {
+                surface,
+                subproduct,
+                actor,
+                rate,
+                confirmHalf,
+                dryRun,
+                signer,
+                multisig,
+                controller,
+            },
             hre
         ) => {
             const { ethers: hreEthers } = hre;
