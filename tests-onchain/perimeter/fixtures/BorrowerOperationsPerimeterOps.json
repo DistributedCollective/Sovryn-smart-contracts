@@ -2,7 +2,7 @@
     "_provenance": {
         "repo": "zero-contracts",
         "branch": "sovryn-perimeter-delay",
-        "commit": "8edd8ec",
+        "commit": "06d948a",
         "compiler": "solc 0.6.11 via hardhat",
         "note": "Test-only fixture for the fork-based rehearsal. The delegatecall settlement companion BorrowerOperations reaches through its perimeterOps pointer; new in Phase 2.",
         "pinned": "2026-09-02"
