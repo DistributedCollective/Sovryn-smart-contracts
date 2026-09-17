@@ -210,11 +210,18 @@ task(
             logger.info("Build:        fee-only");
         }
 
-        const actorAddress = actor ? hreEthers.utils.getAddress(actor) : undefined;
-        const subProductAddress = subproduct ? hreEthers.utils.getAddress(subproduct) : undefined;
+        // Only an OMITTED --actor/--subproduct/--surface may fall through to
+        // the "not given" default below; an explicitly-supplied empty value
+        // (e.g. an unset shell variable interpolated into a wrapper script)
+        // must refuse rather than silently widen a one-address/one-pool/
+        // one-surface inspection into the "every surface" default listing.
+        const actorAddress =
+            actor !== undefined ? hreEthers.utils.getAddress(actor) : undefined;
+        const subProductAddress =
+            subproduct !== undefined ? hreEthers.utils.getAddress(subproduct) : undefined;
 
         let surfaceNames;
-        if (surface) {
+        if (surface !== undefined) {
             // Inspection-only path: an operator who already suspects an
             // unlisted surface can ask to see it directly (TOB-R-3).
             surfaceNames = [
@@ -472,7 +479,12 @@ task(
             hre
         ) => {
             const { ethers: hreEthers } = hre;
-            if (subproduct && actor) {
+            // Only an OMITTED --subproduct/--actor may fall through to the
+            // implicit "surface" tier below; an explicitly-supplied empty
+            // value (e.g. an unset shell variable) must refuse rather than
+            // silently widen the change from one pool/actor to the whole
+            // surface.
+            if (subproduct !== undefined && actor !== undefined) {
                 throw new Error("perimeter:fee:set: pass --subproduct or --actor, not both");
             }
 
@@ -487,7 +499,7 @@ task(
             let kind;
             let tier;
             let address;
-            if (subproduct) {
+            if (subproduct !== undefined) {
                 address = await requireSubProductTarget(
                     hre,
                     resolvedSurface,
@@ -496,7 +508,7 @@ task(
                 );
                 kind = "setSubProductPolicy";
                 tier = "sub-product";
-            } else if (actor) {
+            } else if (actor !== undefined) {
                 address = hreEthers.utils.getAddress(actor);
                 if (address === hreEthers.constants.AddressZero) {
                     throw new Error("perimeter:fee:set: --actor must not be the zero address");
@@ -606,7 +618,10 @@ task(
     .setAction(
         async ({ surface, subproduct, actor, dryRun, signer, multisig, controller }, hre) => {
             const { ethers: hreEthers } = hre;
-            if (Boolean(subproduct) === Boolean(actor)) {
+            // As in fee:set, only an OMITTED flag counts as "not given" —
+            // an explicitly-supplied empty --subproduct/--actor must refuse
+            // rather than being read as the other one alone.
+            if ((subproduct !== undefined) === (actor !== undefined)) {
                 throw new Error(
                     "perimeter:fee:remove: pass exactly one of --subproduct or --actor"
                 );
@@ -622,7 +637,7 @@ task(
             let tier;
             let kind;
             let address;
-            if (subproduct) {
+            if (subproduct !== undefined) {
                 address = await requireSubProductTarget(
                     hre,
                     resolvedSurface,

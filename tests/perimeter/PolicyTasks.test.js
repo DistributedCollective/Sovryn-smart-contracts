@@ -1218,3 +1218,145 @@ describe("Perimeter fee tasks — actor-tier fee/delay pairing guard (full task 
         await runFeeSet({ subproduct: subProduct.address, rate: "0" });
     });
 });
+
+describe("Perimeter fee tasks — an explicitly-empty --actor/--subproduct must refuse, not widen (full task path)", () => {
+    // Before this fix, `--actor ""` (an unset shell variable interpolated
+    // into a wrapper script) read as falsy exactly like an omitted flag:
+    // fee:set fell through to its implicit "surface" tier and fee:remove's
+    // "exactly one of --subproduct/--actor" XOR check (Boolean(subproduct)
+    // === Boolean(actor)) treated it as "not given" too — silently widening
+    // a one-actor/one-pool change into a surface-wide one, or picking the
+    // OTHER tier than the one actually named.
+    let controller;
+    let owner;
+
+    beforeEach(async () => {
+        [owner] = await hre.ethers.getSigners();
+        const MockExitFeeControllerFactory =
+            await hre.ethers.getContractFactory("MockExitFeeController");
+        controller = await MockExitFeeControllerFactory.deploy();
+        await controller.deployed();
+    });
+
+    const runFeeSet = (params) =>
+        hre.run("perimeter:fee:set", {
+            surface: LENDER_WITHDRAW,
+            rate: "500",
+            dryRun: true,
+            multisig: owner.address,
+            signer: owner.address,
+            controller: controller.address,
+            ...params,
+        });
+
+    const runFeeRemove = (params) =>
+        hre.run("perimeter:fee:remove", {
+            surface: LENDER_WITHDRAW,
+            dryRun: true,
+            multisig: owner.address,
+            signer: owner.address,
+            controller: controller.address,
+            ...params,
+        });
+
+    const rejectionOf = async (promise) => {
+        try {
+            await promise;
+        } catch (error) {
+            return error;
+        }
+        return null;
+    };
+
+    it("fee:set refuses an empty --actor instead of widening to the whole surface", async () => {
+        const error = await rejectionOf(runFeeSet({ actor: "" }));
+        expect(error, "expected fee:set to refuse an empty --actor").to.not.be.null;
+        expect(error.message).to.match(/invalid address/i);
+    });
+
+    it("fee:set refuses an empty --subproduct instead of widening to the whole surface", async () => {
+        const error = await rejectionOf(runFeeSet({ subproduct: "" }));
+        expect(error, "expected fee:set to refuse an empty --subproduct").to.not.be.null;
+        expect(error.message).to.match(/invalid address/i);
+    });
+
+    it("fee:set still refuses --subproduct and --actor given together, even when one is empty", async () => {
+        const error = await rejectionOf(runFeeSet({ subproduct: "", actor: OTHER }));
+        expect(error, "expected fee:set to refuse both flags at once").to.not.be.null;
+        expect(error.message).to.match(/not both/);
+    });
+
+    it("fee:remove refuses an empty --actor instead of silently proceeding", async () => {
+        const error = await rejectionOf(runFeeRemove({ actor: "" }));
+        expect(error, "expected fee:remove to refuse an empty --actor").to.not.be.null;
+        expect(error.message).to.match(/invalid address/i);
+    });
+
+    it("fee:remove refuses an empty --subproduct instead of silently proceeding", async () => {
+        const error = await rejectionOf(runFeeRemove({ subproduct: "" }));
+        expect(error, "expected fee:remove to refuse an empty --subproduct").to.not.be.null;
+        expect(error.message).to.match(/invalid address/i);
+    });
+
+    it("fee:remove still refuses when NEITHER --subproduct nor --actor is given", async () => {
+        const error = await rejectionOf(runFeeRemove({}));
+        expect(error, "expected fee:remove to refuse with neither flag").to.not.be.null;
+        expect(error.message).to.match(/exactly one/);
+    });
+
+    it("fee:set still allows a genuinely-empty (omitted) --actor and --subproduct — the surface tier", async () => {
+        await runFeeSet({});
+    });
+});
+
+describe("Perimeter policy:show — an explicitly-empty --actor/--subproduct/--surface must refuse, not widen (full task path)", () => {
+    // policy:show never submits anything (read-only), but before this fix an
+    // explicitly-empty flag silently fell back to inspecting the DEFAULT
+    // scope (every surface, no actor/sub-product quote) instead of refusing
+    // — the same `if (value)` truthiness gate as the mutating tasks above.
+    let controller;
+
+    beforeEach(async () => {
+        const MockExitFeeControllerFactory =
+            await hre.ethers.getContractFactory("MockExitFeeController");
+        controller = await MockExitFeeControllerFactory.deploy();
+        await controller.deployed();
+    });
+
+    const runShow = (params) =>
+        hre.run("perimeter:policy:show", { controller: controller.address, ...params });
+
+    const rejectionOf = async (promise) => {
+        try {
+            await promise;
+        } catch (error) {
+            return error;
+        }
+        return null;
+    };
+
+    it("refuses an empty --actor", async () => {
+        const error = await rejectionOf(runShow({ actor: "" }));
+        expect(error, "expected policy:show to refuse an empty --actor").to.not.be.null;
+        expect(error.message).to.match(/invalid address/i);
+    });
+
+    it("refuses an empty --subproduct", async () => {
+        const error = await rejectionOf(runShow({ subproduct: "" }));
+        expect(error, "expected policy:show to refuse an empty --subproduct").to.not.be.null;
+        expect(error.message).to.match(/invalid address/i);
+    });
+
+    it("refuses an empty --surface", async () => {
+        const error = await rejectionOf(runShow({ surface: "" }));
+        expect(error, "expected policy:show to refuse an empty --surface").to.not.be.null;
+    });
+
+    it("still runs cleanly with every flag omitted", async () => {
+        await runShow({});
+    });
+
+    it("still runs cleanly with a genuine, non-empty --actor", async () => {
+        await runShow({ actor: OTHER });
+    });
+});
