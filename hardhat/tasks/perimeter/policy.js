@@ -642,8 +642,8 @@ const describeDelayEntry = (entry, tier) => {
  * — a bare `confirmHalf: true` against an actor with neither half present
  * would otherwise plan a single-half call that leaves the exemption
  * half-applied by construction, the same reachable gap the atomic
- * `grantExemption` fix (`CON-R2-1`) exists to close. Without `confirmHalf`,
- * or with it but no matching opposite half, this throws rather than silently
+ * `grantExemption` path exists to close. Without `confirmHalf`, or with it
+ * but no matching opposite half, this throws rather than silently
  * building a call that leaves the exemption half-applied: that gap is a real
  * fee/delay mismatch, not a display artifact, so it needs a deliberate,
  * verified acknowledgement, not a default.

@@ -255,10 +255,9 @@ describe("Perimeter policy — buildCall / decodeCall", () => {
             expect(decoded, `decodeCall must recognise its own ${kind} calldata`).to.exist;
             expect(decoded.signature).to.equal(built.signature);
             expect(decoded.meaning).to.equal(built.meaning);
-            // Regression for MED-1: decodeCall dropped `kind`, so
+            // decodeCall must carry `kind` for every call — it is what
             // perimeter:policy:check-tx's pairing-violation gate
-            // (`policy.ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`) was always
-            // false and the pairing check never ran, for any call.
+            // (`policy.ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`) reads.
             expect(decoded.kind, `decodeCall must return kind for ${kind}`).to.equal(kind);
         });
     }
@@ -459,16 +458,14 @@ describe("Perimeter policy — planExemption", () => {
         expect(calls[0].kind).to.equal("setActorBypass");
     });
 
-    // Regression for MED-2: confirmHalf checked only that the flag itself was
-    // true, never that the opposite half it claims to be "finishing" actually
-    // exists on chain. `perimeter:exemption --action submit --half delay
-    // --confirmHalf` against an actor with NEITHER half present used to plan a
-    // bare setActorBypass call with no accompanying fee-tier write — after
-    // execution the actor is delay-bypassed (not held) while still charged
-    // whatever fee the surface/sub-product default applies. Exactly the
-    // dangerous direction the atomic grantExemption fix (CON-R2-1) exists to
-    // eliminate.
-    it("refuses --half fee alone with confirmHalf when the delay half is not already active (MED-2)", () => {
+    // confirmHalf claims to be "finishing" an earlier partial grant — that
+    // claim must be checked against the opposite half's actual on-chain
+    // state, not accepted on the flag alone. `perimeter:exemption --action
+    // submit --half delay --confirmHalf` against an actor with NEITHER half
+    // present must not plan a bare setActorBypass call with no accompanying
+    // fee-tier write: after execution the actor would be delay-bypassed but
+    // still charged whatever fee the surface/sub-product default applies.
+    it("refuses --half fee alone with confirmHalf when the delay half is not already active", () => {
         expect(() =>
             policy.planExemption({
                 half: "fee",
@@ -480,7 +477,7 @@ describe("Perimeter policy — planExemption", () => {
         ).to.throw(/delay half/);
     });
 
-    it("refuses --half delay alone with confirmHalf when the fee half is not already active (MED-2)", () => {
+    it("refuses --half delay alone with confirmHalf when the fee half is not already active", () => {
         expect(() =>
             policy.planExemption({
                 half: "delay",
@@ -492,7 +489,7 @@ describe("Perimeter policy — planExemption", () => {
         ).to.throw(/fee half/);
     });
 
-    it("refuses --half fee alone with confirmHalf when the delay half is active but not bypassing (MED-2)", () => {
+    it("refuses --half fee alone with confirmHalf when the delay half is active but not bypassing", () => {
         // An active, non-bypassing delay entry is not "the delay half already
         // landed" — it is the actor being explicitly held, the opposite state.
         expect(() =>
@@ -934,14 +931,13 @@ describe("Perimeter policy — ACTOR_TIER_PAIR_CALLS", () => {
 });
 
 describe("Perimeter policy tasks — perimeter:policy:check-tx (full task path)", () => {
-    // Regression for MED-1: `decodeCall` dropped `kind`, so `check-tx`'s
-    // pairing-violation gate (`policy.ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`)
-    // never ran, for any submitted call, on any network — the warning block
-    // was unreachable dead code even though `pairingViolationAfterCall` itself
-    // was correct and separately tested. This drives the actual task action —
-    // decoding a real submitted multisig transaction against a deployed
-    // controller and multisig, then reading what it logs — rather than calling
-    // `pairingViolationAfterCall` directly.
+    // Drives the actual task action end to end — decoding a real submitted
+    // multisig transaction against a deployed controller and multisig, then
+    // reading what it logs — rather than calling `pairingViolationAfterCall`
+    // directly. That keeps the pairing-violation gate
+    // (`policy.ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`) and `decodeCall`'s own
+    // return shape honest together: either one regressing on its own would
+    // otherwise go unnoticed by the unit-level tests around each in isolation.
 
     /** Redirects `console.log` (what `node-logs` writes through) for the
      *  duration of `fn` and returns everything written, newline-joined. */
