@@ -446,6 +446,66 @@ describe("Perimeter policy — planExemption", () => {
         expect(calls[0].kind).to.equal("setActorPolicy");
     });
 
+    it("accepts --half delay alone on the delay build with confirmHalf, for finishing a partial grant", () => {
+        const { calls, alreadyDone } = policy.planExemption({
+            half: "delay",
+            fee: { active: true, rateBps: 0 }, // the fee half already landed
+            bypass: { active: false, bypass: false },
+            build: "delay",
+            confirmHalf: true,
+        });
+        expect(alreadyDone).to.be.empty;
+        expect(calls).to.have.lengthOf(1);
+        expect(calls[0].kind).to.equal("setActorBypass");
+    });
+
+    // Regression for MED-2: confirmHalf checked only that the flag itself was
+    // true, never that the opposite half it claims to be "finishing" actually
+    // exists on chain. `perimeter:exemption --action submit --half delay
+    // --confirmHalf` against an actor with NEITHER half present used to plan a
+    // bare setActorBypass call with no accompanying fee-tier write — after
+    // execution the actor is delay-bypassed (not held) while still charged
+    // whatever fee the surface/sub-product default applies. Exactly the
+    // dangerous direction the atomic grantExemption fix (CON-R2-1) exists to
+    // eliminate.
+    it("refuses --half fee alone with confirmHalf when the delay half is not already active (MED-2)", () => {
+        expect(() =>
+            policy.planExemption({
+                half: "fee",
+                fee: { active: false, rateBps: 0 },
+                bypass: { active: false, bypass: false }, // neither half present
+                build: "delay",
+                confirmHalf: true,
+            })
+        ).to.throw(/delay half/);
+    });
+
+    it("refuses --half delay alone with confirmHalf when the fee half is not already active (MED-2)", () => {
+        expect(() =>
+            policy.planExemption({
+                half: "delay",
+                fee: { active: false, rateBps: 0 }, // neither half present
+                bypass: { active: false, bypass: false },
+                build: "delay",
+                confirmHalf: true,
+            })
+        ).to.throw(/fee half/);
+    });
+
+    it("refuses --half fee alone with confirmHalf when the delay half is active but not bypassing (MED-2)", () => {
+        // An active, non-bypassing delay entry is not "the delay half already
+        // landed" — it is the actor being explicitly held, the opposite state.
+        expect(() =>
+            policy.planExemption({
+                half: "fee",
+                fee: { active: false, rateBps: 0 },
+                bypass: { active: true, bypass: false },
+                build: "delay",
+                confirmHalf: true,
+            })
+        ).to.throw(/delay half/);
+    });
+
     it("does not require confirmHalf for 'both', even on the delay build", () => {
         expect(() =>
             policy.planExemption({

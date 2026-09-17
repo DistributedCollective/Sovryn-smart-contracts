@@ -636,11 +636,17 @@ const describeDelayEntry = (entry, tier) => {
  * still being charged — a real, reachable gap this must not reintroduce.
  * `half === "fee"` / `"delay"` alone still plan the individual call, for the
  * narrow case of finishing an exemption a prior, already-executed partial
- * grant left half-applied — but only with `confirmHalf: true`. Without it,
- * on the delay build (the only build where a surviving other half is
- * possible), this throws rather than silently building a call that leaves
- * the exemption half-applied: that gap is a real fee/delay mismatch, not a
- * display artifact, so it needs a deliberate acknowledgement, not a default.
+ * grant left half-applied — but only with `confirmHalf: true`, and only when
+ * the OPPOSITE half already reads active on chain: `confirmHalf` says "I am
+ * finishing a partial grant", and that claim is checked, not taken on faith
+ * — a bare `confirmHalf: true` against an actor with neither half present
+ * would otherwise plan a single-half call that leaves the exemption
+ * half-applied by construction, the same reachable gap the atomic
+ * `grantExemption` fix (`CON-R2-1`) exists to close. Without `confirmHalf`,
+ * or with it but no matching opposite half, this throws rather than silently
+ * building a call that leaves the exemption half-applied: that gap is a real
+ * fee/delay mismatch, not a display artifact, so it needs a deliberate,
+ * verified acknowledgement, not a default.
  */
 const planExemption = ({ half = "both", fee, bypass, build, confirmHalf = false } = {}) => {
     if (!["fee", "delay", "both"].includes(half)) {
@@ -660,6 +666,20 @@ const planExemption = ({ half = "both", fee, bypass, build, confirmHalf = false 
                 `grantExemption call, or pass --confirmHalf to submit just the ${half} half ` +
                 "anyway (finishing an earlier partial grant)."
         );
+    }
+    if (half !== "both" && build === "delay" && confirmHalf) {
+        const oppositeHalf = half === "fee" ? "delay" : "fee";
+        const oppositeAlreadyLanded =
+            oppositeHalf === "delay" ? isDelayBypassing(bypass) : isFeeExempt(fee);
+        if (!oppositeAlreadyLanded) {
+            throw new Error(
+                `planExemption: --half ${half} --confirmHalf claims to be finishing an earlier ` +
+                    `partial grant, but the ${oppositeHalf} half does not read active on chain ` +
+                    "- there is no partial grant to finish, and submitting just the " +
+                    `${half} half now would leave the exemption half-applied instead. Omit ` +
+                    "--half (default 'both') for the single atomic grantExemption call."
+            );
+        }
     }
 
     if (half === "both" && build === "delay") {
