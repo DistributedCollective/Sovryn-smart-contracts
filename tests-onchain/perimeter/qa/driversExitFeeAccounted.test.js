@@ -339,6 +339,36 @@ describe("QA rehearsal drivers — Perimeter fee accounting", () => {
             expect(raised.message).to.not.match(/fee transfer itself failed/);
         });
 
+        it("does not mistake a VAULT_REVERT skip on the SAME surface for a DIFFERENT actor for this one's", async () => {
+            // The surface-mismatch test above never varies actor (both sides
+            // are ACTOR) — this is the actor-mismatch branch's own case: same
+            // surface, same reason, a genuinely different actor in the log.
+            const otherActor = ethers.utils.getAddress(ethers.utils.hexZeroPad("0xa2", 20));
+            const s = { controller: fakeController(100) };
+            let raised = null;
+            try {
+                await call(s, {
+                    feeReceiverBefore: bn(0),
+                    feeReceiverAfter: bn(0),
+                    netRecorded: bn(1000),
+                    receipt: {
+                        logs: [
+                            skipLog({
+                                surfaceId: SURFACE,
+                                actor: otherActor,
+                                reason: SKIP_REASON_VAULT_REVERT,
+                            }),
+                        ],
+                    },
+                });
+            } catch (error) {
+                raised = error;
+            }
+            expect(raised).to.not.equal(null);
+            expect(raised.message).to.match(/controller quotes a 10 fee/);
+            expect(raised.message).to.not.match(/fee transfer itself failed/);
+        });
+
         it("still passes an exempt actor (quoted fee 0) with no fee movement, regardless of any skip event", async () => {
             const s = { controller: fakeController(0) };
             const result = await call(s, {
