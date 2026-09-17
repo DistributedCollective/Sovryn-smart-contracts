@@ -8,6 +8,7 @@ const {
     assertContractCallersExempt,
     readSwitch,
 } = require("./perimeter/contractCallerExemptions");
+const { resolveOptionalAddress } = require("./perimeter/addressParam");
 
 const logger = new Logs().showInConsole(true);
 
@@ -92,15 +93,11 @@ task(
             ? signer
             : (await hre.getNamedAccounts())[signer];
 
-        let multisigAddress;
-        if (multisig) {
-            if (!hreEthers.utils.isAddress(multisig)) {
-                throw new Error(`perimeter:submit-block: '${multisig}' is not a valid address`);
-            }
-            multisigAddress = hreEthers.utils.getAddress(multisig);
-        } else {
-            multisigAddress = (await get("MultiSigWallet")).address;
-        }
+        const multisigAddress = await resolveOptionalAddress(
+            hreEthers,
+            multisig,
+            async () => (await get("MultiSigWallet")).address
+        );
 
         logger.info(`Queue:      ${queue}`);
         logger.info(`Multisig:   ${multisigAddress}`);
@@ -129,15 +126,11 @@ task(
             ethers: hreEthers,
         } = hre;
 
-        let multisigAddress;
-        if (multisig) {
-            if (!hreEthers.utils.isAddress(multisig)) {
-                throw new Error(`perimeter:check-block: '${multisig}' is not a valid address`);
-            }
-            multisigAddress = hreEthers.utils.getAddress(multisig);
-        } else {
-            multisigAddress = (await get("MultiSigWallet")).address;
-        }
+        const multisigAddress = await resolveOptionalAddress(
+            hreEthers,
+            multisig,
+            async () => (await get("MultiSigWallet")).address
+        );
 
         const ms = await hreEthers.getContractAt("MultiSigWallet", multisigAddress);
         const tx = await ms.transactions(id);
@@ -175,15 +168,11 @@ task(
             ethers: hreEthers,
         } = hre;
 
-        let address;
-        if (controller) {
-            if (!hreEthers.utils.isAddress(controller)) {
-                throw new Error(`perimeter:verify-arming: '${controller}' is not a valid address`);
-            }
-            address = hreEthers.utils.getAddress(controller);
-        } else {
-            address = (await get("ExitFeeController")).address;
-        }
+        const address = await resolveOptionalAddress(
+            hreEthers,
+            controller,
+            async () => (await get("ExitFeeController")).address
+        );
         if ((await hreEthers.provider.getCode(address)) === "0x") {
             throw new Error(
                 `perimeter:verify-arming: no contract code at the controller ${address}`

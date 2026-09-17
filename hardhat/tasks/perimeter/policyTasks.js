@@ -5,6 +5,7 @@ const {
     multisigCheckTx,
 } = require("../../../deployment/helpers/helpers");
 const policy = require("./policy");
+const { resolveOptionalAddress } = require("./addressParam");
 
 const logger = new Logs().showInConsole(true);
 
@@ -31,29 +32,24 @@ const resolveControllerAddress = async (hre, controllerParam) => {
         ethers: hreEthers,
         deployments: { getOrNull, get },
     } = hre;
-    if (controllerParam) {
-        if (!hreEthers.utils.isAddress(controllerParam)) {
-            throw new Error(`'${controllerParam}' is not an address`);
-        }
-        return hreEthers.utils.getAddress(controllerParam);
-    }
+    return resolveOptionalAddress(hreEthers, controllerParam, async () => {
+        const record = await getOrNull("ExitFeeController");
+        if (record) return record.address;
 
-    const record = await getOrNull("ExitFeeController");
-    if (record) return record.address;
-
-    const protocolRecord = await get("ISovryn");
-    const protocol = await hreEthers.getContractAt(
-        ["function exitFeeController() view returns (address)"],
-        protocolRecord.address
-    );
-    const pointer = await protocol.exitFeeController();
-    if (pointer === hreEthers.constants.AddressZero) {
-        throw new Error(
-            "the protocol's exitFeeController pointer is the zero address — no controller is " +
-                "installed on this network"
+        const protocolRecord = await get("ISovryn");
+        const protocol = await hreEthers.getContractAt(
+            ["function exitFeeController() view returns (address)"],
+            protocolRecord.address
         );
-    }
-    return pointer;
+        const pointer = await protocol.exitFeeController();
+        if (pointer === hreEthers.constants.AddressZero) {
+            throw new Error(
+                "the protocol's exitFeeController pointer is the zero address — no controller " +
+                    "is installed on this network"
+            );
+        }
+        return pointer;
+    });
 };
 
 /** The ERC-1967 storage slot that holds a UUPS/Transparent proxy's
@@ -104,13 +100,11 @@ const resolveMultisigAddress = async (hre, multisigParam) => {
         ethers: hreEthers,
         deployments: { get },
     } = hre;
-    if (multisigParam) {
-        if (!hreEthers.utils.isAddress(multisigParam)) {
-            throw new Error(`'${multisigParam}' is not an address`);
-        }
-        return hreEthers.utils.getAddress(multisigParam);
-    }
-    return (await get("MultiSigWallet")).address;
+    return resolveOptionalAddress(
+        hreEthers,
+        multisigParam,
+        async () => (await get("MultiSigWallet")).address
+    );
 };
 
 const resolveSigner = async (hre, signerParam) => {

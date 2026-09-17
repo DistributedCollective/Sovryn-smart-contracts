@@ -38,6 +38,12 @@ describe("perimeter:check-block's --multisig resolution", () => {
         expect(error.message).to.match(/not a valid address/);
     });
 
+    it("throws on an explicitly supplied EMPTY --multisig instead of falling back (RV-1)", async () => {
+        const error = await thrownBy("perimeter:check-block", { id: "0", multisig: "" });
+        expect(error, "an empty --multisig must refuse, not fall back").to.not.be.null;
+        expect(error.message).to.match(/not a valid address/);
+    });
+
     it("still falls back to the saved deployment record when --multisig is omitted", async () => {
         const error = await thrownBy("perimeter:check-block", { id: "0" });
         // Whatever the fallback path itself does or does not find on this test
@@ -73,6 +79,16 @@ describe("perimeter:submit-block's --multisig resolution", () => {
             multisig: "not-an-address",
         });
         expect(error, "a malformed --multisig must refuse, not fall back").to.not.be.null;
+        expect(error.message).to.match(/not a valid address/);
+    });
+
+    it("throws on an explicitly supplied EMPTY --multisig instead of falling back (RV-1)", async () => {
+        const error = await thrownBy("perimeter:submit-block", {
+            queue: queueAddress,
+            data,
+            multisig: "",
+        });
+        expect(error, "an empty --multisig must refuse, not fall back").to.not.be.null;
         expect(error.message).to.match(/not a valid address/);
     });
 

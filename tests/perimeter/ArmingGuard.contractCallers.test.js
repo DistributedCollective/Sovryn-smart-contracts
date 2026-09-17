@@ -660,6 +660,12 @@ describe("Perimeter — perimeter:verify-arming's --controller resolution", () =
         expect(error.message).to.match(/not a valid address/);
     });
 
+    it("throws on an explicitly supplied EMPTY --controller instead of falling back (RV-1)", async () => {
+        const error = await thrownBy({ controller: "" });
+        expect(error, "an empty --controller must refuse, not fall back").to.not.be.null;
+        expect(error.message).to.match(/not a valid address/);
+    });
+
     it("still falls back to the saved deployment record when --controller is omitted", async () => {
         const error = await thrownBy({});
         // No ExitFeeController deployment is saved for this test network, so
