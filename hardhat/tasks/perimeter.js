@@ -26,6 +26,56 @@ const printDecodedBlockCall = (decoded) => {
     }
 };
 
+/**
+ * The ExitDelayQueue's own address, independently derived from a saved
+ * deployment record or the live protocol's own `exitDelayQueue()` pointer —
+ * never from whatever `--queue` or an on-chain transaction's destination
+ * happens to say. `null`, not a throw, when neither source resolves: this
+ * check is defense in depth on top of the operator's own required `--queue`
+ * argument and the full calldata decode above it, not this tool's only line
+ * of defense — a network this can't independently resolve a queue address on
+ * must not lose the ability to submit or inspect a block lever entirely.
+ */
+const knownQueueAddress = async (hre) => {
+    const {
+        deployments: { getOrNull },
+        ethers: hreEthers,
+    } = hre;
+    const record = await getOrNull("ExitDelayQueue");
+    if (record) return hreEthers.utils.getAddress(record.address);
+    const protocolRecord = await getOrNull("ISovryn");
+    if (!protocolRecord) return null;
+    try {
+        const protocol = await hreEthers.getContractAt(
+            ["function exitDelayQueue() view returns (address)"],
+            protocolRecord.address
+        );
+        const pointer = await protocol.exitDelayQueue();
+        return pointer === hreEthers.constants.AddressZero
+            ? null
+            : hreEthers.utils.getAddress(pointer);
+    } catch (error) {
+        return null;
+    }
+};
+
+/** Refuse `address` when it does not match the independently-derived queue
+ *  address, whenever one can be derived — the same identity check
+ *  `perimeter:policy:check-tx` already applies to the controller before it
+ *  will describe a transaction as safe to confirm. Carrying contract code is
+ *  not enough on its own: this catches a wrong `--queue` (or a pending
+ *  transaction's wrong destination) that happens to have code, submitting or
+ *  displaying genuinely queue-shaped calldata against it. */
+const assertKnownQueue = async (hre, taskLabel, address) => {
+    const known = await knownQueueAddress(hre);
+    if (known && hre.ethers.utils.getAddress(address) !== known) {
+        throw new Error(
+            `${taskLabel}: ${address} does not match the known ExitDelayQueue (${known}) — ` +
+                "refusing to treat an address that is not the deployed queue as safe"
+        );
+    }
+};
+
 task(
     "perimeter:submit-block",
     "Submit ExitDelayQueue block calldata (from 07_BlockExits.s.sol) to the Exchequer multisig"
@@ -66,6 +116,7 @@ task(
                     Object.keys(policy.BLOCK_LEVERS).join("\n  ")
             );
         }
+        await assertKnownQueue(hre, "perimeter:submit-block", queue);
 
         const signerAcc = hreEthers.utils.isAddress(signer)
             ? signer
@@ -117,6 +168,15 @@ task(
         logger.info(`Target:    ${tx.destination}`);
         logger.info(`Executed:  ${tx.executed}`);
         if (decoded && decoded.target === "queue") {
+            // The calldata decodes as a genuine block lever, but that alone
+            // does not mean this transaction actually targets the real
+            // queue — a mismatched destination would otherwise print a
+            // plausible-looking decoded view for a call that lands nowhere
+            // near the ExitDelayQueue. Verified before trusting it, not
+            // just for every transaction check-block might be asked about:
+            // an unrelated transaction still falls through to the generic
+            // message below undisturbed.
+            await assertKnownQueue(hre, "perimeter:check-block", tx.destination);
             printDecodedBlockCall(decoded);
         } else {
             logger.info("Call:      NOT an ExitDelayQueue block lever");
