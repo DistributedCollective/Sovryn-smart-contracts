@@ -1,11 +1,9 @@
 /**
- * Regression for CON-R2-5's sibling gap in the QA engine: `withdraw` computed
- * `paidNow`, the receiver's balance delta, unconditionally, but only ever
- * surfaced or checked it on the direct-pay branch. On the QUEUED branch the
- * function logged "QUEUED" and returned without comparing `paidNow` to zero
- * at all — a hook that both queues a request and pays the receiver would
- * report a clean "QUEUED" from this tool while the attacker already had the
- * funds, and freezing the queued request would accomplish nothing.
+ * `withdraw` computes `paidNow`, the receiver's balance delta,
+ * unconditionally, and checks it on both branches: a hook that both queues a
+ * request and pays the receiver must not report a clean "QUEUED" from this
+ * tool while the attacker already has the funds — freezing the queued
+ * request would accomplish nothing at that point.
  *
  * Isolated from the real QA fork on purpose: a fake surface driver is
  * registered directly into `drivers.SURFACE_DRIVERS`, so this runs against
@@ -291,7 +289,7 @@ describe("QA scenario engine — withdraw's direct-pay branch requires a real pa
     });
 });
 
-describe("QA scenario engine — withdraw's direct-pay branch accepts a correctly-quoted 100% fee (RV-4)", () => {
+describe("QA scenario engine — withdraw's direct-pay branch accepts a correctly-quoted 100% fee", () => {
     let receiver;
     let fakeS;
 

@@ -38,7 +38,7 @@ describe("perimeter:check-block's --multisig resolution", () => {
         expect(error.message).to.match(/not a valid address/);
     });
 
-    it("throws on an explicitly supplied EMPTY --multisig instead of falling back (RV-1)", async () => {
+    it("throws on an explicitly supplied EMPTY --multisig instead of falling back", async () => {
         const error = await thrownBy("perimeter:check-block", { id: "0", multisig: "" });
         expect(error, "an empty --multisig must refuse, not fall back").to.not.be.null;
         expect(error.message).to.match(/not a valid address/);
@@ -82,7 +82,7 @@ describe("perimeter:submit-block's --multisig resolution", () => {
         expect(error.message).to.match(/not a valid address/);
     });
 
-    it("throws on an explicitly supplied EMPTY --multisig instead of falling back (RV-1)", async () => {
+    it("throws on an explicitly supplied EMPTY --multisig instead of falling back", async () => {
         const error = await thrownBy("perimeter:submit-block", {
             queue: queueAddress,
             data,

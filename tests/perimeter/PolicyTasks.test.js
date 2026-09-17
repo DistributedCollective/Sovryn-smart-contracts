@@ -88,11 +88,12 @@ describe("Perimeter policy — surface resolution", () => {
         expect(resolved.id).to.equal(unknown.toLowerCase());
     });
 
-    // TOB-R-3 recheck: the fix that let policy:show inspect a bypass under an
-    // unlisted surface loosened resolveSurface's unknown-id check for every
-    // caller, including the three Owner-authorized write tasks that resolve
-    // --surface through this same function with no options
-    // (policyTasks.js: perimeter:exemption `:363`, perimeter:fee:set `:468`,
+    // policy:show can inspect a bypass under an unlisted surface via
+    // `{ allowUnknown: true }`, but that option must not loosen
+    // resolveSurface's unknown-id check for every OTHER caller — including
+    // the three Owner-authorized write tasks that resolve --surface through
+    // this same function with no options (policyTasks.js:
+    // perimeter:exemption `:363`, perimeter:fee:set `:468`,
     // perimeter:fee:remove `:592`). allowUnknown defaults to false so a
     // malformed or unrecognized --surface is still refused before any of
     // those tasks can plan a multisig write against the wrong surface id.
@@ -113,11 +114,11 @@ describe("Perimeter policy — surface resolution", () => {
 });
 
 describe("Perimeter policy — defaultSurfaceNames", () => {
-    // Regression for TOB-R-3: policy:show's default (no --surface) loop
-    // enumerated only the five known names, so a bypass the controller
-    // carries under a sixth surfaceId went unseen with no way to ask for it
-    // directly either. defaultSurfaceNames is the fix's decision logic,
-    // tested here without a controller or the hardhat task around it.
+    // policy:show's default (no --surface) loop must not enumerate only the
+    // five known names — a bypass the controller carries under a sixth
+    // surfaceId would go unseen, with no way to ask for it directly either.
+    // defaultSurfaceNames is that enumeration's decision logic, tested here
+    // without a controller or the hardhat task around it.
     it("returns just the five known names when bypassSurfaceIds is empty", () => {
         expect(policy.defaultSurfaceNames([])).to.deep.equal(Object.keys(policy.SURFACES));
     });
@@ -319,12 +320,12 @@ describe("Perimeter policy — buildCall / decodeCall", () => {
 
 describe("Perimeter policy — planExemption", () => {
     // --half "both" (the default) on the delay build plans exactly one call,
-    // grantExemption, never the old two-separate-multisig-transactions shape
-    // — the whole point being that no on-chain state can ever read only one
-    // half applied. Regression for CON-R2-1: granting an exemption through
-    // two separate calls left a real window where the actor was fee-exempt
-    // but still held, or paid instantly with no hold at all while still
-    // being charged, between the two executing.
+    // grantExemption, never two separate multisig transactions — the whole
+    // point being that no on-chain state can ever read only one half
+    // applied. Granting an exemption through two separate calls would leave
+    // a real window where the actor is fee-exempt but still held, or paid
+    // instantly with no hold at all while still being charged, between the
+    // two executing.
     it("plans the single atomic grantExemption call on the delay build when neither half is written", () => {
         const { calls, alreadyDone } = policy.planExemption({
             half: "both",
@@ -563,12 +564,12 @@ describe("Perimeter policy — planRevoke", () => {
 });
 
 describe("Perimeter policy — unionAddresses", () => {
-    // Regression for CON-R2-2: policy:show enumerated sub-products and
-    // actors solely through the fee-tier key list, so an address with an
-    // active delay bypass and no fee-tier entry (the FeeSharingCollector's
-    // own shape once its fee half is later removed) was invisible to the
-    // default inventory - visible only if the operator already knew the
-    // address and passed it explicitly.
+    // policy:show must not enumerate sub-products and actors solely through
+    // the fee-tier key list — an address with an active delay bypass and no
+    // fee-tier entry (the FeeSharingCollector's own shape once its fee half
+    // is later removed) would otherwise be invisible to the default
+    // inventory, visible only if the operator already knew the address and
+    // passed it explicitly.
     it("includes an address present only in the bypass list", () => {
         const result = policy.unionAddresses([COLLECTOR], [OTHER]);
         expect(result.map((a) => a.toLowerCase())).to.have.members([
@@ -654,12 +655,12 @@ describe("Perimeter policy — buildFromCode", () => {
         expect(policy.buildFromCode(code)).to.equal("delay");
     });
 
-    // Regression for CON-R2-4: buildFromCode used to classify ANY bytecode
-    // lacking the delay selector as "fee-only" unconditionally - a bad
-    // upgrade, a wrong slot read, or a future third build all silently read
-    // as the less-protected build, and an operator "revoking" an exemption
-    // under that false read would have removed only the fee half, leaving
-    // any real delay bypass live.
+    // buildFromCode must not classify ANY bytecode lacking the delay
+    // selector as "fee-only" unconditionally — a bad upgrade, a wrong slot
+    // read, or a future third build would otherwise all silently read as
+    // the less-protected build, and an operator "revoking" an exemption
+    // under that false read would remove only the fee half, leaving any
+    // real delay bypass live.
     it("reads as 'fee-only' only when every one of its own required selectors is present", () => {
         expect(policy.buildFromCode(feeOnlyCode)).to.equal("fee-only");
     });
@@ -842,10 +843,11 @@ describe("Perimeter policy — actorFeeDelayDivergence", () => {
 });
 
 describe("Perimeter policy — pairingViolationAfterCall", () => {
-    // Regression for CON-R2-3: perimeter:policy:check-tx decoded a submitted
-    // transaction and printed its meaning, but never evaluated whether
-    // executing it would leave the actor's fee/delay pair half-applied - a
-    // co-signer reading a clean decode had a description, not a guarantee.
+    // perimeter:policy:check-tx decodes a submitted transaction and prints
+    // its meaning, but that alone says nothing about whether executing it
+    // would leave the actor's fee/delay pair half-applied — a co-signer
+    // reading a clean decode needs a guarantee, not just a description.
+    // pairingViolationAfterCall is the check that closes that gap.
     const notHeld = { active: true, bypass: true }; // bypassing
     const held = { active: true, bypass: false }; // active, no bypass
     const noDelayEntry = { active: false, bypass: false };
@@ -966,15 +968,15 @@ describe("Perimeter policy — pairingViolationAfterCall", () => {
 });
 
 describe("Perimeter policy — ACTOR_TIER_PAIR_CALLS", () => {
-    // Regression within CON-R2-3's own fix: policy:check-tx used
-    // decoded.args[0]/[1] as (surfaceId, actor) for EVERY recognized call
-    // kind, not only the ones actually shaped that way. setSurfacePolicy's
-    // second arg is a rate tuple, setSubProductPolicy/removeSubProductPolicy's
-    // second arg is a sub-product address (not an actor), and
-    // setExitFeeEnabled/setFeeReceiver do not carry a surfaceId at all -
-    // querying the controller with those as (surfaceId, actor) would have
-    // crashed check-tx outright for exactly the calls the arming guard and
-    // the fee tasks submit most often. This set is what check-tx gates on
+    // policy:check-tx must not read decoded.args[0]/[1] as (surfaceId,
+    // actor) for EVERY recognized call kind — only some are shaped that way.
+    // setSurfacePolicy's second arg is a rate tuple,
+    // setSubProductPolicy/removeSubProductPolicy's second arg is a
+    // sub-product address (not an actor), and setExitFeeEnabled/
+    // setFeeReceiver do not carry a surfaceId at all — querying the
+    // controller with those as (surfaceId, actor) would crash check-tx
+    // outright for exactly the calls the arming guard and the fee tasks
+    // submit most often. This set is what check-tx gates on
     // before attempting that query.
     it("contains exactly the six calls whose first two args are (surfaceId, actor)", () => {
         expect([...policy.ACTOR_TIER_PAIR_CALLS].sort()).to.deep.equal(

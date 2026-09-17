@@ -36,7 +36,7 @@ describe("Perimeter tasks — resolveOptionalAddress", () => {
         expect(resolved).to.equal(ethers.utils.getAddress(GIVEN));
     });
 
-    it("refuses an explicitly-supplied EMPTY string rather than falling back — the RV-1 gap", async () => {
+    it("refuses an explicitly-supplied EMPTY string rather than falling back", async () => {
         let raised = null;
         try {
             await resolveOptionalAddress(ethers, "", fallback);

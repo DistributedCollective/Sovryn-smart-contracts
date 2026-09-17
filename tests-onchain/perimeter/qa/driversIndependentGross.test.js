@@ -40,12 +40,12 @@ describe("QA rehearsal drivers — assertGrossIndependentlyGrounded", () => {
         });
 
         it("fires when the derived gross UNDER-reports what an independent reading says left the position — the defect this check exists to catch", () => {
-            // The exact scenario RV-3 names: a hook that internally computes
-            // a smaller-than-real gross, with net + fee self-consistent with
-            // the controller's quote for that wrong gross — assertExitFeeAccounted
-            // alone would have passed this (netRecorded + feeReceived == 500,
-            // reconciling with the controller's quote for 500), but the
-            // loan/trove/pool's own ledger says 1000 actually left the position.
+            // A hook that internally computes a smaller-than-real gross, with
+            // net + fee self-consistent with the controller's quote for that
+            // wrong gross — assertExitFeeAccounted alone would have passed
+            // this (netRecorded + feeReceived == 500, reconciling with the
+            // controller's quote for 500), but the loan/trove/pool's own
+            // ledger says 1000 actually left the position.
             let raised = null;
             try {
                 assertGrossIndependentlyGrounded("test", fee(500), bn(1000), "exact");

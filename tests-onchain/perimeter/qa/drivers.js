@@ -218,8 +218,8 @@ const assertExitFeeAccounted = async (
     let feeReceived = feeReceiverAfter.sub(feeReceiverBefore);
     // When the fee receiver IS the withdrawal's own signer, gas the signer
     // paid for this same transaction is debited from the very balance this
-    // measures — the same contamination MED-4 already normalizes out of the
-    // receiver leg in engine.js's withdraw(). Credit it back the same way:
+    // measures — the same contamination engine.js's withdraw() already
+    // normalizes out of the receiver leg. Credit it back the same way:
     // after - before + gasUsed * effectiveGasPrice.
     if (ethers.utils.getAddress(feeReceiver) === ethers.utils.getAddress(receipt.from)) {
         feeReceived = feeReceived.add(receipt.gasUsed.mul(receipt.effectiveGasPrice));

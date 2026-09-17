@@ -660,7 +660,7 @@ describe("Perimeter — perimeter:verify-arming's --controller resolution", () =
         expect(error.message).to.match(/not a valid address/);
     });
 
-    it("throws on an explicitly supplied EMPTY --controller instead of falling back (RV-1)", async () => {
+    it("throws on an explicitly supplied EMPTY --controller instead of falling back", async () => {
         const error = await thrownBy({ controller: "" });
         expect(error, "an empty --controller must refuse, not fall back").to.not.be.null;
         expect(error.message).to.match(/not a valid address/);

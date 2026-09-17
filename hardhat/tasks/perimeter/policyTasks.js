@@ -222,7 +222,7 @@ task(
         let surfaceNames;
         if (surface !== undefined) {
             // Inspection-only path: an operator who already suspects an
-            // unlisted surface can ask to see it directly (TOB-R-3).
+            // unlisted surface can ask to see it directly.
             surfaceNames = [
                 policy.resolveSurface(surface, { allowUnknown: true }).name || surface,
             ];
