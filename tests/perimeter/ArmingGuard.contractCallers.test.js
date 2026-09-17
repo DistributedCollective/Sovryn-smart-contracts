@@ -27,6 +27,7 @@
 
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const hre = require("hardhat");
 
 const {
     SURFACE_IDS,
@@ -635,5 +636,37 @@ describe("Perimeter — the arming guard for exempted addresses", () => {
             });
             expect(result.certified).to.be.true;
         });
+    });
+});
+
+describe("Perimeter — perimeter:verify-arming's --controller resolution", () => {
+    // An explicitly supplied --controller and an omitted one must not be
+    // treated the same way: only an omitted value may fall back to the saved
+    // deployment record. A mistyped address passed deliberately must refuse
+    // outright, not silently certify whatever the saved deployment happens to
+    // point at instead.
+    const thrownBy = async (params) => {
+        try {
+            await hre.run("perimeter:verify-arming", params);
+        } catch (thrown) {
+            return thrown;
+        }
+        return null;
+    };
+
+    it("throws on an explicitly supplied --controller that is not a valid address", async () => {
+        const error = await thrownBy({ controller: "not-an-address" });
+        expect(error, "a malformed --controller must refuse, not fall back").to.not.be.null;
+        expect(error.message).to.match(/not a valid address/);
+    });
+
+    it("still falls back to the saved deployment record when --controller is omitted", async () => {
+        const error = await thrownBy({});
+        // No ExitFeeController deployment is saved for this test network, so
+        // the fallback path fails too - but on ITS OWN error, proving the
+        // omitted case never reaches the "not a valid address" refusal above.
+        expect(error, "an omitted --controller must still attempt the deployment fallback").to.not
+            .be.null;
+        expect(error.message).to.not.match(/not a valid address/);
     });
 });

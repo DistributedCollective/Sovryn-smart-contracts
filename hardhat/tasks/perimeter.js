@@ -163,9 +163,17 @@ task(
             ethers: hreEthers,
         } = hre;
 
-        const address = hreEthers.utils.isAddress(controller)
-            ? controller
-            : (await get("ExitFeeController")).address;
+        let address;
+        if (controller) {
+            if (!hreEthers.utils.isAddress(controller)) {
+                throw new Error(
+                    `perimeter:verify-arming: '${controller}' is not a valid address`
+                );
+            }
+            address = hreEthers.utils.getAddress(controller);
+        } else {
+            address = (await get("ExitFeeController")).address;
+        }
         if ((await hreEthers.provider.getCode(address)) === "0x") {
             throw new Error(
                 `perimeter:verify-arming: no contract code at the controller ${address}`
