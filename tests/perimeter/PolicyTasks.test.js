@@ -67,11 +67,47 @@ describe("Perimeter policy — surface resolution", () => {
         }
     });
 
-    it("accepts a well-formed id that matches no known surface, name null, id normalized", () => {
+    it("throws by default on a well-formed id that matches no known surface", () => {
         const unknown = "0x" + "AB".repeat(32);
-        const resolved = policy.resolveSurface(unknown);
-        expect(resolved.name).to.be.null;
+        try {
+            policy.resolveSurface(unknown);
+            expect.fail("expected resolveSurface to throw");
+        } catch (e) {
+            expect(e.message).to.include("is not a known surface");
+            for (const name of Object.keys(policy.SURFACES)) {
+                expect(e.message).to.include(name);
+            }
+        }
+    });
+
+    it("accepts a well-formed id that matches no known surface, name null, id normalized, only with allowUnknown", () => {
+        const unknown = "0x" + "AB".repeat(32);
+        const resolved = policy.resolveSurface(unknown, { allowUnknown: true });
+        expect(resolved.name == null).to.equal(true); // undefined or null, never a name
         expect(resolved.id).to.equal(unknown.toLowerCase());
+    });
+
+    // TOB-R-3 recheck: the fix that let policy:show inspect a bypass under an
+    // unlisted surface loosened resolveSurface's unknown-id check for every
+    // caller, including the three Owner-authorized write tasks that resolve
+    // --surface through this same function with no options
+    // (policyTasks.js: perimeter:exemption `:363`, perimeter:fee:set `:468`,
+    // perimeter:fee:remove `:592`). allowUnknown defaults to false so a
+    // malformed or unrecognized --surface is still refused before any of
+    // those tasks can plan a multisig write against the wrong surface id.
+    it("perimeter:exemption's surface resolution (no options) still throws on an unrecognized id", () => {
+        const unknown = "0x" + "11".repeat(32);
+        expect(() => policy.resolveSurface(unknown)).to.throw(/is not a known surface/);
+    });
+
+    it("perimeter:fee:set's surface resolution (no options) still throws on an unrecognized id", () => {
+        const unknown = "0x" + "22".repeat(32);
+        expect(() => policy.resolveSurface(unknown)).to.throw(/is not a known surface/);
+    });
+
+    it("perimeter:fee:remove's surface resolution (no options) still throws on an unrecognized id", () => {
+        const unknown = "0x" + "33".repeat(32);
+        expect(() => policy.resolveSurface(unknown)).to.throw(/is not a known surface/);
     });
 });
 

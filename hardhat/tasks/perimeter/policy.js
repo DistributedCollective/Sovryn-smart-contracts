@@ -63,15 +63,19 @@ const NAME_BY_ID = Object.freeze(
 
 /** Resolve a surface given as its name, a unique case-insensitive suffix of
  *  the name (e.g. "LENDER_WITHDRAW"), or a 0x-prefixed 32-byte id. A name or
- *  suffix must match one of the five known surfaces; a 32-byte id is always
- *  accepted, known or not — the controller gates no writer on an allowlist of
- *  ids, so an operator who already has one (from `bypassSurfaceIds()`, or
- *  from watching the chain) can resolve and inspect it even though this
- *  module has never heard of it. `name` comes back null for such an id;
- *  every caller already falls back to printing the id itself in that case.
- *  Throws, listing the known names, only when nothing or more than one name
- *  or suffix matches. */
-const resolveSurface = (input) => {
+ *  suffix must match one of the five known surfaces. A well-formed but
+ *  unrecognized 32-byte id is refused by default — the controller gates no
+ *  writer on an allowlist of ids, so a mistyped id is otherwise silently
+ *  accepted and planned as a real, owner-authorized multisig call against
+ *  the wrong surface. Pass `{ allowUnknown: true }` only for a caller that
+ *  means to inspect, not write: an operator who already has an id (from
+ *  `bypassSurfaceIds()`, or from watching the chain) can then resolve and
+ *  inspect it even though this module has never heard of it. `name` comes
+ *  back null for such an id; every such caller already falls back to
+ *  printing the id itself in that case. Throws, listing the known names,
+ *  on an unrecognized 32-byte id when `allowUnknown` is not set, and always
+ *  when nothing or more than one name or suffix matches. */
+const resolveSurface = (input, { allowUnknown = false } = {}) => {
     if (typeof input !== "string" || input.trim() === "") {
         throw new Error(
             `resolveSurface: expected a surface name, suffix, or id, got '${input}'. Known ` +
@@ -83,7 +87,12 @@ const resolveSurface = (input) => {
     if (/^0x[0-9a-fA-F]{64}$/.test(trimmed)) {
         const lowered = trimmed.toLowerCase();
         const name = NAME_BY_ID[lowered];
-        return name ? { name, id: SURFACES[name] } : { name: null, id: lowered };
+        if (name) return { name, id: SURFACES[name] };
+        if (allowUnknown) return { name: null, id: lowered };
+        throw new Error(
+            `resolveSurface: '${input}' is not a known surface. Expected one of:\n  ` +
+                Object.keys(SURFACES).join("\n  ")
+        );
     }
 
     const upper = trimmed.toUpperCase();
@@ -118,7 +127,7 @@ const resolveSurface = (input) => {
 const defaultSurfaceNames = (bypassIds = []) => {
     const names = Object.keys(SURFACES);
     for (const id of bypassIds) {
-        const resolved = resolveSurface(id);
+        const resolved = resolveSurface(id, { allowUnknown: true });
         if (!resolved.name) names.push(resolved.id);
     }
     return names;

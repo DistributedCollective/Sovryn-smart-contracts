@@ -221,7 +221,11 @@ task(
 
         let surfaceNames;
         if (surface) {
-            surfaceNames = [policy.resolveSurface(surface).name || surface];
+            // Inspection-only path: an operator who already suspects an
+            // unlisted surface can ask to see it directly (TOB-R-3).
+            surfaceNames = [
+                policy.resolveSurface(surface, { allowUnknown: true }).name || surface,
+            ];
         } else {
             // The fee-only build has no bypass concept, so it carries no
             // bypassSurfaceIds() to union in beyond the five known names.
@@ -230,7 +234,10 @@ task(
         }
 
         for (const rawName of surfaceNames) {
-            const resolved = policy.resolveSurface(rawName);
+            // rawName may be an unresolved id from the unlisted-surface
+            // paths above; this is a read-only inspection loop, so it must
+            // resolve one too, not just refuse it.
+            const resolved = policy.resolveSurface(rawName, { allowUnknown: true });
             const id = resolved.id;
             logger.info(`Surface: ${resolved.name || rawName} (${id})`);
 
