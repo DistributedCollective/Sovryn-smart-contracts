@@ -211,3 +211,70 @@ describe("QA scenario engine — withdraw's paid check is gas-normalized when th
         delete drivers.SURFACE_DRIVERS.__qaTestGasSelfNoLeak;
     });
 });
+
+describe("QA scenario engine — withdraw's direct-pay branch requires a real payment", () => {
+    let funder;
+    let receiver;
+    let fakeS;
+
+    before(async () => {
+        [funder] = await ethers.getSigners();
+        receiver = ethers.Wallet.createRandom().address;
+        fakeS = { controller: { securityPerimeterEnabled: async () => true } };
+    });
+
+    beforeEach(() => {
+        fakeS.state = { testKey: ethers.Wallet.createRandom() };
+    });
+
+    it("refuses to report a clean PAID DIRECT when a defective hook neither queues nor pays", async () => {
+        drivers.SURFACE_DRIVERS.__qaTestDirectNothingPaid = async (s, signer, opts) => {
+            const before = await ethers.provider.getBalance(opts.receiver);
+            // Defective: no request id (claims the perimeter paid direct) AND
+            // no actual transfer to the receiver.
+            return { id: null, before: { receiver: before } };
+        };
+
+        let raised = null;
+        try {
+            await engine.withdraw(fakeS, {
+                surface: "__qaTestDirectNothingPaid",
+                as: "test",
+                receiver,
+                log: () => {},
+            });
+        } catch (error) {
+            raised = error;
+        }
+        expect(raised, "expected the direct-pay branch to refuse a clean report").to.not.equal(
+            null
+        );
+        expect(raised.message).to.match(/neither held nor paid/i);
+
+        delete drivers.SURFACE_DRIVERS.__qaTestDirectNothingPaid;
+    });
+
+    it("still reports a clean PAID DIRECT when the receiver was genuinely paid", async () => {
+        drivers.SURFACE_DRIVERS.__qaTestDirectPaid = async (s, signer, opts) => {
+            const before = await ethers.provider.getBalance(opts.receiver);
+            await (
+                await funder.sendTransaction({
+                    to: opts.receiver,
+                    value: ethers.utils.parseEther("1"),
+                })
+            ).wait();
+            return { id: null, before: { receiver: before } };
+        };
+
+        const record = await engine.withdraw(fakeS, {
+            surface: "__qaTestDirectPaid",
+            as: "test",
+            receiver,
+            log: () => {},
+        });
+        expect(record.queued).to.equal(false);
+        expect(record.receiverDelta).to.equal(ethers.utils.parseEther("1").toString());
+
+        delete drivers.SURFACE_DRIVERS.__qaTestDirectPaid;
+    });
+});

@@ -385,6 +385,17 @@ const withdraw = async (s, opts = {}) => {
     }
 
     if (!result.id) {
+        // The perimeter is switched off, so the product is supposed to pay on
+        // the spot — but a defective hook that neither queues nor pays would
+        // also reach here with nothing to report. Require a real,
+        // gas-normalized, positive payment before calling this branch clean.
+        if (!paidNow.gt(0)) {
+            throw new Error(
+                `perimeter:qa withdraw: ${surface} was not queued (the perimeter is switched ` +
+                    `off) but ${receiver} was not paid either — credited ${paidNow.toString()} ` +
+                    "(gas-normalized). Neither held nor paid."
+            );
+        }
         log(`  PAID DIRECT  ${surface} withdrawal paid on the spot, nothing queued`);
         return {
             command: "withdraw",
