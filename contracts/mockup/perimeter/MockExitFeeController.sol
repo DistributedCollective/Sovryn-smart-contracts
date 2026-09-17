@@ -66,6 +66,14 @@ contract MockExitFeeController is IExitFeeController {
     mapping(bytes32 => address[]) private _actorBypassKeysList;
     mapping(bytes32 => mapping(address => bool)) private _actorBypassSeen;
 
+    // Surface-tier-only enumeration, populated exclusively by
+    // setSurfaceBypass — distinct from `_bypassSurfaceIdsList` above, which
+    // records a surfaceId touched at ANY tier (actor, sub-product, or
+    // surface). Mirrors the real controller's own separate
+    // `_surfaceBypassKeys` set.
+    bytes32[] private _surfaceBypassKeysList;
+    mapping(bytes32 => bool) private _surfaceBypassKeySeen;
+
     /// @notice Record `surfaceId` in the any-tier master set once, the way
     ///         every real bypass writer does regardless of which tier it
     ///         touched.
@@ -299,14 +307,26 @@ contract MockExitFeeController is IExitFeeController {
 
     // ── Delay extension: IExitFeeController quote API ───────────────────────
 
+    /// @notice Resolves the delay bypass in the real controller's own
+    ///         precedence order — actor, then sub-product, then surface,
+    ///         most-specific-active-tier wins — rather than only ever
+    ///         consulting the actor tier. `subProduct == address(0)` means
+    ///         "no per-instance dimension" (e.g. Zero) and skips that tier's
+    ///         lookup, the same as the real controller.
     function quoteExitDelay(
         bytes32 surfaceId,
-        address /* subProduct */,
+        address subProduct,
         address actor
     ) public view returns (uint32) {
         if (!_perimeterEnabled) return 0;
         if (_actorBypassActive[surfaceId][actor]) {
             return _actorBypassValue[surfaceId][actor] ? 0 : _globalDelaySeconds;
+        }
+        if (subProduct != address(0) && _subProductBypassActive[surfaceId][subProduct]) {
+            return _subProductBypassValue[surfaceId][subProduct] ? 0 : _globalDelaySeconds;
+        }
+        if (_surfaceBypassActive[surfaceId]) {
+            return _surfaceBypassValue[surfaceId] ? 0 : _globalDelaySeconds;
         }
         return _globalDelaySeconds;
     }
@@ -359,8 +379,11 @@ contract MockExitFeeController is IExitFeeController {
         p.bypass = _actorBypassValue[surfaceId][actor];
     }
 
+    /// @notice The surface-tier-only bypass enumeration — populated only by
+    ///         `setSurfaceBypass`, distinct from the any-tier master set
+    ///         `bypassSurfaceIds` returns below.
     function surfaceBypassKeys() external view returns (bytes32[] memory) {
-        return _bypassSurfaceIdsList;
+        return _surfaceBypassKeysList;
     }
 
     function subProductBypassKeys(bytes32 surfaceId) external view returns (address[] memory) {
@@ -390,11 +413,16 @@ contract MockExitFeeController is IExitFeeController {
     }
 
     /// @notice Mirrors the real controller's `setSurfaceBypass`: stores the
-    ///         policy and registers the surface in the enumeration the arming
-    ///         guard's bypass check reads.
+    ///         policy, registers the surface in its own surface-tier-only
+    ///         enumeration (`surfaceBypassKeys`), and records it in the
+    ///         any-tier master set the arming guard's bypass check reads.
     function setSurfaceBypass(bytes32 surfaceId, DelayBypassPolicy calldata policy) external {
         _surfaceBypassActive[surfaceId] = policy.active;
         _surfaceBypassValue[surfaceId] = policy.bypass;
+        if (!_surfaceBypassKeySeen[surfaceId]) {
+            _surfaceBypassKeySeen[surfaceId] = true;
+            _surfaceBypassKeysList.push(surfaceId);
+        }
         _recordBypassSurface(surfaceId);
     }
 
@@ -454,7 +482,24 @@ contract MockExitFeeController is IExitFeeController {
 
     function removeActorBypasses(bytes32, address[] calldata) external {}
 
-    function revokeExemption(bytes32, address) external {}
+    /// @notice Mirrors the real controller's `revokeExemption`: the fee entry
+    ///         is written inactive, so the surface rate applies again; the
+    ///         delay entry is written active with no bypass, so the actor is
+    ///         held rather than falling through to a wider tier's bypass.
+    ///         Enumerated the same way `grantExemption` is, so the actor and
+    ///         surface stay discoverable after the revoke, matching the real
+    ///         controller's retention semantics.
+    function revokeExemption(bytes32 surfaceId, address actor) external {
+        _actorPolicyActive[surfaceId][actor] = false;
+        _actorPolicyRate[surfaceId][actor] = 0;
+        _actorBypassActive[surfaceId][actor] = true;
+        _actorBypassValue[surfaceId][actor] = false;
+        if (!_actorBypassSeen[surfaceId][actor]) {
+            _actorBypassSeen[surfaceId][actor] = true;
+            _actorBypassKeysList[surfaceId].push(actor);
+        }
+        _recordBypassSurface(surfaceId);
+    }
 
     /// @notice Mirrors the real controller's atomic `grantExemption`: the fee
     ///         entry {active: true, rateBps: 0} and the delay entry
