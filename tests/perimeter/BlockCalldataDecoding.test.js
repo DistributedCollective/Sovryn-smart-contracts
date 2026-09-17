@@ -112,6 +112,7 @@ describe("perimeter:submit-block / perimeter:check-block decode the calldata the
         );
 
         expect(output).to.include("42");
+        expect(output).to.include("freezeReceiver (bool): true");
         expect(output).to.include(reasonHash);
     });
 
