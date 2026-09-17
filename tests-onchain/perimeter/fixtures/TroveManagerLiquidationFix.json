@@ -2,7 +2,7 @@
     "_provenance": {
         "repo": "zero-contracts",
         "branch": "sovryn-perimeter-delay",
-        "commit": "44ca2c9",
+        "commit": "8edd8ec",
         "compiler": "solc 0.6.11 via hardhat",
         "note": "TroveManager carrying Liquity's Recovery-Mode multi-liquidation correction: both loops subtract the gas compensation and the borrower's surplus from the running system collateral. Test-only fixture for the fork-based SIP tests; the production implementation is deployed from zero-contracts and saved as the TroveManagerLiquidationFix record / PERIMETER_ZERO_TROVE_MANAGER env. Constructor takes (BOOTSTRAP_PERIOD, permit2) and both are immutable, so it must be built with the live proxy's values."
     },
