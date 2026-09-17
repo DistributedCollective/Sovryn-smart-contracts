@@ -92,9 +92,15 @@ task(
             ? signer
             : (await hre.getNamedAccounts())[signer];
 
-        const multisigAddress = hreEthers.utils.isAddress(multisig)
-            ? multisig
-            : (await get("MultiSigWallet")).address;
+        let multisigAddress;
+        if (multisig) {
+            if (!hreEthers.utils.isAddress(multisig)) {
+                throw new Error(`perimeter:submit-block: '${multisig}' is not a valid address`);
+            }
+            multisigAddress = hreEthers.utils.getAddress(multisig);
+        } else {
+            multisigAddress = (await get("MultiSigWallet")).address;
+        }
 
         logger.info(`Queue:      ${queue}`);
         logger.info(`Multisig:   ${multisigAddress}`);
@@ -123,9 +129,15 @@ task(
             ethers: hreEthers,
         } = hre;
 
-        const multisigAddress = hreEthers.utils.isAddress(multisig)
-            ? multisig
-            : (await get("MultiSigWallet")).address;
+        let multisigAddress;
+        if (multisig) {
+            if (!hreEthers.utils.isAddress(multisig)) {
+                throw new Error(`perimeter:check-block: '${multisig}' is not a valid address`);
+            }
+            multisigAddress = hreEthers.utils.getAddress(multisig);
+        } else {
+            multisigAddress = (await get("MultiSigWallet")).address;
+        }
 
         const ms = await hreEthers.getContractAt("MultiSigWallet", multisigAddress);
         const tx = await ms.transactions(id);
