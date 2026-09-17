@@ -225,8 +225,20 @@ const POSTCONDITIONS = {
             : `the controller reports enabled=${!want}`,
     topUpFeasible: async (s, { surfaceId }) =>
         (await s.queue.topUpFeasible(surfaceId)) ? true : "the surface is still marked infeasible",
-    recoveryRouteActive: async (s, { routeId }) =>
-        (await s.queue.getRecoveryRoute(routeId)).active ? true : `route ${routeId} is not active`,
+    // `topUpPool` is not part of `routeId` (that hash covers only surface,
+    // sub-product, token and destination — the four fields the real contract
+    // keys its own storage on), so two routes that hash to the same id but
+    // disagree on this one field would still read `active: true` here unless
+    // it is checked on its own: the field that decides whether a later
+    // `refund --to pool` recovers to the pool or to a plain address.
+    recoveryRouteActive: async (s, { routeId, topUpPool }) => {
+        const route = await s.queue.getRecoveryRoute(routeId);
+        if (!route.active) return `route ${routeId} is not active`;
+        if (topUpPool !== undefined && route.topUpPool !== topUpPool) {
+            return `route ${routeId} is active but registered topUpPool=${route.topUpPool}, not ${topUpPool}`;
+        }
+        return true;
+    },
     refundResolved: async (s, { ids, wantStatus, token, destination, before, total }) => {
         for (const id of ids) {
             const after = await s.queue.getRequest(id);
@@ -937,7 +949,7 @@ const route = async (s, surface, mode, destinationAddress, opts = {}) => {
             [[true, surfaceId, subProduct, token, destination, topUp]],
             {
                 ...opts,
-                postcondition: { kind: "recoveryRouteActive", args: { routeId } },
+                postcondition: { kind: "recoveryRouteActive", args: { routeId, topUpPool: topUp } },
             }
         )
     );
