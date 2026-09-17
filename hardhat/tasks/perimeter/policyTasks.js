@@ -450,6 +450,11 @@ task(
     .addOptionalParam("subproduct", "Sub-product address (mutually exclusive with --actor)")
     .addOptionalParam("actor", "Actor address (mutually exclusive with --subproduct)")
     .addParam("rate", "Rate in bps, 0..10000, or 'inactive'", undefined, types.string)
+    .addFlag(
+        "confirmHalf",
+        "Required when this would leave the actor fee-exempt with no active delay bypass: " +
+            "acknowledges the actor is held but not charged, on purpose"
+    )
     .addFlag("dryRun", "Print the plan without submitting anything")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addOptionalParam("multisig", "Multisig address (defaults to the MultiSigWallet deployment)")
@@ -459,7 +464,7 @@ task(
     )
     .setAction(
         async (
-            { surface, subproduct, actor, rate, dryRun, signer, multisig, controller },
+            { surface, subproduct, actor, rate, confirmHalf, dryRun, signer, multisig, controller },
             hre
         ) => {
             const { ethers: hreEthers } = hre;
@@ -499,18 +504,30 @@ task(
                 tier = "surface";
             }
 
-            if (tier === "actor") {
-                const bypass =
-                    build === "delay"
-                        ? await controllerContract.actorBypass(resolvedSurface.id, address)
-                        : undefined;
-                const warning = policy.survivingBypassWarning({
+            if (tier === "actor" && build === "delay") {
+                const bypass = await controllerContract.actorBypass(resolvedSurface.id, address);
+                const divergence = policy.actorFeeDelayDivergence({
                     build,
+                    resultFee: parsedRate,
                     bypass,
-                    actor: address,
-                    surfaceId: resolvedSurface.id,
                 });
-                if (warning) logger.warn(warning);
+                if (divergence === "charged") {
+                    throw new Error(
+                        `perimeter:fee:set: ${address} still carries an active delay bypass on ` +
+                            `${policy.surfaceLabel(resolvedSurface.id)} — this fee would leave ` +
+                            "it charged but not held. `perimeter:exemption --action revoke` is " +
+                            "the call that withdraws both halves."
+                    );
+                }
+                if (divergence === "held" && !confirmHalf) {
+                    throw new Error(
+                        `perimeter:fee:set: this leaves ${address} fee-exempt on ` +
+                            `${policy.surfaceLabel(resolvedSurface.id)} with no active delay ` +
+                            "bypass — held, not charged, on its own. Pass --confirmHalf to " +
+                            "submit anyway, or use `perimeter:exemption --action submit` to " +
+                            "grant the full exemption."
+                    );
+                }
             }
 
             const current =
@@ -619,18 +636,26 @@ task(
                 kind = "removeActorPolicy";
             }
 
-            if (tier === "actor") {
-                const bypass =
-                    build === "delay"
-                        ? await controllerContract.actorBypass(resolvedSurface.id, address)
-                        : undefined;
-                const warning = policy.survivingBypassWarning({
+            if (tier === "actor" && build === "delay") {
+                const bypass = await controllerContract.actorBypass(resolvedSurface.id, address);
+                // Removal always leaves the fee entry inactive, never exempt
+                // — the only divergence this can ever produce is "charged":
+                // an active bypass surviving the removal. There is no
+                // opposite, harmless direction here to gate behind a flag.
+                const divergence = policy.actorFeeDelayDivergence({
                     build,
+                    resultFee: { active: false, rateBps: 0 },
                     bypass,
-                    actor: address,
-                    surfaceId: resolvedSurface.id,
                 });
-                if (warning) logger.warn(warning);
+                if (divergence === "charged") {
+                    throw new Error(
+                        `perimeter:fee:remove: ${address} still carries an active delay bypass ` +
+                            `on ${policy.surfaceLabel(resolvedSurface.id)} — removing the fee ` +
+                            "entry would leave it charged the default fee but not held. " +
+                            "`perimeter:exemption --action revoke` is the call that withdraws " +
+                            "both halves."
+                    );
+                }
             }
 
             const entry =

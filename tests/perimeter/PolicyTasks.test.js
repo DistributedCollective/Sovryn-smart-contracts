@@ -769,6 +769,54 @@ describe("Perimeter policy — survivingBypassWarning", () => {
     });
 });
 
+describe("Perimeter policy — actorFeeDelayDivergence", () => {
+    const bypassing = { active: true, bypass: true };
+    const held = { active: true, bypass: false };
+    const noBypass = { active: false, bypass: false };
+    const exemptFee = { active: true, rateBps: 0 };
+    const chargedFee = { active: true, rateBps: 25 };
+    const noFeeEntry = { active: false, rateBps: 0 };
+
+    it("reports 'charged' when an active bypass survives with no matching zero-rate fee entry", () => {
+        expect(
+            policy.actorFeeDelayDivergence({ build: "delay", resultFee: chargedFee, bypass: bypassing })
+        ).to.equal("charged");
+        expect(
+            policy.actorFeeDelayDivergence({ build: "delay", resultFee: noFeeEntry, bypass: bypassing })
+        ).to.equal("charged");
+    });
+
+    it("reports 'held' when the resulting fee entry is exempt with no active bypass", () => {
+        expect(
+            policy.actorFeeDelayDivergence({ build: "delay", resultFee: exemptFee, bypass: noBypass })
+        ).to.equal("held");
+        expect(
+            policy.actorFeeDelayDivergence({ build: "delay", resultFee: exemptFee, bypass: held })
+        ).to.equal("held");
+    });
+
+    it("reports nothing when both read exempt — a full exemption", () => {
+        expect(
+            policy.actorFeeDelayDivergence({ build: "delay", resultFee: exemptFee, bypass: bypassing })
+        ).to.be.undefined;
+    });
+
+    it("reports nothing for an ordinary actor: charged and held", () => {
+        expect(
+            policy.actorFeeDelayDivergence({ build: "delay", resultFee: chargedFee, bypass: noBypass })
+        ).to.be.undefined;
+        expect(
+            policy.actorFeeDelayDivergence({ build: "delay", resultFee: noFeeEntry, bypass: held })
+        ).to.be.undefined;
+    });
+
+    it("reports nothing on the fee-only build, whatever the shape passed in", () => {
+        expect(
+            policy.actorFeeDelayDivergence({ build: "fee-only", resultFee: noFeeEntry, bypass: bypassing })
+        ).to.be.undefined;
+    });
+});
+
 describe("Perimeter policy — pairingViolationAfterCall", () => {
     // Regression for CON-R2-3: perimeter:policy:check-tx decoded a submitted
     // transaction and printed its meaning, but never evaluated whether
@@ -1041,5 +1089,100 @@ describe("Perimeter policy tasks — perimeter:policy:check-tx (full task path)"
 
         expect(output.toLowerCase()).to.not.include("half-applied");
         expect(output).to.match(/fee and delay stay matched/);
+    });
+});
+
+describe("Perimeter fee tasks — actor-tier fee/delay pairing guard (full task path)", () => {
+    // perimeter:fee:set / perimeter:fee:remove only ever touch one half of an
+    // actor's fee/delay pair, so either can leave the two diverging. Driven
+    // against a deployed controller and the real task actions, not the pure
+    // actorFeeDelayDivergence predicate alone.
+    let controller;
+    let owner;
+
+    beforeEach(async () => {
+        [owner] = await hre.ethers.getSigners();
+        const MockExitFeeControllerFactory =
+            await hre.ethers.getContractFactory("MockExitFeeController");
+        controller = await MockExitFeeControllerFactory.deploy();
+        await controller.deployed();
+    });
+
+    /** Every task run here passes explicit multisig/signer addresses and
+     *  dryRun so no MultiSigWallet needs to be deployed — none of these
+     *  cases reach submission, refused ones throw first and accepted ones
+     *  stop at the printed plan. */
+    const runFeeSet = (params) =>
+        hre.run("perimeter:fee:set", {
+            surface: LENDER_WITHDRAW,
+            dryRun: true,
+            multisig: owner.address,
+            signer: owner.address,
+            controller: controller.address,
+            ...params,
+        });
+
+    const runFeeRemove = (params) =>
+        hre.run("perimeter:fee:remove", {
+            surface: LENDER_WITHDRAW,
+            dryRun: true,
+            multisig: owner.address,
+            signer: owner.address,
+            controller: controller.address,
+            ...params,
+        });
+
+    const rejectionOf = async (promise) => {
+        try {
+            await promise;
+        } catch (error) {
+            return error;
+        }
+        return null;
+    };
+
+    it("refuses fee:set --actor --rate 0 with no bypass, unless --confirmHalf is passed", async () => {
+        const error = await rejectionOf(runFeeSet({ actor: OTHER, rate: "0" }));
+        expect(error, "expected fee:set to refuse").to.not.be.null;
+        expect(error.message).to.match(/perimeter:exemption --action submit/);
+    });
+
+    it("accepts fee:set --actor --rate 0 with no bypass when --confirmHalf is passed", async () => {
+        await runFeeSet({ actor: OTHER, rate: "0", confirmHalf: true });
+    });
+
+    it("refuses fee:remove --actor while an active bypass survives, with no flag to override", async () => {
+        const surfaceId = policy.SURFACES[LENDER_WITHDRAW];
+        await controller.setActorFeePolicyTest(surfaceId, OTHER, true, 25);
+        await controller.setActorBypassTest(surfaceId, OTHER, true, true);
+
+        const error = await rejectionOf(runFeeRemove({ actor: OTHER }));
+        expect(error, "expected fee:remove to refuse").to.not.be.null;
+        expect(error.message).to.match(/perimeter:exemption --action revoke/);
+    });
+
+    it("refuses fee:set --actor --rate <nonzero> while an active bypass survives", async () => {
+        const surfaceId = policy.SURFACES[LENDER_WITHDRAW];
+        await controller.setActorBypassTest(surfaceId, OTHER, true, true);
+
+        const error = await rejectionOf(runFeeSet({ actor: OTHER, rate: "500" }));
+        expect(error, "expected fee:set to refuse").to.not.be.null;
+        expect(error.message).to.match(/perimeter:exemption --action revoke/);
+    });
+
+    it("allows fee:set --actor --rate <nonzero> with no bypass, without any flag — an ordinary custom rate", async () => {
+        await runFeeSet({ actor: OTHER, rate: "500" });
+    });
+
+    it("does not gate the surface tier, even at --rate 0", async () => {
+        await runFeeSet({ rate: "0" });
+    });
+
+    it("does not gate the sub-product tier, even at --rate 0", async () => {
+        const SubProductFactory = await hre.ethers.getContractFactory("MockExitFeeController");
+        const subProduct = await SubProductFactory.deploy();
+        await subProduct.deployed();
+
+        await runFeeSet({ subproduct: subProduct.address, rate: "0" });
     });
 });

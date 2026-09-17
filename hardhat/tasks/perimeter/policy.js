@@ -846,6 +846,32 @@ const survivingBypassWarning = ({ build, bypass, actor, surfaceId } = {}) => {
     );
 };
 
+/**
+ * Whether writing `resultFee` at the actor tier (the fee entry `fee:set` or
+ * `fee:remove` is about to leave in place) would diverge from the actor's
+ * CURRENT delay bypass, and which direction:
+ *
+ *   - "charged": the bypass reads active and bypassing (not held) while the
+ *     resulting fee entry does not read exempt — the actor would be paid
+ *     instantly while still charged, the direction the Perimeter exists to
+ *     prevent.
+ *   - "held": the resulting fee entry reads exempt while the bypass does
+ *     not read active-and-bypassing — the actor would be held but not
+ *     charged; a revenue anomaly, not a security one.
+ *   - `undefined` when the two already agree, whether both exempt (a full
+ *     exemption) or neither (an ordinary actor).
+ *
+ * `undefined` on the fee-only build — the bypass field does not exist there
+ * yet, so there is nothing to diverge from.
+ */
+const actorFeeDelayDivergence = ({ build, resultFee, bypass } = {}) => {
+    if (build !== "delay") return undefined;
+    const exempt = isFeeExempt(resultFee);
+    const bypassing = isDelayBypassing(bypass);
+    if (exempt === bypassing) return undefined;
+    return bypassing ? "charged" : "held";
+};
+
 module.exports = {
     SURFACES,
     SURFACES_WITHOUT_SUBPRODUCT,
@@ -871,4 +897,5 @@ module.exports = {
     planExemption,
     planRevoke,
     survivingBypassWarning,
+    actorFeeDelayDivergence,
 };
