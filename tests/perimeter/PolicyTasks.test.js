@@ -67,15 +67,50 @@ describe("Perimeter policy — surface resolution", () => {
         }
     });
 
-    it("throws, listing the known names, on a well-formed id that matches no surface", () => {
-        try {
-            policy.resolveSurface("0x" + "ab".repeat(32));
-            expect.fail("expected resolveSurface to throw");
-        } catch (e) {
-            for (const name of Object.keys(policy.SURFACES)) {
-                expect(e.message).to.include(name);
-            }
-        }
+    it("accepts a well-formed id that matches no known surface, name null, id normalized", () => {
+        const unknown = "0x" + "AB".repeat(32);
+        const resolved = policy.resolveSurface(unknown);
+        expect(resolved.name).to.be.null;
+        expect(resolved.id).to.equal(unknown.toLowerCase());
+    });
+});
+
+describe("Perimeter policy — defaultSurfaceNames", () => {
+    // Regression for TOB-R-3: policy:show's default (no --surface) loop
+    // enumerated only the five known names, so a bypass the controller
+    // carries under a sixth surfaceId went unseen with no way to ask for it
+    // directly either. defaultSurfaceNames is the fix's decision logic,
+    // tested here without a controller or the hardhat task around it.
+    it("returns just the five known names when bypassSurfaceIds is empty", () => {
+        expect(policy.defaultSurfaceNames([])).to.deep.equal(Object.keys(policy.SURFACES));
+    });
+
+    it("defaults to the five known names when no ids are passed at all", () => {
+        expect(policy.defaultSurfaceNames()).to.deep.equal(Object.keys(policy.SURFACES));
+    });
+
+    it("does not duplicate a bypass id that already names a known surface", () => {
+        const result = policy.defaultSurfaceNames([policy.SURFACES[LENDER_WITHDRAW]]);
+        expect(result).to.deep.equal(Object.keys(policy.SURFACES));
+    });
+
+    it("appends an unknown bypass id, unresolved, after the five known names", () => {
+        const unknown = "0x" + "cd".repeat(32);
+        const result = policy.defaultSurfaceNames([unknown]);
+        expect(result).to.deep.equal([...Object.keys(policy.SURFACES), unknown]);
+    });
+
+    it("appends more than one unknown id, in the order the controller gave them", () => {
+        const first = "0x" + "11".repeat(32);
+        const second = "0x" + "22".repeat(32);
+        const result = policy.defaultSurfaceNames([first, second]);
+        expect(result.slice(-2)).to.deep.equal([first, second]);
+    });
+
+    it("normalizes an unknown id's case the same way resolveSurface does", () => {
+        const unknown = "0x" + "EF".repeat(32);
+        const result = policy.defaultSurfaceNames([unknown]);
+        expect(result[result.length - 1]).to.equal(unknown.toLowerCase());
     });
 });
 

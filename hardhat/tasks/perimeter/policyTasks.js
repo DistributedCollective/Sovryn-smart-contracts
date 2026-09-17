@@ -219,9 +219,15 @@ task(
         const actorAddress = actor ? hreEthers.utils.getAddress(actor) : undefined;
         const subProductAddress = subproduct ? hreEthers.utils.getAddress(subproduct) : undefined;
 
-        const surfaceNames = surface
-            ? [policy.resolveSurface(surface).name || surface]
-            : Object.keys(policy.SURFACES);
+        let surfaceNames;
+        if (surface) {
+            surfaceNames = [policy.resolveSurface(surface).name || surface];
+        } else {
+            // The fee-only build has no bypass concept, so it carries no
+            // bypassSurfaceIds() to union in beyond the five known names.
+            const bypassIds = build === "delay" ? await controllerContract.bypassSurfaceIds() : [];
+            surfaceNames = policy.defaultSurfaceNames(bypassIds);
+        }
 
         for (const rawName of surfaceNames) {
             const resolved = policy.resolveSurface(rawName);

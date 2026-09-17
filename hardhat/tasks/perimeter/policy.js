@@ -62,8 +62,15 @@ const NAME_BY_ID = Object.freeze(
 );
 
 /** Resolve a surface given as its name, a unique case-insensitive suffix of
- *  the name (e.g. "LENDER_WITHDRAW"), or a 0x-prefixed 32-byte id. Throws,
- *  listing the known names, when nothing or more than one thing matches. */
+ *  the name (e.g. "LENDER_WITHDRAW"), or a 0x-prefixed 32-byte id. A name or
+ *  suffix must match one of the five known surfaces; a 32-byte id is always
+ *  accepted, known or not — the controller gates no writer on an allowlist of
+ *  ids, so an operator who already has one (from `bypassSurfaceIds()`, or
+ *  from watching the chain) can resolve and inspect it even though this
+ *  module has never heard of it. `name` comes back null for such an id;
+ *  every caller already falls back to printing the id itself in that case.
+ *  Throws, listing the known names, only when nothing or more than one name
+ *  or suffix matches. */
 const resolveSurface = (input) => {
     if (typeof input !== "string" || input.trim() === "") {
         throw new Error(
@@ -74,14 +81,9 @@ const resolveSurface = (input) => {
     const trimmed = input.trim();
 
     if (/^0x[0-9a-fA-F]{64}$/.test(trimmed)) {
-        const name = NAME_BY_ID[trimmed.toLowerCase()];
-        if (!name) {
-            throw new Error(
-                `resolveSurface: '${input}' is not a known surface. Expected one of:\n  ` +
-                    Object.keys(SURFACES).join("\n  ")
-            );
-        }
-        return { name, id: SURFACES[name] };
+        const lowered = trimmed.toLowerCase();
+        const name = NAME_BY_ID[lowered];
+        return name ? { name, id: SURFACES[name] } : { name: null, id: lowered };
     }
 
     const upper = trimmed.toUpperCase();
@@ -102,6 +104,24 @@ const resolveSurface = (input) => {
         `resolveSurface: '${input}' is not a known surface. Expected one of:\n  ` +
             Object.keys(SURFACES).join("\n  ")
     );
+};
+
+/** `policy:show`'s default (no `--surface`) surface list: every known
+ *  surface name, in their declared order, plus - unresolved, as a raw id -
+ *  any entry in `bypassIds` (the controller's own `bypassSurfaceIds()`, the
+ *  fee build has none) that names none of them. The controller gates no
+ *  bypass writer on this module's five-name list, so a bypass written under a
+ *  sixth id - a later release's surface this module has not caught up to
+ *  yet, or one an owner wrote by hand - would otherwise go unseen by the
+ *  default loop, with no way to ask for it since it has no name to pass
+ *  either. Order beyond the five names follows `bypassIds` as given. */
+const defaultSurfaceNames = (bypassIds = []) => {
+    const names = Object.keys(SURFACES);
+    for (const id of bypassIds) {
+        const resolved = resolveSurface(id);
+        if (!resolved.name) names.push(resolved.id);
+    }
+    return names;
 };
 
 const surfaceIdOf = (surfaceInput) => {
@@ -795,6 +815,7 @@ module.exports = {
     SURFACES_WITHOUT_SUBPRODUCT,
     CALL_KINDS,
     resolveSurface,
+    defaultSurfaceNames,
     surfaceLabel,
     CONTROLLER_ABI,
     controllerInterface,
