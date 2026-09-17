@@ -72,7 +72,9 @@ describe("Perimeter tasks — resolveOptionalAddress", () => {
         } catch (error) {
             // expected — the assertion below is what matters here
         }
-        expect(fallbackCalled, "the fallback must not run for an empty explicit value either").to
-            .equal(false);
+        expect(
+            fallbackCalled,
+            "the fallback must not run for an empty explicit value either"
+        ).to.equal(false);
     });
 });
