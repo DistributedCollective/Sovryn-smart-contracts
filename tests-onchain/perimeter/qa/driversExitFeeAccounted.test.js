@@ -31,15 +31,43 @@ const fakeController = (rateBps) => ({
     },
 });
 
+const SURFACE = ethers.constants.HashZero;
+const ACTOR = ethers.utils.getAddress(ethers.utils.hexZeroPad("0xa1", 20));
+/** Same event ABI `findVaultRevertSkip` decodes with, built independently
+ *  here so an encoded log is a faithful stand-in for one a real receipt
+ *  would carry, not something shaped to fit the implementation. */
+const EVENTS_INTERFACE = new ethers.utils.Interface([
+    "event ExitFeeSkipped(bytes32 indexed surfaceId, address indexed actor, address indexed asset, uint256 grossAmount, uint16 rateBps, uint8 reason)",
+]);
+const SKIP_REASON_VAULT_REVERT = 5;
+const SKIP_REASON_NONE = 0;
+
+/** A receipt log for `ExitFeeSkipped`, exactly as a real fee hook would emit
+ *  it (this repo's `IPerimeterEvents.sol` and zero-contracts'
+ *  `BorrowerOperationsPerimeterOps.sol` declare the identical shape). */
+const skipLog = ({ surfaceId, actor, reason }) => {
+    const fragment = EVENTS_INTERFACE.getEvent("ExitFeeSkipped");
+    const { data, topics } = EVENTS_INTERFACE.encodeEventLog(fragment, [
+        surfaceId,
+        actor,
+        ethers.constants.AddressZero,
+        bn(1000),
+        100,
+        reason,
+    ]);
+    return { data, topics };
+};
+
 const call = (s, overrides = {}) =>
     drivers.assertExitFeeAccounted(s, {
         label: "test",
-        surfaceId: ethers.constants.HashZero,
+        surfaceId: SURFACE,
         subProduct: ethers.constants.AddressZero,
-        actor: ethers.constants.AddressZero,
+        actor: ACTOR,
         feeReceiverBefore: bn(0),
         feeReceiverAfter: bn(0),
         netRecorded: bn(0),
+        receipt: { logs: [] },
         ...overrides,
     });
 
@@ -120,5 +148,137 @@ describe("QA rehearsal drivers — Perimeter fee accounting", () => {
         }
         expect(raised, "expected a refusal on a net/quote mismatch").to.not.equal(null);
         expect(raised.message).to.match(/does not reconcile/);
+    });
+
+    describe("telling a fee-vault failure apart from a fee that was simply never charged", () => {
+        it("names the fee-transfer failure when an ExitFeeSkipped(VAULT_REVERT) event backs it up", async () => {
+            // Same shape as "gross escrowed in full, nothing charged" above —
+            // the balances alone cannot tell the two cases apart — but this
+            // time the withdrawal's own receipt carries the event the real
+            // hooks emit specifically for a fee-leg transfer that reverted.
+            // This is the hook's documented, correct fail-open behavior, not a
+            // defect — but the check must still fail (its job is to prove a
+            // charge happened) and must say which of the two things occurred.
+            const s = { controller: fakeController(100) };
+            let raised = null;
+            try {
+                await call(s, {
+                    feeReceiverBefore: bn(0),
+                    feeReceiverAfter: bn(0),
+                    netRecorded: bn(1000),
+                    receipt: {
+                        logs: [
+                            skipLog({
+                                surfaceId: SURFACE,
+                                actor: ACTOR,
+                                reason: SKIP_REASON_VAULT_REVERT,
+                            }),
+                        ],
+                    },
+                });
+            } catch (error) {
+                raised = error;
+            }
+            expect(raised, "expected the fee-accounting check to still fire").to.not.equal(null);
+            expect(raised.message).to.match(/fee transfer itself failed/);
+            expect(raised.message).to.match(/VAULT_REVERT/);
+            expect(raised.message).to.not.match(/controller quotes/);
+        });
+
+        it("keeps the generic 'fee not charged' message when no skip event backs up a mismatch", async () => {
+            // Explicit sibling of "gross escrowed in full, nothing charged"
+            // above: proves the generic message is what fires when there is
+            // genuinely no ExitFeeSkipped event to explain the gap — not just
+            // that SOME message fires.
+            const s = { controller: fakeController(100) };
+            let raised = null;
+            try {
+                await call(s, {
+                    feeReceiverBefore: bn(0),
+                    feeReceiverAfter: bn(0),
+                    netRecorded: bn(1000),
+                    receipt: { logs: [] },
+                });
+            } catch (error) {
+                raised = error;
+            }
+            expect(raised).to.not.equal(null);
+            expect(raised.message).to.match(/controller quotes a 10 fee/);
+            expect(raised.message).to.not.match(/fee transfer itself failed/);
+        });
+
+        it("does not mistake a different skip reason for a vault failure", async () => {
+            // A skip event IS present, but for a reason other than
+            // VAULT_REVERT (e.g. the surface reads as inactive) — must not be
+            // read as "the transfer failed"; falls through to the generic
+            // message.
+            const s = { controller: fakeController(100) };
+            let raised = null;
+            try {
+                await call(s, {
+                    feeReceiverBefore: bn(0),
+                    feeReceiverAfter: bn(0),
+                    netRecorded: bn(1000),
+                    receipt: {
+                        logs: [
+                            skipLog({
+                                surfaceId: SURFACE,
+                                actor: ACTOR,
+                                reason: SKIP_REASON_NONE,
+                            }),
+                        ],
+                    },
+                });
+            } catch (error) {
+                raised = error;
+            }
+            expect(raised).to.not.equal(null);
+            expect(raised.message).to.match(/controller quotes a 10 fee/);
+            expect(raised.message).to.not.match(/fee transfer itself failed/);
+        });
+
+        it("does not mistake a VAULT_REVERT skip on a DIFFERENT surface or actor for this one's", async () => {
+            const otherSurface = ethers.utils.keccak256(
+                ethers.utils.toUtf8Bytes("SOME_OTHER_SURFACE")
+            );
+            const s = { controller: fakeController(100) };
+            let raised = null;
+            try {
+                await call(s, {
+                    feeReceiverBefore: bn(0),
+                    feeReceiverAfter: bn(0),
+                    netRecorded: bn(1000),
+                    receipt: {
+                        logs: [
+                            skipLog({
+                                surfaceId: otherSurface,
+                                actor: ACTOR,
+                                reason: SKIP_REASON_VAULT_REVERT,
+                            }),
+                        ],
+                    },
+                });
+            } catch (error) {
+                raised = error;
+            }
+            expect(raised).to.not.equal(null);
+            expect(raised.message).to.match(/controller quotes a 10 fee/);
+            expect(raised.message).to.not.match(/fee transfer itself failed/);
+        });
+
+        it("still passes an exempt actor (quoted fee 0) with no fee movement, regardless of any skip event", async () => {
+            const s = { controller: fakeController(0) };
+            const result = await call(s, {
+                feeReceiverBefore: bn(5000),
+                feeReceiverAfter: bn(5000),
+                netRecorded: bn(1000),
+                receipt: {
+                    logs: [
+                        skipLog({ surfaceId: SURFACE, actor: ACTOR, reason: SKIP_REASON_NONE }),
+                    ],
+                },
+            });
+            expect(result.feeReceived.toString()).to.equal("0");
+        });
     });
 });

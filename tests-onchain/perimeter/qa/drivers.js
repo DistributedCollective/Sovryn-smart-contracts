@@ -44,6 +44,46 @@ const ERC20_ABI = [
 /** ExitStatus / BlockState as the queue stores them. */
 const STATUS = { None: 0, Queued: 1, Executed: 2, ResolvedToProtocol: 3, ResolvedByOwner: 4 };
 const BLOCK = { None: 0, Frozen: 1, Blacklisted: 2 };
+
+/** `ExitFeeSkipped`'s shape is declared identically in this repo
+ *  (`IPerimeterEvents.sol`) and in zero-contracts
+ *  (`BorrowerOperationsPerimeterOps.sol`) — same name, same argument types —
+ *  so one interface decodes it off a receipt from either repo's hooks,
+ *  regardless of which contract address the log itself carries (every fee
+ *  hook here runs under delegatecall, so the log's address is the caller's
+ *  proxy, never the hook contract). */
+const PERIMETER_EVENTS_INTERFACE = new ethers.utils.Interface([
+    "event ExitFeeSkipped(bytes32 indexed surfaceId, address indexed actor, address indexed asset, uint256 grossAmount, uint16 rateBps, uint8 reason)",
+]);
+/** IExitFeeController.SkipReason.VAULT_REVERT: the fee leg's OWN transfer to
+ *  the fee destination reverted. Every fee hook here is deliberately
+ *  fail-open on this one reason — it pays the full gross with no fee taken,
+ *  which is correct, specified behavior, not a defect in the withdrawal
+ *  itself. */
+const SKIP_REASON_VAULT_REVERT = 5;
+
+/** The `ExitFeeSkipped(..., reason=VAULT_REVERT)` event for this surface and
+ *  actor in a receipt, or `null`. Distinguishes "the fee transfer itself
+ *  failed and the hook correctly fell back to full gross" from "nothing
+ *  charged the fee at all" — the two read identically in the balances alone. */
+const findVaultRevertSkip = (receipt, surfaceId, actor) => {
+    for (const log of receipt.logs) {
+        let parsed;
+        try {
+            parsed = PERIMETER_EVENTS_INTERFACE.parseLog(log);
+        } catch (error) {
+            continue;
+        }
+        if (parsed.name !== "ExitFeeSkipped") continue;
+        if (parsed.args.surfaceId !== surfaceId) continue;
+        if (ethers.utils.getAddress(parsed.args.actor) !== ethers.utils.getAddress(actor))
+            continue;
+        if (parsed.args.reason !== SKIP_REASON_VAULT_REVERT) continue;
+        return parsed.args;
+    }
+    return null;
+};
+
 /** Zero's Status.active and Status.closedByRedemption. */
 const TROVE_ACTIVE = 1;
 const TROVE_CLOSED_BY_REDEMPTION = 4;
@@ -146,13 +186,31 @@ const assertRequestParties = (label, request, expected) => {
  * reached the fee destination, so the quoted and the measured fee diverge. An
  * exempt actor (rate 0) is unaffected: quoted and measured fee both read 0.
  *
+ * A mismatch has two distinct causes that read identically in the balances
+ * alone: the fee was never charged at all (a real defect), or the fee leg's
+ * OWN transfer reverted and the hook's documented fail-open behavior paid the
+ * full gross instead (correct, not a defect — but still worth failing THIS
+ * check, whose job is to prove a charge happened, with a message that says
+ * which one occurred). `receipt` — the withdrawal call's own receipt — is
+ * read for an `ExitFeeSkipped(VAULT_REVERT)` event on this surface/actor to
+ * tell the two apart.
+ *
  * `feeReceiverBefore`/`feeReceiverAfter` are balances of `controller.feeReceiver()`
  * in whichever asset the surface actually pays its fee leg in — native RBTC or
  * an ERC20 — read by the caller immediately around the withdrawal call.
  */
 const assertExitFeeAccounted = async (
     s,
-    { label, surfaceId, subProduct, actor, feeReceiverBefore, feeReceiverAfter, netRecorded }
+    {
+        label,
+        surfaceId,
+        subProduct,
+        actor,
+        feeReceiverBefore,
+        feeReceiverAfter,
+        netRecorded,
+        receipt,
+    }
 ) => {
     const feeReceived = feeReceiverAfter.sub(feeReceiverBefore);
     if (feeReceived.lt(0)) {
@@ -164,6 +222,15 @@ const assertExitFeeAccounted = async (
     const gross = netRecorded.add(feeReceived);
     const quote = await s.controller.quoteExitFee(surfaceId, subProduct, actor, gross);
     if (!quote.feeAmount.eq(feeReceived)) {
+        const skip = findVaultRevertSkip(receipt, surfaceId, actor);
+        if (skip) {
+            throw new Error(
+                `${label}: the fee transfer itself failed (ExitFeeSkipped VAULT_REVERT on a ` +
+                    `${skip.grossAmount} gross withdrawal) and the withdrawal paid/queued the full ` +
+                    "gross instead of charging — a fee-vault failure, not a fee that was simply " +
+                    "never attempted"
+            );
+        }
         throw new Error(
             `${label}: the fee destination received ${feeReceived}, but the controller quotes a ` +
                 `${quote.feeAmount} fee for ${actor} on a ${gross} gross withdrawal`
@@ -238,6 +305,7 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
+        receipt,
     });
     return { id, request, receipt, before, fee };
 };
@@ -422,6 +490,7 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
+        receipt,
     });
     return { id, request, receipt, before, loanId: borrowEvent.args.loanId, fee };
 };
@@ -502,6 +571,7 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
+        receipt,
     });
     return { id, request, receipt, before, fee };
 };
@@ -711,6 +781,7 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
         feeReceiverBefore: feeBefore,
         feeReceiverAfter: feeAfter,
         netRecorded: request.amount,
+        receipt,
     });
     // Unlike the other three surfaces, the surplus pool's pre-claim balance is
     // an INDEPENDENT ground truth for gross — not merely self-consistent with
