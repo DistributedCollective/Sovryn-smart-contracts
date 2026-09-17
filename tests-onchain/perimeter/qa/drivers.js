@@ -258,6 +258,48 @@ const assertExitFeeAccounted = async (
 };
 
 /**
+ * Cross-check `assertExitFeeAccounted`'s derived `gross` (fee received plus
+ * escrowed/paid net — self-consistent by construction, since it is built
+ * from the same two numbers the check measures) against a SEPARATE reading
+ * of what actually left the position, sourced from state the fee-charging
+ * hook never touches: the surplus pool's own pre-claim balance, a loan's or
+ * a trove's own collateral ledger, a token-burn's own redemption price. A
+ * hook that internally computes a smaller-than-real gross — and a
+ * correspondingly smaller net + fee that are self-consistent with the
+ * controller's quote for that wrong gross — passes `assertExitFeeAccounted`
+ * alone; it does not pass this.
+ *
+ * `mode: "exact"` requires equality: the independent reading comes from
+ * state the SAME transaction mutates atomically, before the fee hook runs
+ * (a loan's or a trove's collateral field, the surplus pool's balance), so
+ * there is no timing gap for the two numbers to legitimately differ.
+ *
+ * `mode: "floor"` requires only `gross >= independentGross`: the lender
+ * surface's independent reading is a token price snapshot taken slightly
+ * BEFORE the burn transaction, and the loan token's price only ever rises
+ * between then and the burn (interest accrues, it is never returned), so
+ * the real gross at burn time can legitimately be a little higher than the
+ * pre-call snapshot implies — never lower.
+ */
+const assertGrossIndependentlyGrounded = (label, fee, independentGross, mode) => {
+    if (mode === "floor") {
+        if (fee.gross.lt(independentGross)) {
+            throw new Error(
+                `${label}: fee received plus escrowed net is ${fee.gross}, but an independent ` +
+                    `reading of what left the position puts it at at least ${independentGross}`
+            );
+        }
+        return;
+    }
+    if (!fee.gross.eq(independentGross)) {
+        throw new Error(
+            `${label}: fee received plus escrowed net is ${fee.gross}, but an independent ` +
+                `reading of what left the position is ${independentGross}`
+        );
+    }
+};
+
+/**
  * Lending, lender exit. Mint an iRBTC position with native RBTC and burn it
  * straight back: with the delay armed the burn escrows WRBTC in the queue and
  * unwraps to native at delivery. `opts.amount` is how much RBTC to lend, and so
@@ -287,6 +329,16 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
     // burn() entry point, which this driver never calls.)
     const feeBefore = await nativeBalance(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
+    // Independent floor for the gross this burn redeems: the iToken's own
+    // `tokenPrice()`, read BEFORE the burn — outside the fee hook, and
+    // outside the burn's own internal price recomputation
+    // (`LoanTokenLogicSplit._burnToken`, `contracts/connectors/loantoken/
+    // LoanTokenLogicSplit.sol:160-162`: `loanAmountOwed = burnAmount *
+    // currentPrice / 1e18`). The price only rises between this read and the
+    // burn (interest accrues, never returned), so `minted * tokenPriceBefore
+    // / 1e18` is a valid lower bound on the real gross, never an
+    // overstatement.
+    const tokenPriceBefore = await s.iRBTC.tokenPrice();
     const receipt = await (
         await s.iRBTC.connect(signer).burnToBTC(receiver, minted, false)
     ).wait();
@@ -319,6 +371,12 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         netRecorded: request.amount,
         receipt,
     });
+    assertGrossIndependentlyGrounded(
+        "lender withdrawal",
+        fee,
+        minted.mul(tokenPriceBefore).div(ethers.constants.WeiPerEther),
+        "floor"
+    );
     return { id, request, receipt, before, fee, subProduct: s.iRBTC.address };
 };
 
@@ -464,6 +522,16 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
     // BorrowerExitPerimeterOps._payExitFeeLeg.
     const feeBefore = await nativeBalance(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
+    // Independent ground truth for the gross this withdrawal removes: the
+    // loan's OWN collateral ledger, read straight off the protocol before
+    // and after. `LoanMaintenance.withdrawCollateral` decrements
+    // `loanLocal.collateral` by `actualWithdrawAmount` — capped by the
+    // margin/drawdown check, not the caller's requested amount — BEFORE it
+    // ever calls the fee-charging hook
+    // (`contracts/modules/LoanMaintenance.sol:176-194`), so this delta is
+    // exactly the gross the fee hook receives, from a ledger the hook itself
+    // never touches.
+    const loanCollateralBefore = (await s.protocol.getLoan(borrowEvent.args.loanId)).collateral;
     const receipt = await (
         await s.protocol
             .connect(signer)
@@ -473,6 +541,7 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
                 opts.amount || BORROWER_WITHDRAW_AMOUNT
             )
     ).wait();
+    const loanCollateralAfter = (await s.protocol.getLoan(borrowEvent.args.loanId)).collateral;
 
     const { id, request } = await queuedBy(
         s,
@@ -514,6 +583,12 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         netRecorded: request.amount,
         receipt,
     });
+    assertGrossIndependentlyGrounded(
+        "borrower withdrawal",
+        fee,
+        loanCollateralBefore.sub(loanCollateralAfter),
+        "exact"
+    );
     return {
         id,
         request,
@@ -568,6 +643,16 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
     // BorrowerOperationsPerimeterOps.sendCollWithExitFee.
     const feeBefore = await nativeBalance(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
+    // Independent ground truth for the gross this withdrawal removes: the
+    // trove's OWN collateral ledger, read straight off TroveManager before
+    // and after. `BorrowerOperations._updateTroveFromAdjustment` calls
+    // `troveManager.decreaseTroveColl` with the exact requested withdrawal
+    // BEFORE `_moveTokensAndETHfromAdjustment` ever calls the fee-charging
+    // hook (zero-contracts `contracts/BorrowerOperations.sol:705,900-902,
+    // 936`; `getTroveColl` at `contracts/TroveManager.sol:1095`), so this
+    // delta is exactly the gross the fee hook receives, from a ledger the
+    // hook itself never touches.
+    const troveCollBefore = await troveManager.getTroveColl(originator);
     // Zero pays a collateral withdrawal to the trove owner; the hint arguments
     // are the re-insertion position, not a payout address.
     const receipt = await (
@@ -575,6 +660,7 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
             .connect(signer)
             .withdrawColl(opts.amount || ZERO_WITHDRAW_AMOUNT, originator, originator)
     ).wait();
+    const troveCollAfter = await troveManager.getTroveColl(originator);
 
     const { id, request } = await queuedBy(
         s,
@@ -604,6 +690,12 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         netRecorded: request.amount,
         receipt,
     });
+    assertGrossIndependentlyGrounded(
+        "Zero collateral withdrawal",
+        fee,
+        troveCollBefore.sub(troveCollAfter),
+        "exact"
+    );
     return { id, request, receipt, before, fee, subProduct: ZERO_ADDRESS };
 };
 
@@ -825,15 +917,13 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
         netRecorded: request.amount,
         receipt,
     });
-    // Unlike the other three surfaces, the surplus pool's pre-claim balance is
-    // an INDEPENDENT ground truth for gross — not merely self-consistent with
-    // what was measured. Cross-check it.
-    if (!fee.gross.eq(surplusGross)) {
-        throw new Error(
-            `surplus claim: fee received plus escrowed net is ${fee.gross}, but the surplus pool ` +
-                `held ${surplusGross} before the claim`
-        );
-    }
+    // The surplus pool's pre-claim balance is an INDEPENDENT ground truth for
+    // gross, read straight off the pool before the claim (`surplusGross`,
+    // above) — the same value `claimSurplusWithPerimeter` itself reads as
+    // `gross` before ever calling the fee hook (zero-contracts
+    // `contracts/Dependencies/BorrowerOperationsPerimeterOps.sol`, the
+    // `uint256 gross = pool.getCollateral(claimant);` line).
+    assertGrossIndependentlyGrounded("surplus claim", fee, surplusGross, "exact");
     return {
         id,
         request,
@@ -865,6 +955,7 @@ module.exports = {
     ensureCollateralPrice,
     assertRequestParties,
     assertExitFeeAccounted,
+    assertGrossIndependentlyGrounded,
     queueLenderWithdrawal,
     queueBorrowerCollateralWithdraw,
     queueZeroCollWithdraw,
