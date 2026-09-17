@@ -557,25 +557,143 @@ const buildCall = (kind, args) => {
     return { signature, data, meaning: def.meaning(positional) };
 };
 
-/** Decode calldata into {signature, kind, args, meaning}, or `undefined` when
- *  the selector is not one of the controller's policy setters — the paste
- *  guard `perimeter:policy:check-tx` uses before it will describe a
- *  transaction. `kind` is what that task gates its pairing-violation check
- *  on (`ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`). */
+/** Render a decoded arg for display: tuples as "(a, b)", everything else via
+ *  its own string form (works for addresses, hex ids, bools and BigNumbers
+ *  alike, and a bytes32 already decodes as its own hex string — this never
+ *  interprets one, it only prints it). */
+const stringifyArg = (value) => {
+    if (Array.isArray(value)) {
+        return `(${value.map(stringifyArg).join(", ")})`;
+    }
+    if (value && typeof value === "object" && typeof value.toString === "function") {
+        return value.toString();
+    }
+    return String(value);
+};
+
+/** Every argument a decoded call's own function fragment declares, name and
+ *  type paired with its value already rendered for display — what an
+ *  operator needs to see exactly what a call targets (which addresses, which
+ *  request ids, which flag, which hash) before submitting or confirming it,
+ *  not just which selector it carries. */
+const describeArgs = (fragment, args) =>
+    fragment.inputs.map((input, i) => ({
+        name: input.name || `arg${i}`,
+        type: input.type,
+        value: stringifyArg(args[i]),
+    }));
+
+/**
+ * The ExitDelayQueue's block levers, by bare (name-free) signature — the
+ * canonical form a selector is hashed from — paired with a plain-words
+ * description of what each one does. The queue is Exchequer-owned, so every
+ * one of these is a multisig transaction submitted by
+ * `perimeter:submit-block`, built by `Sovryn-perimeter/script/07_BlockExits.
+ * s.sol`, which is where the decision logic lives — it reads the queue's
+ * state to resolve who is affected and to refuse anything that would revert
+ * on-chain. Nothing here is a substitute for that preview; this is a paste
+ * guard, not authorization — it stops a mistyped or truncated blob from being
+ * decoded (or submitted) as some other call, and it lets an operator see in
+ * words, and in its own decoded arguments, what they are about to ask the
+ * other signers to approve.
+ */
+const BLOCK_LEVERS = Object.freeze({
+    "freeze(address)": "freeze one account",
+    "freeze(address[])": "freeze a batch of accounts",
+    "blacklist(address)": "blacklist one account",
+    "blacklist(address[])": "blacklist a batch of accounts",
+    "unfreeze(address)": "clear a freeze on one account",
+    "unfreeze(address[])": "clear a freeze on a batch of accounts",
+    "unblacklist(address)": "clear a blacklist on one account",
+    "unblacklist(address[])": "clear a blacklist on a batch of accounts",
+    "downgradeToFrozen(address)": "move one blacklisted account down to frozen",
+    "downgradeToFrozen(address[])": "move a batch of blacklisted accounts down to frozen",
+    "freezeFromRequest(uint256,bool,bytes32)": "freeze the parties behind one request",
+    "freezeFromRequest(uint256[],bool,bytes32)": "freeze the parties behind a batch of requests",
+    "blacklistFromRequest(uint256,bool,bytes32)": "blacklist the parties behind one request",
+    "blacklistFromRequest(uint256[],bool,bytes32)":
+        "blacklist the parties behind a batch of requests",
+    "setSecurityPerimeterPaused(bool)": "pause or resume releases for EVERYONE",
+});
+
+/** Named-argument ABI for the same calls `BLOCK_LEVERS` keys by their bare
+ *  signature — the names are display-only, they do not change the selector a
+ *  signature hashes to, so a selector computed from a `BLOCK_LEVERS` key and
+ *  one computed from this ABI always agree. */
+const QUEUE_LEVER_ABI = [
+    "function freeze(address account)",
+    "function freeze(address[] accounts)",
+    "function blacklist(address account)",
+    "function blacklist(address[] accounts)",
+    "function unfreeze(address account)",
+    "function unfreeze(address[] accounts)",
+    "function unblacklist(address account)",
+    "function unblacklist(address[] accounts)",
+    "function downgradeToFrozen(address account)",
+    "function downgradeToFrozen(address[] accounts)",
+    "function freezeFromRequest(uint256 requestId, bool freezeReceiver, bytes32 reasonHash)",
+    "function freezeFromRequest(uint256[] requestIds, bool freezeReceiver, bytes32 reasonHash)",
+    "function blacklistFromRequest(uint256 requestId, bool freezeReceiver, bytes32 reasonHash)",
+    "function blacklistFromRequest(uint256[] requestIds, bool freezeReceiver, bytes32 reasonHash)",
+    "function setSecurityPerimeterPaused(bool paused)",
+];
+
+const queueInterface = () => new ethers.utils.Interface(QUEUE_LEVER_ABI);
+
+/** selector -> bare signature, built from `BLOCK_LEVERS`' own keys so this
+ *  can never recognize a selector `BLOCK_LEVERS` itself does not name. */
+const QUEUE_LEVER_SELECTORS = (() => {
+    const table = {};
+    for (const signature of Object.keys(BLOCK_LEVERS)) {
+        table[ethers.utils.id(signature).slice(0, 10)] = signature;
+    }
+    return table;
+})();
+
+/**
+ * Decode calldata into `{target, signature, kind, args, meaning, fields}`, or
+ * `undefined` when the selector is neither one of the controller's policy
+ * setters nor one of the queue's block levers — the paste guard
+ * `perimeter:policy:check-tx` and `perimeter:submit-block`/`check-block` use
+ * before they will describe, or submit, a transaction. `target` is
+ * `"controller"` or `"queue"`, telling the two families apart. `kind` is what
+ * `perimeter:policy:check-tx` gates its pairing-violation check on
+ * (`ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`) — for a queue lever it is
+ * always the bare signature itself, which never collides with a controller
+ * `CALL_KINDS` entry, so that check is unaffected.
+ */
 const decodeCall = (data) => {
     if (typeof data !== "string" || !/^0x[0-9a-fA-F]{8,}$/.test(data)) {
         return undefined;
     }
     const selector = data.slice(0, 10).toLowerCase();
-    const entry = SETTER_SELECTORS[selector];
-    if (!entry) return undefined;
-    const args = controllerInterface().decodeFunctionData(entry.kind, data);
-    return {
-        signature: entry.signature,
-        kind: entry.kind,
-        args,
-        meaning: CALL_DEFS[entry.kind].meaning(args),
-    };
+    const controllerEntry = SETTER_SELECTORS[selector];
+    if (controllerEntry) {
+        const fragment = controllerInterface().getFunction(controllerEntry.kind);
+        const args = controllerInterface().decodeFunctionData(fragment, data);
+        return {
+            target: "controller",
+            signature: controllerEntry.signature,
+            kind: controllerEntry.kind,
+            args,
+            meaning: CALL_DEFS[controllerEntry.kind].meaning(args),
+            fields: describeArgs(fragment, args),
+        };
+    }
+    const queueSignature = QUEUE_LEVER_SELECTORS[selector];
+    if (queueSignature) {
+        const fragment = queueInterface().getFunction(queueSignature);
+        const args = queueInterface().decodeFunctionData(fragment, data);
+        return {
+            target: "queue",
+            signature: queueSignature,
+            kind: queueSignature,
+            args,
+            meaning: BLOCK_LEVERS[queueSignature],
+            fields: describeArgs(fragment, args),
+        };
+    }
+    return undefined;
 };
 
 /**
@@ -887,6 +1005,11 @@ module.exports = {
     parseRate,
     buildCall,
     decodeCall,
+    stringifyArg,
+    describeArgs,
+    BLOCK_LEVERS,
+    QUEUE_LEVER_ABI,
+    queueInterface,
     unionAddresses,
     isFeeExempt,
     isDelayBypassing,

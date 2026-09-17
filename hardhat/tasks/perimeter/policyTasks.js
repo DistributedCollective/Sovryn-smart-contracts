@@ -136,23 +136,13 @@ const requireSubProductTarget = async (hre, resolvedSurface, subproductInput, ta
     return address;
 };
 
-/** Render a decoded arg for display: tuples as "(a, b)", everything else via
- *  its own string form (works for addresses, hex ids, bools and BigNumbers alike). */
-const stringifyArg = (value) => {
-    if (Array.isArray(value)) {
-        return `(${value.map(stringifyArg).join(", ")})`;
-    }
-    if (value && typeof value === "object" && typeof value.toString === "function") {
-        return value.toString();
-    }
-    return String(value);
-};
-
 const presentCall = (controllerAddress, built, note) => {
     const decoded = policy.decodeCall(built.data);
     logger.info(`  target:    ${controllerAddress}`);
     logger.info(`  signature: ${built.signature}`);
-    logger.info(`  args:      ${decoded ? decoded.args.map(stringifyArg).join(", ") : "(n/a)"}`);
+    logger.info(
+        `  args:      ${decoded ? decoded.args.map(policy.stringifyArg).join(", ") : "(n/a)"}`
+    );
     logger.info(`  meaning:   ${built.meaning}${note ? ` — ${note}` : ""}`);
     logger.info(`  calldata:  ${built.data}`);
 };
