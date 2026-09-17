@@ -136,6 +136,50 @@ const assertRequestParties = (label, request, expected) => {
 };
 
 /**
+ * Prove the Perimeter fee was actually charged on a held withdrawal, not just
+ * that something was escrowed. `gross` is never assumed ahead of time — it is
+ * derived from what was actually measured (the fee destination's balance
+ * delta plus the escrowed net), then checked for self-consistency against the
+ * controller's own quote for that gross and actor. A hook that escrows the
+ * full gross with no fee taken at all fails this the moment the actor is not
+ * exempt: the controller quotes a nonzero fee for that gross, but nothing
+ * reached the fee destination, so the quoted and the measured fee diverge. An
+ * exempt actor (rate 0) is unaffected: quoted and measured fee both read 0.
+ *
+ * `feeReceiverBefore`/`feeReceiverAfter` are balances of `controller.feeReceiver()`
+ * in whichever asset the surface actually pays its fee leg in — native RBTC or
+ * an ERC20 — read by the caller immediately around the withdrawal call.
+ */
+const assertExitFeeAccounted = async (
+    s,
+    { label, surfaceId, subProduct, actor, feeReceiverBefore, feeReceiverAfter, netRecorded }
+) => {
+    const feeReceived = feeReceiverAfter.sub(feeReceiverBefore);
+    if (feeReceived.lt(0)) {
+        throw new Error(
+            `${label}: the fee destination's balance FELL by ${feeReceived.abs()} across the ` +
+                "withdrawal — that cannot be a fee charge"
+        );
+    }
+    const gross = netRecorded.add(feeReceived);
+    const quote = await s.controller.quoteExitFee(surfaceId, subProduct, actor, gross);
+    if (!quote.feeAmount.eq(feeReceived)) {
+        throw new Error(
+            `${label}: the fee destination received ${feeReceived}, but the controller quotes a ` +
+                `${quote.feeAmount} fee for ${actor} on a ${gross} gross withdrawal`
+        );
+    }
+    if (!quote.netAmount.eq(netRecorded)) {
+        throw new Error(
+            `${label}: ${netRecorded} was escrowed, but the controller's quote for that gross ` +
+                `leaves ${quote.netAmount} net — fee received plus escrowed net does not ` +
+                "reconcile with what the controller says it should"
+        );
+    }
+    return { gross, feeReceived, quote };
+};
+
+/**
  * Lending, lender exit. Mint an iRBTC position with native RBTC and burn it
  * straight back: with the delay armed the burn escrows WRBTC in the queue and
  * unwraps to native at delivery. `opts.amount` is how much RBTC to lend, and so
@@ -151,10 +195,14 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
     const minted = (await s.iRBTC.balanceOf(originator)).sub(held);
     if (!minted.gt(0)) throw new Error("lender withdrawal: no iRBTC position was minted");
 
+    const feeReceiver = await s.controller.feeReceiver();
     const before = {
         originator: await nativeBalance(originator),
         receiver: await nativeBalance(receiver),
     };
+    // The lender surface pays its fee leg in the iToken's underlying (WRBTC),
+    // never native — see LoanTokenLogicShared._chargeExitFeeAndPay.
+    const feeBefore = await s.wrbtc.balanceOf(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
     const receipt = await (
         await s.iRBTC.connect(signer).burnToBTC(receiver, minted, false)
@@ -176,7 +224,17 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         owner: originator,
         receiver,
     });
-    return { id, request, receipt, before };
+    const feeAfter = await s.wrbtc.balanceOf(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "lender withdrawal",
+        surfaceId: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        subProduct: s.iRBTC.address,
+        actor: originator,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        netRecorded: request.amount,
+    });
+    return { id, request, receipt, before, fee };
 };
 
 const PRICE_FEEDS_ABI = [
@@ -310,10 +368,16 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         .find((parsed) => parsed && parsed.name === "Borrow");
     if (!borrowEvent) throw new Error("borrower withdrawal: the borrow did not open a loan");
 
+    const feeReceiver = await s.controller.feeReceiver();
     const before = {
         originator: await nativeBalance(originator),
         receiver: await nativeBalance(receiver),
     };
+    // The borrower surface's fee leg pays in the loan's collateral token, which
+    // this driver always opens as WRBTC — BorrowerExitPerimeterOps unwraps that
+    // to native before paying the fee receiver; see
+    // BorrowerExitPerimeterOps._payExitFeeLeg.
+    const feeBefore = await nativeBalance(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
     const receipt = await (
         await s.protocol
@@ -341,7 +405,20 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         owner: originator,
         receiver,
     });
-    return { id, request, receipt, before, loanId: borrowEvent.args.loanId };
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "borrower withdrawal",
+        surfaceId: PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+        // Policy resolution key: the iToken pool the loan was originated
+        // against (loanLocal.lender), which this driver always opens via
+        // s.iXUSD; see BorrowerExitPerimeter._chargeExitFeeReturnNet.
+        subProduct: s.iXUSD.address,
+        actor: originator,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        netRecorded: request.amount,
+    });
+    return { id, request, receipt, before, loanId: borrowEvent.args.loanId, fee };
 };
 
 /**
@@ -378,10 +455,14 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         ).wait();
     }
 
+    const feeReceiver = await s.controller.feeReceiver();
     const before = {
         originator: await nativeBalance(originator),
         receiver: await nativeBalance(receiver),
     };
+    // Zero's fee leg always pays native RBTC; see
+    // BorrowerOperationsPerimeterOps.sendCollWithExitFee.
+    const feeBefore = await nativeBalance(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
     // Zero pays a collateral withdrawal to the trove owner; the hint arguments
     // are the re-insertion position, not a payout address.
@@ -407,7 +488,17 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         owner: originator,
         receiver: originator,
     });
-    return { id, request, receipt, before };
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "Zero collateral withdrawal",
+        surfaceId: PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+        subProduct: ZERO_ADDRESS,
+        actor: originator,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        netRecorded: request.amount,
+    });
+    return { id, request, receipt, before, fee };
 };
 
 /** An address derived from another one, so a driver that needs a second actor
@@ -579,10 +670,14 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
     const surplusGross = await collSurplusPool.getCollateral(victim);
     if (!surplusGross.gt(0)) throw new Error("surplus claim: the redemption left no surplus");
 
+    const feeReceiver = await s.controller.feeReceiver();
     const before = {
         originator: await nativeBalance(victim),
         receiver: await nativeBalance(receiver),
     };
+    // The surplus surface's fee leg always pays native RBTC; see
+    // BorrowerOperationsPerimeterOps.claimSurplusWithPerimeter.
+    const feeBefore = await nativeBalance(feeReceiver);
     const lastIdBefore = await s.queue.lastRequestId();
     const receipt = await (await s.borrowerOperations.connect(signer).claimCollateral()).wait();
 
@@ -602,7 +697,26 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
         owner: victim,
         receiver: victim,
     });
-    return { id, request, receipt, before, surplusGross, redeemer: redeemerAddress };
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "surplus claim",
+        surfaceId: PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
+        subProduct: ZERO_ADDRESS,
+        actor: victim,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        netRecorded: request.amount,
+    });
+    // Unlike the other three surfaces, the surplus pool's pre-claim balance is
+    // an INDEPENDENT ground truth for gross — not merely self-consistent with
+    // what was measured. Cross-check it.
+    if (!fee.gross.eq(surplusGross)) {
+        throw new Error(
+            `surplus claim: fee received plus escrowed net is ${fee.gross}, but the surplus pool ` +
+                `held ${surplusGross} before the claim`
+        );
+    }
+    return { id, request, receipt, before, surplusGross, redeemer: redeemerAddress, fee };
 };
 
 const SURFACE_DRIVERS = {
@@ -623,6 +737,7 @@ module.exports = {
     ERC20_ABI,
     ensureCollateralPrice,
     assertRequestParties,
+    assertExitFeeAccounted,
     queueLenderWithdrawal,
     queueBorrowerCollateralWithdraw,
     queueZeroCollWithdraw,
