@@ -36,7 +36,7 @@ contract FeeSharingCollectorMockup is FeeSharingCollector {
             poolTokenAmount,
             "FeeSharingCollectorProxy::withdrawFees: pool token amount exceeds 96 bits"
         );
-        _processFee(loanPoolToken, amount96);
+        _addCheckpoint(loanPoolToken, amount96);
     }
 
     function setTotalTokenCheckpoints(address _token, uint256 qty) public {
