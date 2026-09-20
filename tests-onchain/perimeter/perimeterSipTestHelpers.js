@@ -785,12 +785,16 @@ const deployPhase2Release = async (deployerSigner, { minDelay, owner, admin }) =
 /** Stake a fresh SOV whale (once per context — subsequent calls reuse it). */
 const ensureWhaleStake = async (ctx) => {
     if (ctx.whaleStaked) return;
-    const { deployer, deployerSigner, staking, multisigSigner, timelockOwnerSigner } = ctx;
+    const { deployer, deployerSigner, staking, timelockOwnerSigner } = ctx;
     const sov = await ethers.getContract("SOV", timelockOwnerSigner);
     const whaleAmount = (await sov.totalSupply()).mul(ethers.BigNumber.from(5));
     await sov.mint(deployer, whaleAmount);
     await sov.connect(deployerSigner).approve(staking.address, whaleAmount);
-    if (await staking.paused()) await staking.connect(multisigSigner).pauseUnpause(false);
+    // freezeUnfreeze() and pauseUnpause() are both onlyPauserOrOwner; the
+    // multisig is neither on Staking, only the owner-timelock is, so both
+    // calls go through timelockOwnerSigner.
+    if (await staking.frozen()) await staking.connect(timelockOwnerSigner).freezeUnfreeze(false);
+    if (await staking.paused()) await staking.connect(timelockOwnerSigner).pauseUnpause(false);
     const currentTS = ethers.BigNumber.from((await ethers.provider.getBlock("latest")).timestamp);
     await staking.stake(whaleAmount, currentTS.add(MAX_DURATION), deployer, deployer);
     await mine();
