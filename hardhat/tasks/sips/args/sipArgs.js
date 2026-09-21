@@ -2280,7 +2280,7 @@ const getArgsSip0094Part3 = async (hre) => {
  * name if one exists, else the given env var — disagreement between the two
  * is an error. Requires the resolved address to have contract code, and
  * checks its codehash against `${envVar}_CODEHASH` when that is set.
- * The delay proposals are SIP-0095, the Phase 2 continuation of SIP-0094.
+ * The delay proposals are SIP-0096, the Phase 2 continuation of SIP-0094.
  */
 const resolvePerimeterInput = async (hre, recordName, envVar, label) => {
     const {
