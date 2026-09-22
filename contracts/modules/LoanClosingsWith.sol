@@ -7,7 +7,7 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/ILoanPool.sol";
-import "./LoanClosingsShared.sol";
+import "./LoanClosingsCharged.sol";
 
 /**
  * @title LoanClosingsWith contract.
@@ -17,7 +17,7 @@ import "./LoanClosingsShared.sol";
  *
  * Loans are liquidated if the position goes below margin maintenance.
  * */
-contract LoanClosingsWith is LoanClosingsShared {
+contract LoanClosingsWith is LoanClosingsCharged {
     constructor() public {}
 
     function() external {
@@ -27,7 +27,6 @@ contract LoanClosingsWith is LoanClosingsShared {
     function initialize(address target) external onlyOwner {
         address prevModuleContractAddress = logicTargets[this.closeWithDeposit.selector];
         _setTarget(this.closeWithDeposit.selector, target);
-        _setTarget(this.closeWithSwap.selector, target);
         _setTarget(this.checkCloseWithDepositIsTinyPosition.selector, target);
         emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith");
     }
@@ -65,54 +64,6 @@ contract LoanClosingsWith is LoanClosingsShared {
         _checkAuthorized(loanId);
         return
             _closeWithDeposit(loanId, receiver, depositAmount, false, CloseOrigin.VoluntaryClose);
-    }
-
-    /**
-     * @notice Close a position by swapping the collateral back to loan tokens
-     * paying the lender and withdrawing the remainder.
-     *
-     * @dev Public wrapper for _closeWithSwap internal function.
-     *
-     * @param loanId The id of the loan.
-     * @param receiver The receiver of the remainder (unused collateral + profit).
-     * @param swapAmount Defines how much of the position should be closed and
-     *   is denominated in collateral tokens.
-     *      If swapAmount >= collateral, the complete position will be closed.
-     *      Else if returnTokenIsCollateral, (swapAmount/collateral) * principal will be swapped (partial closure).
-     *      Else coveredPrincipal
-     * @param returnTokenIsCollateral Defines if the remainder should be paid out
-     *   in collateral tokens or underlying loan tokens.
-     *
-     * @return loanCloseAmount The amount of the collateral token of the loan.
-     * @return withdrawAmount The GROSS withdraw amount; an active exit fee is
-     *         deducted before the receiver is paid.
-     * @return withdrawToken The loan token address.
-     * */
-    function closeWithSwap(
-        bytes32 loanId,
-        address receiver,
-        uint256 swapAmount, // denominated in collateralToken
-        bool returnTokenIsCollateral, // true: withdraws collateralToken, false: withdraws loanToken
-        bytes memory // for future use /*loanDataBytes*/
-    )
-        public
-        nonReentrant
-        globallyNonReentrant
-        iTokenSupplyUnchanged(loanId)
-        whenNotPaused
-        returns (uint256 loanCloseAmount, uint256 withdrawAmount, address withdrawToken)
-    {
-        _checkAuthorized(loanId);
-        return
-            _closeWithSwap(
-                loanId,
-                receiver,
-                swapAmount,
-                returnTokenIsCollateral,
-                "", /// loanDataBytes
-                false,
-                CloseOrigin.VoluntaryClose
-            );
     }
 
     /**
@@ -161,7 +112,8 @@ contract LoanClosingsWith is LoanClosingsShared {
             loanParamsLocal,
             loanCloseAmount,
             receiver,
-            allowDonationOnFailure
+            allowDonationOnFailure,
+            origin
         );
 
         if (loanCloseAmountLessInterest != 0) {
@@ -184,7 +136,7 @@ contract LoanClosingsWith is LoanClosingsShared {
             loanLocal.collateral = loanLocal.collateral.sub(withdrawAmount);
 
             // Perimeter: charge the borrower-exit fee on the residual.
-            _withdrawAssetChargingExitFee(
+            _payoutBorrowerExit(
                 origin,
                 loanLocal,
                 withdrawToken,

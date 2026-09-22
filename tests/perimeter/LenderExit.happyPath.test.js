@@ -1,5 +1,5 @@
 /**
- * Phase 2 / Task 2.2 — Lender-exit happy-path coverage.
+ * Lender-exit happy-path coverage.
  *
  * Covers the dApp's actual lender-exit flow (`iToken.burn(...)` and
  * `iToken.burnToBTC(...)` called directly by the user EOA — see
@@ -9,7 +9,7 @@
  * `useLM=false` here for fixture simplicity; the LM-routed path adds a
  * pre-step (`_burnFromLM`) that doesn't touch the Perimeter surface.
  *
- * Scenarios (from the perimeter plan, Task 2.2 Step 1):
+ * Scenarios:
  *   1. Perimeter globally disabled  → ExitFeeSkipped(reason=INACTIVE, rate=0),
  *                                   user receives full gross, no fee transfer.
  *   2. Surface default 20 bps    → user charged 20 bps; gross = net + fee.
@@ -48,6 +48,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -55,7 +56,7 @@ const PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW = web3.utils.keccak256(
     "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW"
 );
 
-contract("Perimeter — lender-exit happy path (Phase 2 / Task 2.2)", (accounts) => {
+contract("Perimeter — lender-exit happy path", (accounts) => {
     let lender, user, feeReceiver;
     let SUSD, WRBTC, RBTC, BZRX, priceFeeds, sovryn;
     let iSUSD, iWRBTC;
@@ -159,7 +160,7 @@ contract("Perimeter — lender-exit happy path (Phase 2 / Task 2.2)", (accounts)
         [lender, user, feeReceiver, ...accounts] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

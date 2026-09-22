@@ -69,6 +69,10 @@ const getProtocolModules = () => {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
         },
+        LoanClosingsWithSwap: {
+            moduleName: "LoanClosingsWithSwap",
+            sampleFunction: "closeWithSwap(bytes32,address,uint256,bool,bytes)",
+        },
         ExitFeeModule: {
             moduleName: "ExitFeeModule",
             sampleFunction: "setExitFeeController(address)",
@@ -79,6 +83,13 @@ const getProtocolModules = () => {
         },
         LoanMaintenance: {
             moduleName: "LoanMaintenance",
+            // getActiveLoans now lives in LoanMaintenanceViews; this must name a
+            // selector LoanMaintenance itself still registers, or the
+            // registration check reads the wrong module.
+            sampleFunction: "withdrawCollateral(bytes32,address,uint256)",
+        },
+        LoanMaintenanceViews: {
+            moduleName: "LoanMaintenanceViews",
             sampleFunction: "getActiveLoans(uint256,uint256,bool)",
         },
         LoanSettings: {
@@ -193,6 +204,26 @@ const multisigRemoveOwner = async (removeAddress, sender, multisig = "MultiSigWa
             `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
         )
     );
+};
+
+/** Impersonated signer bound to a raw JsonRpcProvider pointed at the selected
+ *  network's own RPC url. On a forked network the in-process hardhat signer
+ *  refuses eth_sendTransaction for an impersonated address it does not manage
+ *  (HH103) even after hardhat_impersonateAccount, so sends must go through a
+ *  provider built directly from `hre.network.config.url` instead of hre's own
+ *  wrapped ethers signer. Mirrors the same helper defined locally in
+ *  tests-onchain/perimeter/perimeterSipTestHelpers.js, hardhat/tasks/misc.js
+ *  and hardhat/tasks/governance.js (and inline in the tests-onchain SIP
+ *  fork-test suites) — kept here so deployment/helpers/helpers.js does not
+ *  depend on a network fixed at "http://127.0.0.1:8545", which would be wrong
+ *  for a QA fork booted on another port (e.g. rskForkedMainnetQa). */
+const getImpersonatedSignerFromJsonRpcProvider = async (addressToImpersonate) => {
+    const { ethers } = hre;
+    const provider = new ethers.providers.JsonRpcProvider(
+        hre.network.config.url || "http://127.0.0.1:8545"
+    );
+    await provider.send("hardhat_impersonateAccount", [addressToImpersonate]);
+    return provider.getSigner(addressToImpersonate);
 };
 
 async function getSignerFromAccount(hre, signerAcc) {

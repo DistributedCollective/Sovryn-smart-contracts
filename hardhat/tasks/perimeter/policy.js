@@ -1,0 +1,990 @@
+/**
+ * The ExitFeeController's policy surface, as pure data and pure functions.
+ *
+ * No hardhat runtime and no I/O here — everything a chain read or a chain
+ * write needs is passed in by the caller (the tasks in `policyTasks.js`), and
+ * everything this module hands back is either a plain value or unsigned
+ * calldata. That is what makes it possible to test the encoding, the surface
+ * resolution and the exemption/revoke decisions without a node.
+ *
+ * SURFACES, TIERS, RESOLUTION
+ *
+ * Every policy (a Perimeter fee rate, or — on the delay build — a delay
+ * bypass) is looked up in three tiers: actor, then sub-product, then surface.
+ * The first ACTIVE entry decides; an inactive entry means "look at the next
+ * tier". For the fee, the surface entry is also the gate: an inactive surface
+ * charges no fee at all, whatever the sub-product and actor entries say. For
+ * the delay, an active bypass entry means "not held"; an active non-bypass
+ * entry means "held"; nothing active anywhere means "held" by default.
+ *
+ * An exemption for one address on one surface is the PAIR of actor-tier
+ * entries: a fee policy of {active: true, rateBps: 0} and a delay bypass of
+ * {active: true, bypass: true}. The fee half exists on both controller
+ * builds; the delay half only exists once the controller carrying the
+ * withdrawal delay is installed — `planExemption` and `planRevoke` refuse to
+ * plan it before then rather than submitting a call that would revert.
+ */
+const { ethers } = require("ethers");
+// SURFACES, SURFACE_PHRASES, surfaceLabel, stringifyArg and describeArgs
+// live in surfaces.js, not here, so recovery.js (required below, for the
+// recovery family decodeCall also reads) can use them without requiring
+// this file back — that would complete a require cycle, since this file
+// requires recovery.js.
+const {
+    SURFACES,
+    SURFACE_PHRASES,
+    surfaceLabel,
+    stringifyArg,
+    describeArgs,
+} = require("./surfaces");
+const recovery = require("./recovery");
+
+/** The two surfaces with no sub-product tier: Zero withdrawals are not keyed
+ *  on a pool, so a sub-product entry there would be meaningless. */
+const SURFACES_WITHOUT_SUBPRODUCT = Object.freeze(
+    new Set(["PERIMETER_SURFACE_ZERO_WITHDRAW_COLL", "PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS"])
+);
+
+const NAME_BY_ID = Object.freeze(
+    Object.fromEntries(Object.entries(SURFACES).map(([name, id]) => [id.toLowerCase(), name]))
+);
+
+/** Resolve a surface given as its name, a unique case-insensitive suffix of
+ *  the name (e.g. "LENDER_WITHDRAW"), or a 0x-prefixed 32-byte id. A name or
+ *  suffix must match one of the five known surfaces. A well-formed but
+ *  unrecognized 32-byte id is refused by default — the controller gates no
+ *  writer on an allowlist of ids, so a mistyped id is otherwise silently
+ *  accepted and planned as a real, owner-authorized multisig call against
+ *  the wrong surface. Pass `{ allowUnknown: true }` only for a caller that
+ *  means to inspect, not write: an operator who already has an id (from
+ *  `bypassSurfaceIds()`, or from watching the chain) can then resolve and
+ *  inspect it even though this module has never heard of it. `name` comes
+ *  back null for such an id; every such caller already falls back to
+ *  printing the id itself in that case. Throws, listing the known names,
+ *  on an unrecognized 32-byte id when `allowUnknown` is not set, and always
+ *  when nothing or more than one name or suffix matches. */
+const resolveSurface = (input, { allowUnknown = false } = {}) => {
+    if (typeof input !== "string" || input.trim() === "") {
+        throw new Error(
+            `resolveSurface: expected a surface name, suffix, or id, got '${input}'. Known ` +
+                `surfaces:\n  ${Object.keys(SURFACES).join("\n  ")}`
+        );
+    }
+    const trimmed = input.trim();
+
+    if (/^0x[0-9a-fA-F]{64}$/.test(trimmed)) {
+        const lowered = trimmed.toLowerCase();
+        const name = NAME_BY_ID[lowered];
+        if (name) return { name, id: SURFACES[name] };
+        if (allowUnknown) return { name: null, id: lowered };
+        throw new Error(
+            `resolveSurface: '${input}' is not a known surface. Expected one of:\n  ` +
+                Object.keys(SURFACES).join("\n  ")
+        );
+    }
+
+    const upper = trimmed.toUpperCase();
+    if (SURFACES[upper] !== undefined) {
+        return { name: upper, id: SURFACES[upper] };
+    }
+
+    const matches = Object.keys(SURFACES).filter((name) => name.endsWith(upper));
+    if (matches.length === 1) {
+        return { name: matches[0], id: SURFACES[matches[0]] };
+    }
+    if (matches.length > 1) {
+        throw new Error(
+            `resolveSurface: '${input}' matches more than one surface: ${matches.join(", ")}`
+        );
+    }
+    throw new Error(
+        `resolveSurface: '${input}' is not a known surface. Expected one of:\n  ` +
+            Object.keys(SURFACES).join("\n  ")
+    );
+};
+
+/** `policy:show`'s default (no `--surface`) surface list: every known
+ *  surface name, in their declared order, plus - unresolved, as a raw id -
+ *  any entry in `bypassIds` (the controller's own `bypassSurfaceIds()`, the
+ *  fee build has none) that names none of them. The controller gates no
+ *  bypass writer on this module's five-name list, so a bypass written under a
+ *  sixth id - a later release's surface this module has not caught up to
+ *  yet, or one an owner wrote by hand - would otherwise go unseen by the
+ *  default loop, with no way to ask for it since it has no name to pass
+ *  either. Order beyond the five names follows `bypassIds` as given. */
+const defaultSurfaceNames = (bypassIds = []) => {
+    const names = Object.keys(SURFACES);
+    for (const id of bypassIds) {
+        const resolved = resolveSurface(id, { allowUnknown: true });
+        if (!resolved.name) names.push(resolved.id);
+    }
+    return names;
+};
+
+const surfaceIdOf = (surfaceInput) => {
+    if (surfaceInput && typeof surfaceInput === "object" && surfaceInput.id) {
+        return surfaceInput.id;
+    }
+    return resolveSurface(surfaceInput).id;
+};
+
+/**
+ * The controller's ABI, as human-readable fragments — inline here rather than
+ * depended on from build artifacts, because the controller is deployed from a
+ * different repository. Both controller builds carry the fee functions; only
+ * the delay build carries the ones below the blank line (the fee build
+ * reverts on them, which is how the two are told apart).
+ */
+const CONTROLLER_ABI = [
+    "function exitFeeEnabled() view returns (bool)",
+    "function feeReceiver() view returns (address)",
+    "function surfacePolicy(bytes32) view returns (tuple(bool active, uint16 rateBps))",
+    "function subProductPolicy(bytes32, address) view returns (tuple(bool active, uint16 rateBps))",
+    "function actorPolicy(bytes32, address) view returns (tuple(bool active, uint16 rateBps))",
+    "function subProductKeys(bytes32) view returns (address[])",
+    "function actorKeys(bytes32) view returns (address[])",
+    "function bypassSurfaceIds() view returns (bytes32[])",
+    "function subProductBypassKeys(bytes32) view returns (address[])",
+    "function actorBypassKeys(bytes32) view returns (address[])",
+    "function quoteExitFee(bytes32, address, address, uint256) view returns (tuple(bool active, uint16 rateBps, uint256 feeAmount, uint256 netAmount, address feeReceiver, uint8 reason))",
+    "function setExitFeeEnabled(bool)",
+    "function setFeeReceiver(address)",
+    "function setSurfacePolicy(bytes32, tuple(bool active, uint16 rateBps))",
+    "function setSubProductPolicy(bytes32, address, tuple(bool active, uint16 rateBps))",
+    "function setActorPolicy(bytes32, address, tuple(bool active, uint16 rateBps))",
+    "function removeSubProductPolicy(bytes32, address)",
+    "function removeActorPolicy(bytes32, address)",
+
+    "function securityPerimeterEnabled() view returns (bool)",
+    "function globalDelaySeconds() view returns (uint32)",
+    "function actorBypass(bytes32, address) view returns (tuple(bool active, bool bypass))",
+    "function subProductBypass(bytes32, address) view returns (tuple(bool active, bool bypass))",
+    "function surfaceBypass(bytes32) view returns (tuple(bool active, bool bypass))",
+    "function surfaceBypassKeys() view returns (bytes32[])",
+    "function setActorBypass(bytes32, address, tuple(bool active, bool bypass))",
+    "function removeActorBypass(bytes32, address)",
+    "function revokeExemption(bytes32, address)",
+    "function grantExemption(bytes32, address)",
+];
+
+const controllerInterface = () => new ethers.utils.Interface(CONTROLLER_ABI);
+
+/** The 4-byte selector of `securityPerimeterEnabled()` — present in the
+ *  deployed bytecode of the delay build, absent from the fee-only build. */
+const SECURITY_PERIMETER_ENABLED_SELECTOR = ethers.utils
+    .id("securityPerimeterEnabled()")
+    .slice(2, 10)
+    .toLowerCase();
+
+/**
+ * Selectors every supported controller build must carry — the fee-tier
+ * surface shared by both the fee-only and the delay build. Computed from
+ * `CONTROLLER_ABI` itself via `controllerInterface`, so it can never drift
+ * from what the ABI actually declares. Used to tell a genuinely unrecognized
+ * implementation (a bad upgrade, a wrong storage slot read, a future third
+ * build) apart from the fee-only build, rather than treating "the delay
+ * selector is absent" as proof of "fee-only".
+ */
+const FEE_BUILD_REQUIRED_SELECTORS = [
+    "exitFeeEnabled",
+    "feeReceiver",
+    "setExitFeeEnabled",
+    "setFeeReceiver",
+    "setSurfacePolicy",
+    "setActorPolicy",
+].map((name) => controllerInterface().getSighash(name).slice(2).toLowerCase());
+
+/**
+ * Decide "fee-only" or "delay" purely from deployed bytecode — no chain call,
+ * so a network error or a reverting call can never be mistaken for "fee-only".
+ * The caller reads the bytecode once (the same read it already needs to
+ * refuse an empty-code address) and hands it here.
+ *
+ * Both classifications are POSITIVE checks: "delay" requires the
+ * `securityPerimeterEnabled` selector; "fee-only" requires every one of
+ * `FEE_BUILD_REQUIRED_SELECTORS` to be present. Bytecode that carries
+ * neither full set — a bad upgrade, a wrong slot read, a future third build
+ * — throws rather than being silently classified as the less-protected
+ * "fee-only", which would make a policy write believe it cleared a delay
+ * bypass that this implementation was never capable of holding in the first
+ * place.
+ */
+const buildFromCode = (code) => {
+    const normalized = String(code || "").toLowerCase();
+    if (normalized.includes(SECURITY_PERIMETER_ENABLED_SELECTOR)) {
+        return "delay";
+    }
+    if (FEE_BUILD_REQUIRED_SELECTORS.every((selector) => normalized.includes(selector))) {
+        return "fee-only";
+    }
+    throw new Error(
+        "buildFromCode: this implementation's bytecode matches neither the fee-only nor the " +
+            "delay controller build — refusing to default it to 'fee-only'. If this is a " +
+            "genuine new build, extend policy.FEE_BUILD_REQUIRED_SELECTORS/buildFromCode " +
+            "deliberately rather than letting it fall through."
+    );
+};
+
+/**
+ * Extract an ERC-1967 implementation address from the value read out of a
+ * proxy's implementation storage slot. `undefined` for the all-zero word —
+ * that slot is unset, which means the address being inspected is not an
+ * ERC-1967 proxy at all, and its own code is the implementation. Otherwise
+ * the low 20 bytes are the address, checksummed; a slot that isn't a clean
+ * left-zero-padded address (upper 12 bytes non-zero) is not a plausible
+ * ERC-1967 slot and throws rather than being misread as one. Pure — the
+ * caller does the storage read.
+ */
+const implementationFromSlot = (slotValue) => {
+    if (typeof slotValue !== "string" || !/^0x[0-9a-fA-F]{64}$/.test(slotValue)) {
+        throw new Error(`implementationFromSlot: expected a 32-byte hex word, got '${slotValue}'`);
+    }
+    const upperBytes = slotValue.slice(2, 26);
+    if (!/^0+$/.test(upperBytes)) {
+        throw new Error(
+            `implementationFromSlot: '${slotValue}' is not a plausible ERC-1967 implementation ` +
+                "slot — the upper 12 bytes must be zero"
+        );
+    }
+    const lowBytes = slotValue.slice(-40);
+    if (/^0+$/.test(lowBytes)) {
+        return undefined;
+    }
+    return ethers.utils.getAddress(`0x${lowBytes}`);
+};
+
+/** The owner/admin setters `buildCall`/`decodeCall` know how to build and read back. */
+const CALL_KINDS = Object.freeze([
+    "setExitFeeEnabled",
+    "setFeeReceiver",
+    "setSurfacePolicy",
+    "setSubProductPolicy",
+    "setActorPolicy",
+    "removeSubProductPolicy",
+    "removeActorPolicy",
+    "setActorBypass",
+    "removeActorBypass",
+    "revokeExemption",
+    "grantExemption",
+]);
+
+/** A BigNumber (from a decoded call) or a plain JS number (from a freshly
+ *  built one) — either way, the integer it represents. */
+const toNumber = (value) => (typeof value === "number" ? value : Number(value.toString()));
+
+const requireAddress = (value, label) => {
+    let checksummed;
+    try {
+        checksummed = ethers.utils.getAddress(value);
+    } catch (e) {
+        throw new Error(`${label}: '${value}' is not a valid address`);
+    }
+    if (checksummed === ethers.constants.AddressZero) {
+        throw new Error(`${label}: must not be the zero address`);
+    }
+    return checksummed;
+};
+
+const requireRate = (rate, label) => {
+    if (!rate || typeof rate.active !== "boolean") {
+        throw new Error(`${label}: expected {active, rateBps}, got ${JSON.stringify(rate)}`);
+    }
+    const bps = toNumber(rate.rateBps);
+    if (!Number.isInteger(bps) || bps < 0 || bps > 10000) {
+        throw new Error(
+            `${label}: rateBps must be an integer between 0 and 10000, got '${rate.rateBps}'`
+        );
+    }
+    return [rate.active, bps];
+};
+
+const requireBypass = (bypass, label) => {
+    if (!bypass || typeof bypass.active !== "boolean" || typeof bypass.bypass !== "boolean") {
+        throw new Error(`${label}: expected {active, bypass}, got ${JSON.stringify(bypass)}`);
+    }
+    return [bypass.active, bypass.bypass];
+};
+
+/**
+ * Rate input, as an operator would type it: an integer 0..10000 (basis
+ * points) or the literal "inactive". Throws on anything else, including a
+ * "%" suffix — the field is bps, not percent, and that mistake is 100x.
+ */
+const parseRate = (input) => {
+    if (
+        input === null ||
+        input === undefined ||
+        (typeof input === "string" && input.trim() === "")
+    ) {
+        throw new Error("parseRate: no rate was given — pass an integer 0..10000, or 'inactive'");
+    }
+    if (typeof input === "string" && input.trim().toLowerCase() === "inactive") {
+        return { active: false, rateBps: 0 };
+    }
+    if (typeof input === "string" && /%\s*$/.test(input.trim())) {
+        throw new Error(
+            `parseRate: '${input}' looks like a percentage — this field is in basis points ` +
+                "(bps), not percent. 100 bps = 1%."
+        );
+    }
+    if (typeof input === "string" && !/^\d+$/.test(input.trim())) {
+        throw new Error(
+            `parseRate: '${input}' is not a plain decimal integer — pass an integer 0..10000, ` +
+                "or 'inactive'"
+        );
+    }
+    const n = typeof input === "number" ? input : Number(input);
+    if (typeof input === "boolean" || Number.isNaN(n)) {
+        throw new Error(
+            `parseRate: '${input}' is not a valid rate — pass an integer 0..10000 or 'inactive'`
+        );
+    }
+    if (!Number.isInteger(n)) {
+        throw new Error(`parseRate: '${input}' is not an integer number of bps`);
+    }
+    if (n < 0 || n > 10000) {
+        throw new Error(`parseRate: '${input}' must be between 0 and 10000 bps`);
+    }
+    return { active: true, rateBps: n };
+};
+
+/**
+ * How to build the positional call args from operator-friendly input, and how
+ * to describe the effect in plain words from those same positional args —
+ * `meaning` is shared between `buildCall` (fed the args it just built) and
+ * `decodeCall` (fed the args it just decoded off submitted calldata), so the
+ * two can never drift apart.
+ */
+const CALL_DEFS = {
+    setExitFeeEnabled: {
+        build: ({ enabled }) => {
+            if (typeof enabled !== "boolean") {
+                throw new Error("setExitFeeEnabled: 'enabled' must be a boolean");
+            }
+            return [enabled];
+        },
+        meaning: ([enabled]) =>
+            enabled
+                ? "switches the Perimeter fee ON for every surface"
+                : "switches the Perimeter fee OFF for every surface",
+    },
+
+    setFeeReceiver: {
+        build: ({ address }) => [requireAddress(address, "setFeeReceiver: address")],
+        meaning: ([address]) => `sends every collected Perimeter fee to ${address} from now on`,
+    },
+
+    setSurfacePolicy: {
+        build: ({ surface, rate }) => [
+            surfaceIdOf(surface),
+            requireRate(rate, "setSurfacePolicy: rate"),
+        ],
+        meaning: ([id, rate]) => {
+            const label = surfaceLabel(id);
+            const active = rate[0];
+            const rateBps = toNumber(rate[1]);
+            if (!active) {
+                return (
+                    `turns the Perimeter fee off for the whole of ${label} — sub-product and ` +
+                    "actor entries are ignored while the surface is inactive"
+                );
+            }
+            return rateBps === 0
+                ? `turns the Perimeter fee off for ${label} at the surface rate — sub-product ` +
+                      "and actor entries can still charge their own rate"
+                : `sets the default Perimeter fee on ${label} to ${rateBps} bps; sub-product ` +
+                      "and actor entries can still override it";
+        },
+    },
+
+    setSubProductPolicy: {
+        build: ({ surface, subProduct, rate }) => [
+            surfaceIdOf(surface),
+            requireAddress(subProduct, "setSubProductPolicy: subProduct"),
+            requireRate(rate, "setSubProductPolicy: rate"),
+        ],
+        meaning: ([id, subProduct, rate]) => {
+            const label = surfaceLabel(id);
+            const active = rate[0];
+            const rateBps = toNumber(rate[1]);
+            if (!active) {
+                return `${subProduct} falls through to the surface rate on ${label} again`;
+            }
+            return rateBps === 0
+                ? `${subProduct} pays no Perimeter fee on ${label}; every other pool on that ` +
+                      "surface is unchanged"
+                : `${subProduct} withdrawals pay ${rateBps} bps on ${label}; other pools keep ` +
+                      "the surface rate";
+        },
+    },
+
+    setActorPolicy: {
+        build: ({ surface, actor, rate }) => [
+            surfaceIdOf(surface),
+            requireAddress(actor, "setActorPolicy: actor"),
+            requireRate(rate, "setActorPolicy: rate"),
+        ],
+        meaning: ([id, actor, rate]) => {
+            const label = surfaceLabel(id);
+            const active = rate[0];
+            const rateBps = toNumber(rate[1]);
+            if (!active) {
+                return `${actor} falls through to the sub-product or surface rate on ${label} again`;
+            }
+            return rateBps === 0
+                ? `${actor} pays no Perimeter fee on ${label}; every other actor there is unchanged`
+                : `${actor} pays ${rateBps} bps of Perimeter fee on ${label}, overriding the ` +
+                      "surface and sub-product rate";
+        },
+    },
+
+    removeSubProductPolicy: {
+        build: ({ surface, subProduct }) => [
+            surfaceIdOf(surface),
+            requireAddress(subProduct, "removeSubProductPolicy: subProduct"),
+        ],
+        meaning: ([id, subProduct]) =>
+            `removes ${subProduct}'s Perimeter fee entry on ${surfaceLabel(id)}; it falls back ` +
+            "to the surface rate",
+    },
+
+    removeActorPolicy: {
+        build: ({ surface, actor }) => [
+            surfaceIdOf(surface),
+            requireAddress(actor, "removeActorPolicy: actor"),
+        ],
+        meaning: ([id, actor]) =>
+            `removes ${actor}'s Perimeter fee entry on ${surfaceLabel(id)}; it falls back to ` +
+            "the sub-product or surface rate",
+    },
+
+    setActorBypass: {
+        build: ({ surface, actor, bypass }) => [
+            surfaceIdOf(surface),
+            requireAddress(actor, "setActorBypass: actor"),
+            requireBypass(bypass, "setActorBypass: bypass"),
+        ],
+        meaning: ([id, actor, bypass]) => {
+            const label = surfaceLabel(id);
+            const active = bypass[0];
+            const doesBypass = bypass[1];
+            if (!active) {
+                return (
+                    `clears ${actor}'s delay entry on ${label}; it falls back to the ` +
+                    "sub-product or surface bypass"
+                );
+            }
+            return doesBypass
+                ? `${actor} is exempt from the withdrawal delay on ${label} — not held`
+                : `${actor} is held under the withdrawal delay on ${label} even if a wider ` +
+                      "bypass would otherwise apply";
+        },
+    },
+
+    removeActorBypass: {
+        build: ({ surface, actor }) => [
+            surfaceIdOf(surface),
+            requireAddress(actor, "removeActorBypass: actor"),
+        ],
+        meaning: ([id, actor]) =>
+            `removes ${actor}'s delay entry on ${surfaceLabel(id)}; it falls back to the ` +
+            "sub-product or surface bypass",
+    },
+
+    revokeExemption: {
+        build: ({ surface, actor }) => [
+            surfaceIdOf(surface),
+            requireAddress(actor, "revokeExemption: actor"),
+        ],
+        meaning: ([id, actor]) =>
+            `withdraws ${actor}'s exemption on ${surfaceLabel(id)}: charged at the surface rate ` +
+            "again and held again even under a wider bypass",
+    },
+
+    grantExemption: {
+        build: ({ surface, actor }) => [
+            surfaceIdOf(surface),
+            requireAddress(actor, "grantExemption: actor"),
+        ],
+        meaning: ([id, actor]) =>
+            `grants ${actor} a full exemption on ${surfaceLabel(id)} in one call: fee-exempt and ` +
+            "delay-bypassed together, never one without the other",
+    },
+};
+
+/** selector -> {kind, signature}, built once from the interface itself so the
+ *  signature `buildCall` and `decodeCall` report is always the exact one the
+ *  selector was computed from. */
+const SETTER_SELECTORS = (() => {
+    const iface = controllerInterface();
+    const table = {};
+    for (const kind of CALL_KINDS) {
+        const fragment = iface.getFunction(kind);
+        table[iface.getSighash(fragment)] = { kind, signature: fragment.format() };
+    }
+    return table;
+})();
+
+/** Build the calldata for one of the owner/admin setters above, plus a
+ *  plain-words description of its effect. */
+const buildCall = (kind, args) => {
+    const def = CALL_DEFS[kind];
+    if (!def) {
+        throw new Error(
+            `buildCall: unknown call kind '${kind}'. Expected one of: ${CALL_KINDS.join(", ")}`
+        );
+    }
+    const positional = def.build(args || {});
+    const data = controllerInterface().encodeFunctionData(kind, positional);
+    const { signature } = SETTER_SELECTORS[data.slice(0, 10).toLowerCase()];
+    return { signature, data, meaning: def.meaning(positional) };
+};
+
+/**
+ * The ExitDelayQueue's block levers, by bare (name-free) signature — the
+ * canonical form a selector is hashed from — paired with a plain-words
+ * description of what each one does. The queue is Exchequer-owned, so every
+ * one of these is a multisig transaction submitted by
+ * `perimeter:submit-block`, built by `Sovryn-perimeter/script/07_BlockExits.
+ * s.sol`, which is where the decision logic lives — it reads the queue's
+ * state to resolve who is affected and to refuse anything that would revert
+ * on-chain. Nothing here is a substitute for that preview; this is a paste
+ * guard, not authorization — it stops a mistyped or truncated blob from being
+ * decoded (or submitted) as some other call, and it lets an operator see in
+ * words, and in its own decoded arguments, what they are about to ask the
+ * other signers to approve.
+ */
+const BLOCK_LEVERS = Object.freeze({
+    "freeze(address)": "freeze one account",
+    "freeze(address[])": "freeze a batch of accounts",
+    "blacklist(address)": "blacklist one account",
+    "blacklist(address[])": "blacklist a batch of accounts",
+    "unfreeze(address)": "clear a freeze on one account",
+    "unfreeze(address[])": "clear a freeze on a batch of accounts",
+    "unblacklist(address)": "clear a blacklist on one account",
+    "unblacklist(address[])": "clear a blacklist on a batch of accounts",
+    "downgradeToFrozen(address)": "move one blacklisted account down to frozen",
+    "downgradeToFrozen(address[])": "move a batch of blacklisted accounts down to frozen",
+    "freezeFromRequest(uint256,bool,bytes32)": "freeze the parties behind one request",
+    "freezeFromRequest(uint256[],bool,bytes32)": "freeze the parties behind a batch of requests",
+    "blacklistFromRequest(uint256,bool,bytes32)": "blacklist the parties behind one request",
+    "blacklistFromRequest(uint256[],bool,bytes32)":
+        "blacklist the parties behind a batch of requests",
+    "setSecurityPerimeterPaused(bool)": "pause or resume releases for EVERYONE",
+});
+
+/** Named-argument ABI for the same calls `BLOCK_LEVERS` keys by their bare
+ *  signature — the names are display-only, they do not change the selector a
+ *  signature hashes to, so a selector computed from a `BLOCK_LEVERS` key and
+ *  one computed from this ABI always agree. */
+const QUEUE_LEVER_ABI = [
+    "function freeze(address account)",
+    "function freeze(address[] accounts)",
+    "function blacklist(address account)",
+    "function blacklist(address[] accounts)",
+    "function unfreeze(address account)",
+    "function unfreeze(address[] accounts)",
+    "function unblacklist(address account)",
+    "function unblacklist(address[] accounts)",
+    "function downgradeToFrozen(address account)",
+    "function downgradeToFrozen(address[] accounts)",
+    "function freezeFromRequest(uint256 requestId, bool freezeReceiver, bytes32 reasonHash)",
+    "function freezeFromRequest(uint256[] requestIds, bool freezeReceiver, bytes32 reasonHash)",
+    "function blacklistFromRequest(uint256 requestId, bool freezeReceiver, bytes32 reasonHash)",
+    "function blacklistFromRequest(uint256[] requestIds, bool freezeReceiver, bytes32 reasonHash)",
+    "function setSecurityPerimeterPaused(bool paused)",
+];
+
+const queueInterface = () => new ethers.utils.Interface(QUEUE_LEVER_ABI);
+
+/** selector -> bare signature, built from `BLOCK_LEVERS`' own keys so this
+ *  can never recognize a selector `BLOCK_LEVERS` itself does not name. */
+const QUEUE_LEVER_SELECTORS = (() => {
+    const table = {};
+    for (const signature of Object.keys(BLOCK_LEVERS)) {
+        table[ethers.utils.id(signature).slice(0, 10)] = signature;
+    }
+    return table;
+})();
+
+/**
+ * Decode calldata into `{target, signature, kind, args, meaning, fields}`, or
+ * `undefined` when the selector is neither one of the controller's policy
+ * setters nor one of the queue's block levers — the paste guard
+ * `perimeter:policy:check-tx` and `perimeter:submit-block`/`check-block` use
+ * before they will describe, or submit, a transaction. `target` is
+ * `"controller"` or `"queue"`, telling the two families apart. `kind` is what
+ * `perimeter:policy:check-tx` gates its pairing-violation check on
+ * (`ACTOR_TIER_PAIR_CALLS.has(decoded.kind)`) — for a queue lever it is
+ * always the bare signature itself, which never collides with a controller
+ * `CALL_KINDS` entry, so that check is unaffected.
+ */
+const decodeCall = (data) => {
+    if (typeof data !== "string" || !/^0x[0-9a-fA-F]{8,}$/.test(data)) {
+        return undefined;
+    }
+    const selector = data.slice(0, 10).toLowerCase();
+    const controllerEntry = SETTER_SELECTORS[selector];
+    if (controllerEntry) {
+        const fragment = controllerInterface().getFunction(controllerEntry.kind);
+        const args = controllerInterface().decodeFunctionData(fragment, data);
+        return {
+            target: "controller",
+            signature: controllerEntry.signature,
+            kind: controllerEntry.kind,
+            args,
+            meaning: CALL_DEFS[controllerEntry.kind].meaning(args),
+            fields: describeArgs(fragment, args),
+        };
+    }
+    const queueSignature = QUEUE_LEVER_SELECTORS[selector];
+    if (queueSignature) {
+        const fragment = queueInterface().getFunction(queueSignature);
+        const args = queueInterface().decodeFunctionData(fragment, data);
+        return {
+            target: "queue",
+            signature: queueSignature,
+            kind: queueSignature,
+            args,
+            meaning: BLOCK_LEVERS[queueSignature],
+            fields: describeArgs(fragment, args),
+        };
+    }
+    // The queue's recovery family. Kept in its own module because those calls
+    // are BUILT by the task that submits them rather than pasted as calldata,
+    // so they carry argument validation a block lever does not need. Decoded
+    // here so a co-signer inspecting a submitted transaction reads one format
+    // for both families.
+    const recovered = recovery.decodeRecoveryCall(data);
+    if (recovered) return recovered;
+    return undefined;
+};
+
+/**
+ * The deduplicated union of one or more address lists, case-insensitively —
+ * checksummed and in first-seen order. Used to inventory a surface's
+ * sub-product/actor tier from BOTH the fee-tier key list and the
+ * delay-bypass key list together: an address with only a delay bypass and no
+ * fee-tier entry appears here even though it is absent from the fee list
+ * alone, which is what `subProductKeys`/`actorKeys` on their own miss.
+ */
+const unionAddresses = (...lists) => {
+    const seen = new Set();
+    const out = [];
+    for (const list of lists || []) {
+        for (const addr of list || []) {
+            const checksummed = ethers.utils.getAddress(addr);
+            const key = checksummed.toLowerCase();
+            if (!seen.has(key)) {
+                seen.add(key);
+                out.push(checksummed);
+            }
+        }
+    }
+    return out;
+};
+
+/** A short plain-words description of a fee entry at the given tier. */
+const describeFeeEntry = (entry, tier) => {
+    if (!entry || !entry.active) {
+        return tier === "surface"
+            ? "inactive — the Perimeter fee is off for this surface"
+            : `inactive — falls through to the ${tier === "actor" ? "sub-product or surface" : "surface"}`;
+    }
+    return `active, ${toNumber(entry.rateBps)} bps`;
+};
+
+/** A short plain-words description of a delay-bypass entry at the given tier. */
+const describeDelayEntry = (entry, tier) => {
+    if (!entry || !entry.active) {
+        return tier === "surface"
+            ? "inactive — held by default on this surface"
+            : `inactive — falls through to the ${tier === "actor" ? "sub-product or surface" : "surface"}`;
+    }
+    return entry.bypass ? "active, bypass — not held" : "active, no bypass — held";
+};
+
+/**
+ * Decide which call(s) grant an actor-tier exemption. `fee`/`bypass` are the
+ * entries currently on chain; `build` is "fee-only" or "delay". Requesting
+ * the delay half (via "delay" or "both") on the fee-only build throws — that
+ * half does not exist there yet.
+ *
+ * `half === "both"` (the default) on the delay build is the ONLY path that
+ * grants a fresh exemption: it plans the single atomic `grantExemption` call
+ * (mirroring `revokeExemption`), never the old two-separate-multisig-
+ * transactions shape, because between those two executing an actor could be
+ * fee-exempt but still held, or paid instantly with no hold at all while
+ * still being charged — a real, reachable gap this must not reintroduce.
+ * `half === "fee"` / `"delay"` alone still plan the individual call, for the
+ * narrow case of finishing an exemption a prior, already-executed partial
+ * grant left half-applied — but only with `confirmHalf: true`, and only when
+ * the OPPOSITE half already reads active on chain: `confirmHalf` says "I am
+ * finishing a partial grant", and that claim is checked, not taken on faith
+ * — a bare `confirmHalf: true` against an actor with neither half present
+ * would otherwise plan a single-half call that leaves the exemption
+ * half-applied by construction, the same reachable gap the atomic
+ * `grantExemption` path exists to close. Without `confirmHalf`, or with it
+ * but no matching opposite half, this throws rather than silently
+ * building a call that leaves the exemption half-applied: that gap is a real
+ * fee/delay mismatch, not a display artifact, so it needs a deliberate,
+ * verified acknowledgement, not a default.
+ */
+const planExemption = ({ half = "both", fee, bypass, build, confirmHalf = false } = {}) => {
+    if (!["fee", "delay", "both"].includes(half)) {
+        throw new Error(`planExemption: half must be 'fee', 'delay', or 'both', got '${half}'`);
+    }
+    if ((half === "delay" || half === "both") && build !== "delay") {
+        throw new Error(
+            "planExemption: the delay half does not exist on the fee-only build — submit it " +
+                "after the controller upgrade"
+        );
+    }
+    if (half !== "both" && build === "delay" && !confirmHalf) {
+        throw new Error(
+            `planExemption: --half ${half} leaves the exemption half-applied on this surface ` +
+                "until the other half is submitted separately - a real fee/delay mismatch, not " +
+                "a display artifact. Omit --half (default 'both') for the single atomic " +
+                `grantExemption call, or pass --confirmHalf to submit just the ${half} half ` +
+                "anyway (finishing an earlier partial grant)."
+        );
+    }
+    if (half !== "both" && build === "delay" && confirmHalf) {
+        const oppositeHalf = half === "fee" ? "delay" : "fee";
+        const oppositeAlreadyLanded =
+            oppositeHalf === "delay" ? isDelayBypassing(bypass) : isFeeExempt(fee);
+        if (!oppositeAlreadyLanded) {
+            throw new Error(
+                `planExemption: --half ${half} --confirmHalf claims to be finishing an earlier ` +
+                    `partial grant, but the ${oppositeHalf} half does not read active on chain ` +
+                    "- there is no partial grant to finish, and submitting just the " +
+                    `${half} half now would leave the exemption half-applied instead. Omit ` +
+                    "--half (default 'both') for the single atomic grantExemption call."
+            );
+        }
+    }
+
+    if (half === "both" && build === "delay") {
+        const feeDone = Boolean(fee && fee.active && toNumber(fee.rateBps) === 0);
+        const delayDone = Boolean(bypass && bypass.active && bypass.bypass === true);
+        if (feeDone && delayDone) {
+            return { calls: [], alreadyDone: ["fee", "delay"] };
+        }
+        return { calls: [{ kind: "grantExemption" }], alreadyDone: [] };
+    }
+
+    const calls = [];
+    const alreadyDone = [];
+
+    if (half === "fee" || half === "both") {
+        if (fee && fee.active && toNumber(fee.rateBps) === 0) {
+            alreadyDone.push("fee");
+        } else {
+            calls.push({
+                half: "fee",
+                kind: "setActorPolicy",
+                rate: { active: true, rateBps: 0 },
+            });
+        }
+    }
+
+    if (half === "delay" || half === "both") {
+        if (bypass && bypass.active && bypass.bypass === true) {
+            alreadyDone.push("delay");
+        } else {
+            calls.push({
+                half: "delay",
+                kind: "setActorBypass",
+                bypass: { active: true, bypass: true },
+            });
+        }
+    }
+
+    return { calls, alreadyDone };
+};
+
+/**
+ * Decide the single call that withdraws an actor-tier exemption. On the delay
+ * build that is `revokeExemption`, which resets both halves atomically; on
+ * the fee-only build only the fee half exists, so it is `removeActorPolicy`
+ * — its plan note says the delay half does not exist on this build. Skips
+ * when the exemption is already withdrawn.
+ */
+const planRevoke = ({ build, fee, bypass } = {}) => {
+    if (build === "delay") {
+        const alreadyRevoked = Boolean(
+            fee && !fee.active && bypass && bypass.active === true && bypass.bypass === false
+        );
+        if (alreadyRevoked) {
+            return { calls: [], alreadyDone: ["fee", "delay"] };
+        }
+        return { calls: [{ kind: "revokeExemption" }], alreadyDone: [] };
+    }
+    if (build === "fee-only") {
+        if (fee && !fee.active) {
+            return { calls: [], alreadyDone: ["fee"] };
+        }
+        return {
+            calls: [
+                { kind: "removeActorPolicy", note: "the delay half does not exist on this build" },
+            ],
+            alreadyDone: [],
+        };
+    }
+    throw new Error(`planRevoke: build must be 'fee-only' or 'delay', got '${build}'`);
+};
+
+/** Whether a fee entry, in isolation, reads as the "exemption" shape: active
+ *  at a zero rate. */
+const isFeeExempt = (fee) => Boolean(fee && fee.active && toNumber(fee.rateBps) === 0);
+
+/** Whether a delay-bypass entry, in isolation, reads as bypassing. */
+const isDelayBypassing = (bypass) => Boolean(bypass && bypass.active && bypass.bypass === true);
+
+/** The single-half actor-tier calls `pairingViolationAfterCall` can assess —
+ *  the ones that can move only one side of an actor's fee/delay pair. */
+const SINGLE_HALF_ACTOR_CALLS = new Set([
+    "setActorPolicy",
+    "removeActorPolicy",
+    "setActorBypass",
+    "removeActorBypass",
+]);
+
+/**
+ * Every call kind whose first two decoded args are `(surfaceId, actor)` —
+ * the four single-half setters above plus the two atomic ones. A caller
+ * (namely `perimeter:policy:check-tx`) needs this to know when `args[0]`/
+ * `args[1]` are even safe to read as `(surfaceId, actor)` before querying
+ * the controller with them: `setSurfacePolicy`'s second arg is a rate
+ * tuple, `setSubProductPolicy`/`removeSubProductPolicy`'s second arg is a
+ * sub-product address (not an actor), and `setExitFeeEnabled`/
+ * `setFeeReceiver` do not carry a surfaceId at all — treating any of those
+ * as `(surfaceId, actor)` would query the controller with the wrong shape
+ * entirely, not just the wrong meaning.
+ */
+const ACTOR_TIER_PAIR_CALLS = new Set([
+    ...SINGLE_HALF_ACTOR_CALLS,
+    "grantExemption",
+    "revokeExemption",
+]);
+
+/**
+ * Would executing this ALREADY-DECODED controller call leave the named
+ * actor's fee/delay pair half-applied - one half reading as an exemption,
+ * the other not? `currentFee`/`currentBypass` are that actor's entries as
+ * they read NOW, for the `(surfaceId, actor)` the call names.
+ *
+ * Only the four single-half actor-tier setters can create this shape:
+ * `setActorPolicy`/`removeActorPolicy` move the fee half alone, leaving
+ * whatever the delay half currently reads; `setActorBypass`/
+ * `removeActorBypass` move the delay half alone, leaving the current fee
+ * half. `grantExemption`/`revokeExemption` write both halves together and so
+ * can never produce this shape; every other call (surface/sub-product
+ * entries, the fee switch, the fee receiver) carries no per-actor pairing at
+ * all. Both cases return `false` (not `undefined`) below the switch on
+ * `kind` — `undefined` is reserved for "this call has no pairing to assess".
+ *
+ * @return `true`/`false` once assessable, `undefined` when the call kind
+ *         carries no actor-tier fee/delay pairing to check.
+ */
+const pairingViolationAfterCall = ({ kind, args, currentFee, currentBypass }) => {
+    if (!SINGLE_HALF_ACTOR_CALLS.has(kind)) return undefined;
+
+    let resultFee = currentFee;
+    let resultBypass = currentBypass;
+    if (kind === "setActorPolicy") {
+        const rate = args[2];
+        resultFee = { active: rate[0], rateBps: toNumber(rate[1]) };
+    } else if (kind === "removeActorPolicy") {
+        resultFee = { active: false, rateBps: 0 };
+    } else if (kind === "setActorBypass") {
+        const bypass = args[2];
+        resultBypass = { active: bypass[0], bypass: bypass[1] };
+    } else {
+        // removeActorBypass
+        resultBypass = { active: false, bypass: false };
+    }
+
+    return isFeeExempt(resultFee) !== isDelayBypassing(resultBypass);
+};
+
+/**
+ * The warning `perimeter:fee:set --actor` and `perimeter:fee:remove --actor`
+ * print on the delay build when the actor still carries a delay bypass:
+ * changing or removing the fee half never touches the bypass, so the address
+ * keeps skipping the withdrawal delay on this surface even though the
+ * operator's fee edit reads, on its own output, like the address's whole
+ * record. `undefined` when there is nothing to warn about — the fee-only
+ * build (the bypass field does not exist there yet), no bypass entry, or one
+ * that is not active-and-bypassing.
+ */
+const survivingBypassWarning = ({ build, bypass, actor, surfaceId } = {}) => {
+    if (build !== "delay") return undefined;
+    if (!bypass || bypass.active !== true || bypass.bypass !== true) return undefined;
+    return (
+        `${actor} still bypasses the withdrawal delay on ${surfaceLabel(surfaceId)} — this call ` +
+        "only changes the Perimeter fee. `perimeter:exemption --action revoke` is the call that " +
+        "withdraws both halves."
+    );
+};
+
+/**
+ * Whether writing `resultFee` at the actor tier (the fee entry `fee:set` or
+ * `fee:remove` is about to leave in place) would diverge from the actor's
+ * CURRENT delay bypass, and which direction:
+ *
+ *   - "charged": the bypass reads active and bypassing (not held) while the
+ *     resulting fee entry does not read exempt — the actor would be paid
+ *     instantly while still charged, the direction the Perimeter exists to
+ *     prevent.
+ *   - "held": the resulting fee entry reads exempt while the bypass does
+ *     not read active-and-bypassing — the actor would be held but not
+ *     charged; a revenue anomaly, not a security one.
+ *   - `undefined` when the two already agree, whether both exempt (a full
+ *     exemption) or neither (an ordinary actor).
+ *
+ * `undefined` on the fee-only build — the bypass field does not exist there
+ * yet, so there is nothing to diverge from.
+ */
+const actorFeeDelayDivergence = ({ build, resultFee, bypass } = {}) => {
+    if (build !== "delay") return undefined;
+    const exempt = isFeeExempt(resultFee);
+    const bypassing = isDelayBypassing(bypass);
+    if (exempt === bypassing) return undefined;
+    return bypassing ? "charged" : "held";
+};
+
+module.exports = {
+    SURFACES,
+    SURFACE_PHRASES,
+    SURFACES_WITHOUT_SUBPRODUCT,
+    CALL_KINDS,
+    resolveSurface,
+    defaultSurfaceNames,
+    surfaceLabel,
+    CONTROLLER_ABI,
+    controllerInterface,
+    FEE_BUILD_REQUIRED_SELECTORS,
+    buildFromCode,
+    implementationFromSlot,
+    parseRate,
+    buildCall,
+    decodeCall,
+    stringifyArg,
+    describeArgs,
+    BLOCK_LEVERS,
+    RECOVERY_LEVERS: recovery.RECOVERY_LEVERS,
+    QUEUE_LEVER_ABI,
+    queueInterface,
+    unionAddresses,
+    isFeeExempt,
+    isDelayBypassing,
+    ACTOR_TIER_PAIR_CALLS,
+    pairingViolationAfterCall,
+    describeFeeEntry,
+    describeDelayEntry,
+    planExemption,
+    planRevoke,
+    survivingBypassWarning,
+    actorFeeDelayDivergence,
+};

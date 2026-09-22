@@ -48,6 +48,7 @@ const oneEth = new BN(wei("1", "ether"));
 const hunEth = new BN(wei("100", "ether"));
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 // This decodes longs for a single event type, and returns a decoded object in
 // the same form truffle-contract uses on its receipts
@@ -86,7 +87,7 @@ contract("ProtocolAddingMargin", (accounts) => {
         try {
             /** Deploy SwapsImplSovrynSwapLib */
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (err) {}
     });
 

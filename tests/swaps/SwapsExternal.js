@@ -59,6 +59,7 @@ const {
 const { etherGasCost } = require("../Utils/Ethereum.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const { ZERO_ADDRESS } = constants;
 const wei = web3.utils.toWei;
@@ -199,7 +200,7 @@ contract("SwapsExternal", (accounts) => {
         [lender, staker] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsExternal.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsExternal, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

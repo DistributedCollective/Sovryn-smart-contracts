@@ -1,0 +1,1133 @@
+/**
+ * The four withdrawal surfaces the delay covers, each reduced to one call that
+ * leaves a queued exit behind.
+ *
+ * A driver takes the attached stack `s` (anything carrying `queue`, `protocol`,
+ * `iRBTC`, `iXUSD`, `wrbtc` and `borrowerOperations` as ethers contracts — both
+ * the rehearsal fixture and the QA state file's `attachQa` do) plus the signer
+ * that performs the withdrawal, and returns the request it queued.
+ *
+ * Every driver returns `{ id, request, receipt, before }`:
+ *   `id`/`request` — the queued exit as the queue stores it. `request.amount` is
+ *       the ESCROWED amount, already net of whatever charge the controller
+ *       quoted; never assert against the amount that went in.
+ *   `receipt`      — the receipt of the call that queued it, so a caller can
+ *       subtract the gas its own actor paid.
+ *   `before`       — native balances of the originator and the receiver read
+ *       immediately before that call, so a caller can prove nothing was paid.
+ *
+ * The drivers assert only what makes the returned value meaningful (a position
+ * was actually opened, exactly one request was queued, and it carries the
+ * expected surface). They throw plain errors rather than using an assertion
+ * library, because a hardhat task runs them too.
+ */
+const hre = require("hardhat");
+const { ethers, deployments } = hre;
+const { get } = deployments;
+
+const {
+    ONE_RBTC,
+    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+    PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+    PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+    PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
+    collSurplusPoolFixture,
+    forkOps,
+} = require("../perimeterSipTestHelpers");
+const gas = require("./gas");
+
+const ZERO_ADDRESS = ethers.constants.AddressZero;
+const ERC20_ABI = [
+    "function balanceOf(address) view returns (uint256)",
+    "function transfer(address,uint256) returns (bool)",
+];
+
+/** ExitStatus / BlockState as the queue stores them. */
+const STATUS = { None: 0, Queued: 1, Executed: 2, ResolvedToProtocol: 3, ResolvedByOwner: 4 };
+const BLOCK = { None: 0, Frozen: 1, Blacklisted: 2 };
+
+/** `ExitFeeSkipped`'s shape is declared identically in this repo
+ *  (`IPerimeterEvents.sol`) and in zero-contracts
+ *  (`BorrowerOperationsPerimeterOps.sol`) — same name, same argument types —
+ *  so one interface decodes it off a receipt from either repo's hooks,
+ *  regardless of which contract address the log itself carries (every fee
+ *  hook here runs under delegatecall, so the log's address is the caller's
+ *  proxy, never the hook contract). */
+const PERIMETER_EVENTS_INTERFACE = new ethers.utils.Interface([
+    "event ExitFeeSkipped(bytes32 indexed surfaceId, address indexed actor, address indexed asset, uint256 grossAmount, uint16 rateBps, uint8 reason)",
+]);
+/** IExitFeeController.SkipReason.VAULT_REVERT: the fee leg's OWN transfer to
+ *  the fee destination reverted. Every fee hook here is deliberately
+ *  fail-open on this one reason — it pays the full gross with no fee taken,
+ *  which is correct, specified behavior, not a defect in the withdrawal
+ *  itself. */
+const SKIP_REASON_VAULT_REVERT = 5;
+
+/** The `ExitFeeSkipped(..., reason=VAULT_REVERT)` event for this surface and
+ *  actor in a receipt, or `null`. Distinguishes "the fee transfer itself
+ *  failed and the hook correctly fell back to full gross" from "nothing
+ *  charged the fee at all" — the two read identically in the balances alone. */
+const findVaultRevertSkip = (receipt, surfaceId, actor) => {
+    for (const log of receipt.logs) {
+        let parsed;
+        try {
+            parsed = PERIMETER_EVENTS_INTERFACE.parseLog(log);
+        } catch (error) {
+            continue;
+        }
+        if (parsed.name !== "ExitFeeSkipped") continue;
+        if (parsed.args.surfaceId !== surfaceId) continue;
+        if (ethers.utils.getAddress(parsed.args.actor) !== ethers.utils.getAddress(actor))
+            continue;
+        if (parsed.args.reason !== SKIP_REASON_VAULT_REVERT) continue;
+        return parsed.args;
+    }
+    return null;
+};
+
+/** Zero's Status.active and Status.closedByRedemption. */
+const TROVE_ACTIVE = 1;
+const TROVE_CLOSED_BY_REDEMPTION = 4;
+
+const LEND_AMOUNT = ethers.utils.parseEther("1");
+const LOAN_DURATION = 28 * 24 * 60 * 60;
+const BORROW_AMOUNT = ethers.utils.parseEther("300");
+/** The slice of collateral the borrower and Zero drivers withdraw. Small on
+ *  purpose: the point is to queue an exit, not to unwind the position. */
+const BORROWER_WITHDRAW_AMOUNT = ethers.utils.parseEther("0.00001");
+const ZERO_WITHDRAW_AMOUNT = ethers.utils.parseEther("0.0001");
+/** Zero's origination/redemption rates float; every probe below is
+ *  balance-based, so the rate actually charged never enters an assertion. */
+const MAX_ZERO_FEE_PERCENTAGE = ethers.utils.parseEther("0.99");
+
+const nativeBalance = (address) => ethers.provider.getBalance(address);
+
+const rpcProvider = (s) =>
+    s.provider || new ethers.providers.JsonRpcProvider(hre.network.config.url);
+
+/** Unlock an account without taking anything off it. `forkOps.impersonate`
+ *  OVERWRITES the balance with its own float, which on a QA fork would silently
+ *  undo the funding the bootstrap put on the account; this restores whichever
+ *  of the two is larger. */
+const solventSigner = async (s, address) => {
+    const provider = rpcProvider(s);
+    const held = await ethers.provider.getBalance(address);
+    const signer = await forkOps.impersonate(provider, address);
+    const floor = await ethers.provider.getBalance(address);
+    // hexValue, not toHexString: a JSON-RPC QUANTITY is refused when it carries
+    // the leading zero a 32-byte hex string keeps.
+    if (held.gt(floor)) {
+        await forkOps.setBalance(provider, address, ethers.utils.hexValue(held));
+    }
+    return signer;
+};
+
+const addressOf = async (signer) =>
+    ethers.utils.getAddress(signer.address || (await signer.getAddress()));
+
+/** The single request a surface call must have queued, with the queue's own
+ *  view of it. Throws when the call queued none or more than one.
+ *
+ *  `opts.expectQueued === false` says the caller knows the perimeter is switched
+ *  off, so the product paid on the spot; the absence of a request is then the
+ *  result rather than a fault, and `{ id: null }` comes back. */
+const queuedBy = async (s, label, surfaceId, lastIdBefore, opts = {}) => {
+    const id = await s.queue.lastRequestId();
+    const queued = id.sub(lastIdBefore);
+    if (opts.expectQueued === false) {
+        if (!queued.isZero()) {
+            throw new Error(
+                `${label}: the perimeter is switched off, yet the queue recorded ${queued} exit(s)`
+            );
+        }
+        return { id: null, request: null };
+    }
+    if (!queued.eq(1)) {
+        throw new Error(
+            `${label}: expected exactly one queued exit, the queue recorded ${queued}`
+        );
+    }
+    const request = await s.queue.getRequest(id);
+    if (request.surfaceId !== surfaceId) {
+        throw new Error(
+            `${label}: the queued exit carries surface ${request.surfaceId}, not ${surfaceId}`
+        );
+    }
+    if (request.status !== STATUS.Queued) {
+        throw new Error(`${label}: the queued exit is already in status ${request.status}`);
+    }
+    return { id, request };
+};
+
+/**
+ * Assert the queue recorded the parties a surface's own hooks say it must —
+ * never just the receiver. `expected` maps a role (`originator`, `owner`,
+ * `receiver`) on `request` to the address that surface's source resolves that
+ * role to (worked out by reading the hook, not assumed); a hook that
+ * misrecords one is caught here, rather than three steps downstream when a
+ * freeze or a recovery acts on the wrong address.
+ */
+const assertRequestParties = (label, request, expected) => {
+    for (const [role, want] of Object.entries(expected)) {
+        const got = request[role];
+        if (ethers.utils.getAddress(got) !== ethers.utils.getAddress(want)) {
+            throw new Error(`${label}: the queue recorded ${role} ${got}, not ${want}`);
+        }
+    }
+};
+
+/**
+ * Prove the Perimeter fee was actually charged on a held withdrawal, not just
+ * that something was escrowed. `gross` is never assumed ahead of time — it is
+ * derived from what was actually measured (the fee destination's balance
+ * delta plus the escrowed net), then checked for self-consistency against the
+ * controller's own quote for that gross and actor. A hook that escrows the
+ * full gross with no fee taken at all fails this the moment the actor is not
+ * exempt: the controller quotes a nonzero fee for that gross, but nothing
+ * reached the fee destination, so the quoted and the measured fee diverge. An
+ * exempt actor (rate 0) is unaffected: quoted and measured fee both read 0.
+ *
+ * A mismatch has two distinct causes that read identically in the balances
+ * alone: the fee was never charged at all (a real defect), or the fee leg's
+ * OWN transfer reverted and the hook's documented fail-open behavior paid the
+ * full gross instead (correct, not a defect — but still worth failing THIS
+ * check, whose job is to prove a charge happened, with a message that says
+ * which one occurred). `receipt` — the withdrawal call's own receipt — is
+ * read for an `ExitFeeSkipped(VAULT_REVERT)` event on this surface/actor to
+ * tell the two apart.
+ *
+ * `feeReceiverBefore`/`feeReceiverAfter` are balances of `controller.feeReceiver()`
+ * in whichever asset the surface actually pays its fee leg in — native RBTC or
+ * an ERC20 — read by the caller immediately around the withdrawal call.
+ * `feeReceiver` is that same address, passed through so this can tell whether
+ * the withdrawal's own signer paid its own fee. `feeAsset` is which asset that
+ * is (the zero address for native, a token address otherwise) — the caller
+ * already knows this statically, from choosing how to read `feeReceiverAfter`
+ * two lines above; passed through rather than guessed, because gas is never
+ * paid in an ERC20 and crediting it back to a token balance would be wrong.
+ */
+
+/**
+ * This module's `s` comes from two different fixtures that shape it
+ * differently: the interactive QA CLI's own `attachQa`
+ * (tests-onchain/perimeter/qa/bootstrap.js) carries the ExitFeeController at
+ * the top level, `s.controller`; `perimeterDelayE2E.test.js`'s `s`
+ * (tests-onchain/perimeter/phase2Stack.js's `setupPhase2Stack` /
+ * `attachToInstalledPhase2Stack`) carries the same, real, live controller
+ * nested as `s.stack.controller` instead. Both are read here rather than
+ * hard-coding one shape, so the fee-accounting check this function backs
+ * works for either caller without weakening what it checks. A caller whose
+ * `s` supplies neither shape gets a loud, named failure — never a silent
+ * skip of the fee check.
+ */
+const controllerOf = (s) => {
+    const controller = (s && s.controller) || (s && s.stack && s.stack.controller);
+    if (!controller) {
+        throw new Error(
+            "fee accounting not checked: this driver's `s` carries neither `controller` nor " +
+                "`stack.controller` — the caller's fixture does not supply an ExitFeeController " +
+                "for the fee-accounting check to read"
+        );
+    }
+    return controller;
+};
+
+const assertExitFeeAccounted = async (
+    s,
+    {
+        label,
+        surfaceId,
+        subProduct,
+        actor,
+        feeReceiver,
+        feeReceiverBefore,
+        feeReceiverAfter,
+        feeAsset,
+        netRecorded,
+        receipt,
+    }
+) => {
+    // When the fee receiver IS the withdrawal's own signer, gas the signer
+    // paid for this same transaction is debited from the very balance this
+    // measures — the same contamination engine.js's withdraw() already
+    // normalizes out of the receiver leg. Credit it back the same way, but
+    // only for a native fee leg: gas is never paid in an ERC20.
+    const rawFeeReceived = feeReceiverAfter.sub(feeReceiverBefore);
+    const feeReceived =
+        feeAsset === ZERO_ADDRESS
+            ? gas.creditedDelta(rawFeeReceived, feeReceiver, [gas.chargeOf(receipt)])
+            : rawFeeReceived;
+    if (feeReceived.lt(0)) {
+        throw new Error(
+            `${label}: the fee destination's balance FELL by ${feeReceived.abs()} across the ` +
+                "withdrawal — that cannot be a fee charge"
+        );
+    }
+    const gross = netRecorded.add(feeReceived);
+    const quote = await controllerOf(s).quoteExitFee(surfaceId, subProduct, actor, gross);
+    if (!quote.feeAmount.eq(feeReceived)) {
+        const skip = findVaultRevertSkip(receipt, surfaceId, actor);
+        if (skip) {
+            throw new Error(
+                `${label}: the fee transfer itself failed (ExitFeeSkipped VAULT_REVERT on a ` +
+                    `${skip.grossAmount} gross withdrawal) and the withdrawal paid/queued the full ` +
+                    "gross instead of charging — a fee-vault failure, not a fee that was simply " +
+                    "never attempted"
+            );
+        }
+        throw new Error(
+            `${label}: the fee destination received ${feeReceived}, but the controller quotes a ` +
+                `${quote.feeAmount} fee for ${actor} on a ${gross} gross withdrawal`
+        );
+    }
+    if (!quote.netAmount.eq(netRecorded)) {
+        throw new Error(
+            `${label}: ${netRecorded} was escrowed, but the controller's quote for that gross ` +
+                `leaves ${quote.netAmount} net — fee received plus escrowed net does not ` +
+                "reconcile with what the controller says it should"
+        );
+    }
+    return { gross, feeReceived, quote };
+};
+
+/**
+ * Cross-check `assertExitFeeAccounted`'s derived `gross` (fee received plus
+ * escrowed/paid net — self-consistent by construction, since it is built
+ * from the same two numbers the check measures) against a SEPARATE reading
+ * of what actually left the position, sourced from state the fee-charging
+ * hook never touches: the surplus pool's own pre-claim balance, a loan's or
+ * a trove's own collateral ledger, a token-burn's own redemption price. A
+ * hook that internally computes a smaller-than-real gross — and a
+ * correspondingly smaller net + fee that are self-consistent with the
+ * controller's quote for that wrong gross — passes `assertExitFeeAccounted`
+ * alone; it does not pass this.
+ *
+ * `mode: "exact"` requires equality: the independent reading comes from
+ * state the SAME transaction mutates atomically, before the fee hook runs
+ * (a loan's or a trove's collateral field, the surplus pool's balance), so
+ * there is no timing gap for the two numbers to legitimately differ.
+ *
+ * `mode: "floor"` requires only `gross >= independentGross`: the lender
+ * surface's independent reading is a token price snapshot taken slightly
+ * BEFORE the burn transaction, and the loan token's price only ever rises
+ * between then and the burn (interest accrues, it is never returned), so
+ * the real gross at burn time can legitimately be a little higher than the
+ * pre-call snapshot implies — never lower.
+ */
+const assertGrossIndependentlyGrounded = (label, fee, independentGross, mode) => {
+    if (mode === "floor") {
+        if (fee.gross.lt(independentGross)) {
+            throw new Error(
+                `${label}: fee received plus escrowed net is ${fee.gross}, but an independent ` +
+                    `reading of what left the position puts it at at least ${independentGross}`
+            );
+        }
+        return;
+    }
+    if (!fee.gross.eq(independentGross)) {
+        throw new Error(
+            `${label}: fee received plus escrowed net is ${fee.gross}, but an independent ` +
+                `reading of what left the position is ${independentGross}`
+        );
+    }
+};
+
+/**
+ * Lending, lender exit. Mint an iRBTC position with native RBTC and burn it
+ * straight back: with the delay armed the burn escrows WRBTC in the queue and
+ * unwraps to native at delivery. `opts.amount` is how much RBTC to lend, and so
+ * how much the whole position withdrawn is worth.
+ */
+const queueLenderWithdrawal = async (s, signer, opts = {}) => {
+    const originator = await addressOf(signer);
+    const receiver = opts.receiver || originator;
+    const amount = opts.amount || LEND_AMOUNT;
+
+    if (opts.through) {
+        return queueLenderWithdrawalThrough(s, signer, receiver, amount, opts);
+    }
+
+    const held = await s.iRBTC.balanceOf(originator);
+    await (await s.iRBTC.connect(signer).mintWithBTC(originator, false, { value: amount })).wait();
+    const minted = (await s.iRBTC.balanceOf(originator)).sub(held);
+    if (!minted.gt(0)) throw new Error("lender withdrawal: no iRBTC position was minted");
+
+    const feeReceiver = await controllerOf(s).feeReceiver();
+    const before = {
+        originator: await nativeBalance(originator),
+        receiver: await nativeBalance(receiver),
+    };
+    // burnToBTC pays its fee leg in NATIVE RBTC, never the iToken's WRBTC
+    // underlying: it runs through LoanTokenLogicWrbtcLM
+    // ._chargeExitFeeAndPayAsNative, whose fee transfer is
+    // _transferNativeRBTC — unwrap WRBTC held by the iToken, then a
+    // low-level native call to the fee receiver. (The ERC20-underlying fee
+    // path, LoanTokenLogicShared._chargeExitFeeAndPay, belongs to the plain
+    // burn() entry point, which this driver never calls.)
+    const feeBefore = await nativeBalance(feeReceiver);
+    const lastIdBefore = await s.queue.lastRequestId();
+    // Independent floor for the gross this burn redeems: the iToken's own
+    // `tokenPrice()`, read BEFORE the burn — outside the fee hook, and
+    // outside the burn's own internal price recomputation
+    // (`LoanTokenLogicSplit._burnToken`, `contracts/connectors/loantoken/
+    // LoanTokenLogicSplit.sol:160-162`: `loanAmountOwed = burnAmount *
+    // currentPrice / 1e18`). The price only rises between this read and the
+    // burn (interest accrues, never returned), so `minted * tokenPriceBefore
+    // / 1e18` is a valid lower bound on the real gross, never an
+    // overstatement.
+    const tokenPriceBefore = await s.iRBTC.tokenPrice();
+    const receipt = await (
+        await s.iRBTC.connect(signer).burnToBTC(receiver, minted, false)
+    ).wait();
+
+    const { id, request } = await queuedBy(
+        s,
+        "lender withdrawal",
+        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        lastIdBefore,
+        opts
+    );
+    if (!request) return { id, request, receipt, before, subProduct: s.iRBTC.address };
+    // owner == rawOriginator == msg.sender by construction on this surface —
+    // burnToBTC(receiver, amt) burns the CALLER's own iTokens; see
+    // LoanTokenLogicWrbtcLM._payExitUserLegNative.
+    assertRequestParties("lender withdrawal", request, {
+        originator,
+        owner: originator,
+        receiver,
+    });
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "lender withdrawal",
+        surfaceId: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        subProduct: s.iRBTC.address,
+        actor: originator,
+        feeReceiver,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
+        netRecorded: request.amount,
+        receipt,
+    });
+    assertGrossIndependentlyGrounded(
+        "lender withdrawal",
+        fee,
+        minted.mul(tokenPriceBefore).div(ethers.constants.WeiPerEther),
+        "floor"
+    );
+    return { id, request, receipt, before, fee, subProduct: s.iRBTC.address };
+};
+
+/**
+ * `opts.through` variant of the lender driver: a QA-only wrapper contract
+ * (contracts/mockup/perimeter/MockQaThroughWrapper.sol, deployed by
+ * bootstrapQa as `state.withdrawWrapper`) mints and immediately burns the
+ * position ITSELF, so the queued request's originator and owner are the
+ * wrapper's own address rather than `signer`'s — an unlocked withdrawal
+ * whose recorded owner is a contract, deliverable by anyone, which is the
+ * one queue state nothing else here can produce. `signer` only funds the
+ * call and names `receiver`; every assertion below reads the wrapper as the
+ * actor the product itself attributes the exit fee to — `msg.sender` at
+ * both the mint and the burn — matching what the real product code does
+ * whenever any contract sits
+ * between a user and the pool (see
+ * contracts/mockup/perimeter/MockThirdPartyWrapper.sol's own docstring for
+ * the same attribution rule, proven for the ERC20-underlying `burn()` path).
+ */
+const queueLenderWithdrawalThrough = async (s, signer, receiver, amount, opts) => {
+    const wrapperAddress = ethers.utils.getAddress(opts.through);
+    const wrapper = await ethers.getContractAt("MockQaThroughWrapper", wrapperAddress, signer);
+
+    const feeReceiver = await controllerOf(s).feeReceiver();
+    const before = {
+        originator: await nativeBalance(wrapperAddress),
+        receiver: await nativeBalance(receiver),
+    };
+    const feeBefore = await nativeBalance(feeReceiver);
+    const lastIdBefore = await s.queue.lastRequestId();
+    const tokenPriceBefore = await s.iRBTC.tokenPrice();
+
+    // The mint and the burn both happen inside this one call, so there is no
+    // before/after balance of the WRAPPER to read `minted` off — its iToken
+    // balance is zero on both sides of the transaction by construction (mint
+    // then immediately burn, same as a vault passing a user's funds straight
+    // through). The wrapper's own return value is the only source for it;
+    // read it with a static call first — no state change, no gas — so it is
+    // known before the real send needs it for the gross-grounding floor.
+    const minted = await wrapper.callStatic.withdrawLenderOnBehalf(s.iRBTC.address, receiver, {
+        value: amount,
+    });
+    if (!minted.gt(0)) {
+        throw new Error("lender withdrawal --through: no iRBTC position was minted");
+    }
+    const receipt = await (
+        await wrapper.withdrawLenderOnBehalf(s.iRBTC.address, receiver, { value: amount })
+    ).wait();
+
+    const { id, request } = await queuedBy(
+        s,
+        "lender withdrawal --through",
+        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        lastIdBefore,
+        opts
+    );
+    if (!request) {
+        return {
+            id,
+            request,
+            receipt,
+            before,
+            subProduct: s.iRBTC.address,
+            owner: wrapperAddress,
+        };
+    }
+    // msg.sender at both the mint and the burn is the wrapper, never
+    // `signer` — the whole point of this path.
+    assertRequestParties("lender withdrawal --through", request, {
+        originator: wrapperAddress,
+        owner: wrapperAddress,
+        receiver,
+    });
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "lender withdrawal --through",
+        surfaceId: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        subProduct: s.iRBTC.address,
+        actor: wrapperAddress,
+        feeReceiver,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
+        netRecorded: request.amount,
+        receipt,
+    });
+    assertGrossIndependentlyGrounded(
+        "lender withdrawal --through",
+        fee,
+        minted.mul(tokenPriceBefore).div(ethers.constants.WeiPerEther),
+        "floor"
+    );
+    return {
+        id,
+        request,
+        receipt,
+        before,
+        fee,
+        subProduct: s.iRBTC.address,
+        owner: wrapperAddress,
+    };
+};
+
+const PRICE_FEEDS_ABI = [
+    "function priceFeeds() view returns (address)",
+    "function queryRate(address,address) view returns (uint256 rate, uint256 precision)",
+    "function pricesFeeds(address) view returns (address)",
+];
+const MOC_FEED_ABI = [
+    "function latestAnswer() view returns (uint256)",
+    "function mocOracleAddress() view returns (address)",
+    "function owner() view returns (address)",
+    "function setMoCOracleAddress(address)",
+];
+const MEDIANIZER_ABI = ["function peek() view returns (bytes32,bool)"];
+
+/**
+ * Make the protocol quote a collateral price again.
+ *
+ * The RBTC/USD source the protocol reads is a MoC medianizer, and a medianizer
+ * price expires within about a minute of the block it was published in. A fork
+ * is therefore priceless for lending almost as soon as it is booted, and the
+ * borrower surface cannot be reached at all. This pins the RBTC price at the
+ * last value the fork saw, by rotating the live RBTC feed's oracle onto a
+ * fixed-price medianizer through the feed's own owner — the authority that
+ * rotates an oracle in production.
+ *
+ * Only the RBTC/USD source is touched. Every other feed the protocol holds,
+ * and the whole feed registry, is left exactly as the fork found it, so pairs
+ * that do not involve RBTC keep quoting live numbers.
+ *
+ * A no-op wherever the live oracle still answers.
+ */
+const ensureCollateralPrice = async (s, opts = {}) => {
+    const log = opts.log || (() => {});
+    const wrbtcAddress = s.wrbtc.address;
+    const xusdAddress = (await get("XUSD")).address;
+    const protocol = new ethers.Contract(s.protocol.address, PRICE_FEEDS_ABI, ethers.provider);
+    const feeds = new ethers.Contract(
+        await protocol.priceFeeds(),
+        PRICE_FEEDS_ABI,
+        ethers.provider
+    );
+    try {
+        const live = await feeds.queryRate(xusdAddress, wrbtcAddress);
+        if (live.rate.gt(0)) return { rotated: false, price: null };
+    } catch (error) {
+        // The feed refuses to quote — fall through and pin it.
+    }
+
+    const feed = new ethers.Contract(
+        await feeds.pricesFeeds(wrbtcAddress),
+        MOC_FEED_ABI,
+        ethers.provider
+    );
+    const medianizer = new ethers.Contract(
+        await feed.mocOracleAddress(),
+        MEDIANIZER_ABI,
+        ethers.provider
+    );
+    // The expired publication still carries the number it published; that is
+    // the most faithful price this fork has ever seen.
+    let price = ethers.BigNumber.from((await medianizer.peek())[0]);
+    if (!price.gt(0)) {
+        price = await (await ethers.getContract("PriceFeed")).callStatic.fetchPrice();
+    }
+    if (!price.gt(0)) {
+        throw new Error("collateral price: the fork carries no RBTC price to pin");
+    }
+
+    const deployer = (await ethers.getSigners())[0];
+    const pinned = await (
+        await ethers.getContractFactory("MockMoCMedianizer", deployer)
+    ).deploy(price);
+    await pinned.deployed();
+    const feedOwner = await solventSigner(s, await feed.owner());
+    await (await feed.connect(feedOwner).setMoCOracleAddress(pinned.address)).wait();
+
+    const after = await feeds.queryRate(xusdAddress, wrbtcAddress);
+    if (!after.rate.gt(0)) {
+        throw new Error("collateral price: the protocol still quotes nothing after the rotation");
+    }
+    log(`  collateral price pinned at ${ethers.utils.formatEther(price)} USD/RBTC`);
+    return { rotated: true, price, medianizer: pinned.address };
+};
+
+/**
+ * Lending, borrower exit. Open an XUSD loan against WRBTC collateral, then take
+ * a slice of that collateral back out — the call the borrower surface covers.
+ * The loan is left open: this withdraws collateral from a live position, it does
+ * not close one.
+ *
+ * `opts.amount` is how much collateral to take out.
+ */
+const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
+    const originator = await addressOf(signer);
+    const receiver = opts.receiver || originator;
+    const borrowAmount = opts.borrowAmount || BORROW_AMOUNT;
+    const wrbtcAddress = s.wrbtc.address;
+    await ensureCollateralPrice(s, opts);
+
+    // 20% over the quote: the collateral requirement is priced at call time and
+    // the loan must open above the maintenance margin, not exactly on it.
+    const collateralNeeded = (
+        await s.iXUSD.getDepositAmountForBorrow(borrowAmount, LOAN_DURATION, wrbtcAddress)
+    )
+        .mul(120)
+        .div(100);
+    const borrowReceipt = await (
+        await s.iXUSD
+            .connect(signer)
+            .borrow(
+                ethers.constants.HashZero,
+                borrowAmount,
+                LOAN_DURATION,
+                collateralNeeded,
+                wrbtcAddress,
+                originator,
+                originator,
+                "0x",
+                { value: collateralNeeded }
+            )
+    ).wait();
+    const borrowEvent = borrowReceipt.logs
+        .map((log) => {
+            try {
+                return s.protocol.interface.parseLog(log);
+            } catch (e) {
+                return null;
+            }
+        })
+        .find((parsed) => parsed && parsed.name === "Borrow");
+    if (!borrowEvent) throw new Error("borrower withdrawal: the borrow did not open a loan");
+
+    const feeReceiver = await controllerOf(s).feeReceiver();
+    const before = {
+        originator: await nativeBalance(originator),
+        receiver: await nativeBalance(receiver),
+    };
+    // The borrower surface's fee leg pays in the loan's collateral token, which
+    // this driver always opens as WRBTC — BorrowerExitPerimeterOps unwraps that
+    // to native before paying the fee receiver; see
+    // BorrowerExitPerimeterOps._payExitFeeLeg.
+    const feeBefore = await nativeBalance(feeReceiver);
+    const lastIdBefore = await s.queue.lastRequestId();
+    // Independent ground truth for the gross this withdrawal removes: the
+    // loan's OWN collateral ledger, read straight off the protocol before
+    // and after. `LoanMaintenance.withdrawCollateral` decrements
+    // `loanLocal.collateral` by `actualWithdrawAmount` — capped by the
+    // margin/drawdown check, not the caller's requested amount — BEFORE it
+    // ever calls the fee-charging hook
+    // (`contracts/modules/LoanMaintenance.sol:176-194`), so this delta is
+    // exactly the gross the fee hook receives, from a ledger the hook itself
+    // never touches.
+    const loanCollateralBefore = (await s.protocol.getLoan(borrowEvent.args.loanId)).collateral;
+    const receipt = await (
+        await s.protocol
+            .connect(signer)
+            .withdrawCollateral(
+                borrowEvent.args.loanId,
+                receiver,
+                opts.amount || BORROWER_WITHDRAW_AMOUNT
+            )
+    ).wait();
+    const loanCollateralAfter = (await s.protocol.getLoan(borrowEvent.args.loanId)).collateral;
+
+    const { id, request } = await queuedBy(
+        s,
+        "borrower withdrawal",
+        PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+        lastIdBefore,
+        opts
+    );
+    if (!request) {
+        return {
+            id,
+            request,
+            receipt,
+            before,
+            loanId: borrowEvent.args.loanId,
+            subProduct: s.iXUSD.address,
+        };
+    }
+    // rawOriginator = msg.sender, owner = loanLocal.borrower — set to
+    // `originator` by this driver's own `borrow()` call above; see
+    // BorrowerExitPerimeter._maybeDelayBorrowerExit.
+    assertRequestParties("borrower withdrawal", request, {
+        originator,
+        owner: originator,
+        receiver,
+    });
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "borrower withdrawal",
+        surfaceId: PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW,
+        // Policy resolution key: the iToken pool the loan was originated
+        // against (loanLocal.lender), which this driver always opens via
+        // s.iXUSD; see BorrowerExitPerimeter._chargeExitFeeReturnNet.
+        subProduct: s.iXUSD.address,
+        actor: originator,
+        feeReceiver,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
+        netRecorded: request.amount,
+        receipt,
+    });
+    assertGrossIndependentlyGrounded(
+        "borrower withdrawal",
+        fee,
+        loanCollateralBefore.sub(loanCollateralAfter),
+        "exact"
+    );
+    return {
+        id,
+        request,
+        receipt,
+        before,
+        loanId: borrowEvent.args.loanId,
+        fee,
+        subProduct: s.iXUSD.address,
+    };
+};
+
+/**
+ * Zero, collateral withdrawal. Open a trove with native RBTC, then take a slice
+ * of the collateral back out. `opts.amount` is how much collateral to take out.
+ */
+const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
+    const originator = await addressOf(signer);
+    // withdrawColl() takes no receiver argument — Zero always pays the trove
+    // owner (== msg.sender on this surface); see
+    // BorrowerOperationsPerimeterOps.sendCollWithExitFee, which quotes and pays
+    // with `borrower` as originator, owner AND receiver. A caller asking for a
+    // different receiver is refused up front rather than left to discover, once
+    // the request is queued, that the override was silently ignored.
+    if (opts.receiver && ethers.utils.getAddress(opts.receiver) !== originator) {
+        throw new Error(
+            "Zero collateral withdrawal: this surface has no receiver argument to override — " +
+                "withdrawColl() always pays the trove owner, so a --receiver different from the " +
+                "originator cannot be honored here"
+        );
+    }
+    const receiver = originator;
+    const troveManager = await ethers.getContract("TroveManager");
+    // An account may hold only one trove, so a second withdrawal from the same
+    // account takes collateral out of the trove it already has.
+    if (!(await troveManager.getTroveStatus(originator)).eq(TROVE_ACTIVE)) {
+        const borrowAmount = (await s.borrowerOperations.MIN_NET_DEBT()).mul(2);
+        await (
+            await s.borrowerOperations
+                .connect(signer)
+                .openTrove(MAX_ZERO_FEE_PERCENTAGE, borrowAmount, originator, originator, {
+                    value: opts.collateral || ONE_RBTC.mul(2),
+                })
+        ).wait();
+    }
+
+    const feeReceiver = await controllerOf(s).feeReceiver();
+    const before = {
+        originator: await nativeBalance(originator),
+        receiver: await nativeBalance(receiver),
+    };
+    // Zero's fee leg always pays native RBTC; see
+    // BorrowerOperationsPerimeterOps.sendCollWithExitFee.
+    const feeBefore = await nativeBalance(feeReceiver);
+    const lastIdBefore = await s.queue.lastRequestId();
+    // Independent ground truth for the gross this withdrawal removes: the
+    // trove's OWN collateral ledger, read straight off TroveManager before
+    // and after. `BorrowerOperations._updateTroveFromAdjustment` calls
+    // `troveManager.decreaseTroveColl` with the exact requested withdrawal
+    // BEFORE `_moveTokensAndETHfromAdjustment` ever calls the fee-charging
+    // hook (zero-contracts `contracts/BorrowerOperations.sol:705,900-902,
+    // 936`; `getTroveColl` at `contracts/TroveManager.sol:1095`), so this
+    // delta is exactly the gross the fee hook receives, from a ledger the
+    // hook itself never touches.
+    const troveCollBefore = await troveManager.getTroveColl(originator);
+    // Zero pays a collateral withdrawal to the trove owner; the hint arguments
+    // are the re-insertion position, not a payout address.
+    const receipt = await (
+        await s.borrowerOperations
+            .connect(signer)
+            .withdrawColl(opts.amount || ZERO_WITHDRAW_AMOUNT, originator, originator)
+    ).wait();
+    const troveCollAfter = await troveManager.getTroveColl(originator);
+
+    const { id, request } = await queuedBy(
+        s,
+        "Zero collateral withdrawal",
+        PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+        lastIdBefore,
+        opts
+    );
+    if (!request) return { id, request, receipt, before, subProduct: ZERO_ADDRESS };
+    // Zero has no passthrough on this surface: originator == owner == receiver
+    // == the trove owner, all read off `borrower` in
+    // BorrowerOperationsPerimeterOps.sendCollWithExitFee.
+    assertRequestParties("Zero collateral withdrawal", request, {
+        originator,
+        owner: originator,
+        receiver: originator,
+    });
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "Zero collateral withdrawal",
+        surfaceId: PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
+        subProduct: ZERO_ADDRESS,
+        actor: originator,
+        feeReceiver,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
+        netRecorded: request.amount,
+        receipt,
+    });
+    assertGrossIndependentlyGrounded(
+        "Zero collateral withdrawal",
+        fee,
+        troveCollBefore.sub(troveCollAfter),
+        "exact"
+    );
+    return { id, request, receipt, before, fee, subProduct: ZERO_ADDRESS };
+};
+
+/** An address derived from another one, so a driver that needs a second actor
+ *  gets a deterministic one instead of a random key. */
+const derivedActor = (from, tag) =>
+    ethers.utils.getAddress(
+        ethers.utils.hexDataSlice(
+            ethers.utils.keccak256(ethers.utils.concat([from, ethers.utils.toUtf8Bytes(tag)])),
+            12
+        )
+    );
+
+/**
+ * Zero, collateral-surplus claim. A FULL redemption of the signer's trove
+ * closes it and leaves the owner a claimable collateral surplus; claiming that
+ * surplus is the fourth delayed surface.
+ *
+ * The trove has to be the system's first redeemable one, so it is opened just
+ * above the live redemption queue's floor rather than at a hardcoded ratio.
+ *
+ * The surplus is whatever the redemption leaves behind, so `opts.amount` has
+ * nothing to size here and is ignored.
+ *
+ * `opts.redeemer` is the account that performs the redemption (derived from the
+ * signer when not given) and `opts.fundFrom` are signers whose ZUSD it may
+ * spend. A redeemer that still cannot cover the redemption opens its own
+ * high-ratio trove — which sits above the probe in the queue, so the probe stays
+ * first — and spends that ZUSD instead.
+ *
+ * `opts.setupOnly` stops after the redemption, before claimCollateral() —
+ * the one call that both claims the surplus and queues the delayed exit — is
+ * ever sent, leaving a claimable surplus sitting on `victim`'s account
+ * instead. There is otherwise no way to produce that state: the redemption
+ * and the claim are always one command.
+ */
+const queueSurplusClaim = async (s, signer, opts = {}) => {
+    const victim = await addressOf(signer);
+    // claimCollateral() takes no receiver argument — the pool always pays the
+    // caller; see BorrowerOperationsPerimeterOps.claimSurplusWithPerimeter,
+    // which quotes and pays with `claimant = msg.sender` as originator, owner
+    // AND receiver. A caller asking for a different receiver is refused up
+    // front rather than left to discover, once the claim is queued, that the
+    // override was silently ignored.
+    if (opts.receiver && ethers.utils.getAddress(opts.receiver) !== victim) {
+        throw new Error(
+            "surplus claim: this surface has no receiver argument to override — " +
+                "claimCollateral() always pays the caller, so a --receiver different from the " +
+                "claimant cannot be honored here"
+        );
+    }
+    const receiver = victim;
+    const redeemerAddress = opts.redeemer || derivedActor(victim, "perimeter-qa-redeemer");
+    const fundFrom = opts.fundFrom || [];
+
+    const troveManager = await ethers.getContract("TroveManager");
+    const hintHelpers = await ethers.getContract("HintHelpers");
+    const sortedTroves = await ethers.getContract("SortedTroves");
+    const zeroPriceFeed = await ethers.getContract("PriceFeed");
+    const zusd = new ethers.Contract((await get("ZUSDToken")).address, ERC20_ABI, ethers.provider);
+    const collSurplusPool = new ethers.Contract(
+        (await get("CollSurplusPool_Proxy")).address,
+        collSurplusPoolFixture.abi,
+        ethers.provider
+    );
+
+    // The claim needs a trove that a redemption can close, and an account may
+    // hold only one, so an account already carrying one cannot reach this
+    // surface until that trove is gone.
+    if ((await troveManager.getTroveStatus(victim)).eq(TROVE_ACTIVE)) {
+        throw new Error(
+            `surplus claim: ${victim} already has an open trove — the surplus surface needs an ` +
+                "account with none, so run it as a different account"
+        );
+    }
+
+    const redeemer = await solventSigner(s, redeemerAddress);
+    const price = await zeroPriceFeed.callStatic.fetchPrice();
+    const gasCompensation = await s.borrowerOperations.ZUSD_GAS_COMPENSATION();
+    const borrowAmount = (await s.borrowerOperations.MIN_NET_DEBT()).mul(2);
+    const expectedDebt = borrowAmount
+        .add(await troveManager.getBorrowingFeeWithDecay(borrowAmount))
+        .add(gasCompensation);
+
+    // Whatever the redeemer can already be handed — its own balance, the probe's
+    // own borrow, and anything the caller offered — plus a trove of its own when
+    // that is short of the probe's redeemable debt. Opened BEFORE the probe so
+    // the probe is measured against a queue that already contains it.
+    let available = (await zusd.balanceOf(redeemerAddress)).add(borrowAmount);
+    for (const source of fundFrom) {
+        available = available.add(await zusd.balanceOf(await addressOf(source)));
+    }
+    const redeemerHasTrove = (await troveManager.getTroveStatus(redeemerAddress)).eq(TROVE_ACTIVE);
+    if (available.lt(expectedDebt.sub(gasCompensation)) && !redeemerHasTrove) {
+        await (
+            await s.borrowerOperations
+                .connect(redeemer)
+                .openTrove(
+                    MAX_ZERO_FEE_PERCENTAGE,
+                    borrowAmount,
+                    redeemerAddress,
+                    redeemerAddress,
+                    { value: ONE_RBTC.mul(2) }
+                )
+        ).wait();
+    }
+
+    const mcr = await troveManager.MCR();
+    let probeIcr = ethers.utils.parseEther("1.13");
+    const floorHints = await hintHelpers.getRedemptionHints(ONE_RBTC, price, 0);
+    if (floorHints.firstRedemptionHint !== ZERO_ADDRESS) {
+        const floorIcr = await troveManager.getCurrentICR(floorHints.firstRedemptionHint, price);
+        if (floorIcr.lte(probeIcr)) {
+            const gap = floorIcr.sub(mcr);
+            if (gap.lt(ethers.utils.parseEther("0.0004"))) {
+                throw new Error(
+                    "surplus claim: the live redemption queue's floor grazes the MCR — no room " +
+                        "to open the probe trove below it"
+                );
+            }
+            probeIcr = mcr.add(gap.div(2));
+        }
+    }
+    await (
+        await s.borrowerOperations
+            .connect(signer)
+            .openTrove(MAX_ZERO_FEE_PERCENTAGE, borrowAmount, victim, victim, {
+                value: expectedDebt.mul(probeIcr).div(price).add(1),
+            })
+    ).wait();
+
+    for (const source of [signer, ...fundFrom]) {
+        const from = await addressOf(source);
+        const balance = await zusd.balanceOf(from);
+        if (balance.gt(0)) {
+            await (await zusd.connect(source).transfer(redeemerAddress, balance)).wait();
+        }
+    }
+
+    const redeemable = (await troveManager.getEntireDebtAndColl(victim)).debt.sub(gasCompensation);
+    if ((await zusd.balanceOf(redeemerAddress)).lt(redeemable)) {
+        throw new Error(
+            "surplus claim: the redeemer cannot cover a full redemption of the probe trove"
+        );
+    }
+    const hints = await hintHelpers.getRedemptionHints(redeemable, price, 0);
+    if (ethers.utils.getAddress(hints.firstRedemptionHint) !== victim) {
+        throw new Error(
+            "surplus claim: the probe trove is not the system's first redeemable trove — the " +
+                "redemption would consume someone else's position"
+        );
+    }
+    const [upper, lower] = await sortedTroves.findInsertPosition(
+        hints.partialRedemptionHintNICR,
+        hints.firstRedemptionHint,
+        hints.firstRedemptionHint
+    );
+    await (
+        await troveManager
+            .connect(redeemer)
+            .redeemCollateral(
+                redeemable,
+                hints.firstRedemptionHint,
+                upper,
+                lower,
+                hints.partialRedemptionHintNICR,
+                0,
+                MAX_ZERO_FEE_PERCENTAGE
+            )
+    ).wait();
+    // getTroveStatus answers uint256, so compare numerically — a strict
+    // comparison against the enum's number is never true.
+    if (!(await troveManager.getTroveStatus(victim)).eq(TROVE_CLOSED_BY_REDEMPTION)) {
+        throw new Error("surplus claim: the probe trove was not closed by the redemption");
+    }
+    const surplusGross = await collSurplusPool.getCollateral(victim);
+    if (!surplusGross.gt(0)) throw new Error("surplus claim: the redemption left no surplus");
+
+    // `opts.setupOnly` stops here, before claimCollateral() ever runs — the
+    // redemption above is what CREATES the surplus, and claimCollateral() is
+    // the separate call that both claims it and (with the perimeter armed)
+    // queues the exit. There is no other way to leave a claimable surplus
+    // sitting on an account: the two are otherwise inseparable, one call.
+    if (opts.setupOnly) {
+        return {
+            id: null,
+            request: null,
+            receipt: null,
+            before: null,
+            surplusGross,
+            redeemer: redeemerAddress,
+            subProduct: ZERO_ADDRESS,
+            account: victim,
+            setupOnly: true,
+        };
+    }
+
+    const feeReceiver = await controllerOf(s).feeReceiver();
+    const before = {
+        originator: await nativeBalance(victim),
+        receiver: await nativeBalance(receiver),
+    };
+    // The surplus surface's fee leg always pays native RBTC; see
+    // BorrowerOperationsPerimeterOps.claimSurplusWithPerimeter.
+    const feeBefore = await nativeBalance(feeReceiver);
+    const lastIdBefore = await s.queue.lastRequestId();
+    const receipt = await (await s.borrowerOperations.connect(signer).claimCollateral()).wait();
+
+    const { id, request } = await queuedBy(
+        s,
+        "surplus claim",
+        PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
+        lastIdBefore,
+        opts
+    );
+    if (!request) {
+        return {
+            id,
+            request,
+            receipt,
+            before,
+            surplusGross,
+            redeemer: redeemerAddress,
+            subProduct: ZERO_ADDRESS,
+        };
+    }
+    // Zero has no passthrough on this surface: originator == owner == receiver
+    // == the claimant, all read off `claimant = msg.sender` in
+    // BorrowerOperationsPerimeterOps.claimSurplusWithPerimeter.
+    assertRequestParties("surplus claim", request, {
+        originator: victim,
+        owner: victim,
+        receiver: victim,
+    });
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "surplus claim",
+        surfaceId: PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
+        subProduct: ZERO_ADDRESS,
+        actor: victim,
+        feeReceiver,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
+        netRecorded: request.amount,
+        receipt,
+    });
+    // The surplus pool's pre-claim balance is an INDEPENDENT ground truth for
+    // gross, read straight off the pool before the claim (`surplusGross`,
+    // above) — the same value `claimSurplusWithPerimeter` itself reads as
+    // `gross` before ever calling the fee hook (zero-contracts
+    // `contracts/Dependencies/BorrowerOperationsPerimeterOps.sol`, the
+    // `uint256 gross = pool.getCollateral(claimant);` line).
+    assertGrossIndependentlyGrounded("surplus claim", fee, surplusGross, "exact");
+    return {
+        id,
+        request,
+        receipt,
+        before,
+        surplusGross,
+        redeemer: redeemerAddress,
+        fee,
+        subProduct: ZERO_ADDRESS,
+    };
+};
+
+const SURFACE_DRIVERS = {
+    lender: queueLenderWithdrawal,
+    borrower: queueBorrowerCollateralWithdraw,
+    zero: queueZeroCollWithdraw,
+    surplus: queueSurplusClaim,
+};
+
+module.exports = {
+    STATUS,
+    BLOCK,
+    TROVE_ACTIVE,
+    TROVE_CLOSED_BY_REDEMPTION,
+    LEND_AMOUNT,
+    LOAN_DURATION,
+    MAX_ZERO_FEE_PERCENTAGE,
+    ERC20_ABI,
+    ensureCollateralPrice,
+    assertRequestParties,
+    assertExitFeeAccounted,
+    assertGrossIndependentlyGrounded,
+    queueLenderWithdrawal,
+    queueBorrowerCollateralWithdraw,
+    queueZeroCollWithdraw,
+    queueSurplusClaim,
+    SURFACE_DRIVERS,
+    solventSigner,
+    derivedActor,
+    addressOf,
+};

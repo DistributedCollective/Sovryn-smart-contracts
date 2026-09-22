@@ -151,7 +151,8 @@ contract LoanClosingsLiquidation is LoanClosingsShared, LiquidationHelper {
             loanParamsLocal,
             loanCloseAmount,
             loanLocal.borrower,
-            true
+            true,
+            CloseOrigin.Liquidation
         );
 
         if (loanCloseAmount > loanCloseAmountLessInterest) {

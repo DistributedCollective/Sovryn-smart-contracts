@@ -33,7 +33,20 @@ const PRE_PERIMETER = require("./baselines/release-set.pre-perimeter-modules.jso
 
 /// Perimeter-bearing protocol modules. These carry the renamed slots, surface
 /// ids or selectors, so their executable code really changed.
-const MUST_SHIP = ["LoanClosingsRollover", "LoanClosingsWith", "LoanMaintenance", "ExitFeeModule"];
+// The delay line adds three shipping modules over the fee line: the two split
+// modules carved out of deployed ones (no pre-perimeter counterpart) and the
+// liquidation module, which keeps its direct uncharged payout but compiles
+// against the reshaped shared close base, so its body now differs from what
+// mainnet runs.
+const MUST_SHIP = [
+    "LoanClosingsRollover",
+    "LoanClosingsWith",
+    "LoanMaintenance",
+    "ExitFeeModule",
+    "LoanClosingsLiquidation",
+    "LoanClosingsWithSwap",
+    "LoanMaintenanceViews",
+];
 
 /// Shipping modules with nothing on mainnet to differ from. Derived, never
 /// hand-listed: a module that silently loses its baseline entry would otherwise
@@ -44,7 +57,6 @@ const NEW_MODULES = MUST_SHIP.filter((name) => !PRE_PERIMETER[name]);
 /// runtime code is unchanged; only the metadata fingerprint moved.
 const MUST_NOT_SHIP = [
     "Affiliates",
-    "LoanClosingsLiquidation",
     "LoanOpenings",
     "LoanSettings",
     "ProtocolSettings",
@@ -87,6 +99,8 @@ const body = (hex, libraries) => {
     s = s.replace(/__\$[0-9a-f]{34}\$__/g, LINK_PLACEHOLDER);
     return runtimeBodyWithoutMetadata(s);
 };
+
+const hasRecord = (name) => fs.existsSync(path.join(DEPLOYMENTS, `${name}.json`));
 
 const deployedRecord = (name) => {
     const p = path.join(DEPLOYMENTS, `${name}.json`);
@@ -134,14 +148,16 @@ contract("Perimeter — pinned release set", () => {
      * what keeps it from growing: a module that quietly lost its baseline entry
      * would fail here rather than exempt itself from the release set.
      */
-    it("the only shipping module with no mainnet counterpart is ExitFeeModule", () => {
+    it("the shipping modules with no mainnet counterpart are the new module and the two splits", () => {
+        // ExitFeeModule is the Phase-1 admin module; the two split modules are
+        // carved out of deployed modules and have no registered predecessor.
         expect(
             NEW_MODULES,
             `a shipping module has no entry in the pre-perimeter baseline, so nothing ` +
                 `checks that it differs from what mainnet runs. Either it is genuinely ` +
                 `new — add it here — or its baseline entry went missing and must be ` +
                 `restored from the registered target on chain.`
-        ).to.deep.equal(["ExitFeeModule"]);
+        ).to.deep.equal(["ExitFeeModule", "LoanClosingsWithSwap", "LoanMaintenanceViews"]);
         expect(deployedRecord("ExitFeeModule").address, "ExitFeeModule is not deployed").to.match(
             /^0x[0-9a-fA-F]{40}$/
         );
@@ -161,18 +177,22 @@ contract("Perimeter — pinned release set", () => {
         });
     });
 
-    MUST_NOT_SHIP.concat(MUST_SHIP).forEach((name) => {
-        it(`${name} links only the expected library`, () => {
-            const record = deployedRecord(name);
-            const linked = Object.keys(record.libraries || {});
-            const unexpected = linked.filter((l) => !EXPECTED_LIBRARIES.includes(l));
-            expect(
-                unexpected,
-                `${name} links a library this comparison does not know about, so ` +
-                    `normalising its address away could hide a real change`
-            ).to.deep.equal([]);
+    // A module with no mainnet record yet (the split modules) has no declared
+    // link to check; its linking is proven at deploy time instead.
+    MUST_NOT_SHIP.concat(MUST_SHIP)
+        .filter((name) => hasRecord(name))
+        .forEach((name) => {
+            it(`${name} links only the expected library`, () => {
+                const record = deployedRecord(name);
+                const linked = Object.keys(record.libraries || {});
+                const unexpected = linked.filter((l) => !EXPECTED_LIBRARIES.includes(l));
+                expect(
+                    unexpected,
+                    `${name} links a library this comparison does not know about, so ` +
+                        `normalising its address away could hide a real change`
+                ).to.deep.equal([]);
+            });
         });
-    });
 
     /**
      * The swaps library is linked, not redeployed.
@@ -219,7 +239,7 @@ contract("Perimeter — pinned release set", () => {
         const KNOWN_UNRELINKED = {};
 
         const wrong = [];
-        MUST_SHIP.forEach((name) => {
+        MUST_SHIP.filter((name) => hasRecord(name)).forEach((name) => {
             const linked = (deployedRecord(name).libraries || {}).SwapsImplSovrynSwapLib;
             if (!linked) return;
             const addr = linked.toLowerCase();
