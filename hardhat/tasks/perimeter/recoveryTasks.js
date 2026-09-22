@@ -17,9 +17,13 @@ const QUEUE_ABI = [
     "function recoveryRouteIds() view returns (bytes32[])",
     "function getRecoveryRoute(bytes32) view returns (tuple(bool active, bytes32 surfaceId, address subProduct, address token, address destination, bool topUpPool))",
     "function getRequest(uint256) view returns (tuple(uint128 amount, uint64 createdAt, uint64 unlockAt, address originator, address owner, address receiver, address token, bytes32 surfaceId, address subProduct, uint8 status, bool unwrapOnDelivery))",
+    "function getActive(address party, uint256 cursor, uint256 n) view returns (uint256[] ids, uint256 nextCursor)",
     "function blockStateOf(address) view returns (uint8)",
     "function securityPerimeterPaused() view returns (bool)",
 ];
+
+/** The queue clamps a page of its own active index to this many ids. */
+const ACTIVE_PAGE = 500;
 
 /**
  * The ExitDelayQueue's own address, independently derived from a saved
@@ -89,12 +93,22 @@ const resolveQueue = async (hre, taskLabel, queueParam) => {
             `${taskLabel}: ${address} does not match the known ExitDelayQueue (${known}) — ` +
                 "refusing to treat an address that is not the deployed queue as safe"
         );
+    } else if (queueParam === undefined) {
+        // Nothing was compared: the address came from the deployment record,
+        // and the check re-derived it from that same record. Saying "matches"
+        // here would report a value agreeing with itself as a verification.
+        logger.info(`${taskLabel}: using the deployed ExitDelayQueue ${address}`);
     } else {
         logger.info(`${taskLabel}: ${address} matches the deployed ExitDelayQueue`);
     }
     const queue = await hreEthers.getContractAt(QUEUE_ABI, address);
     return { address: hreEthers.utils.getAddress(address), queue };
 };
+
+/** The queue's own reads at an address a caller has already verified — for a
+ *  task that resolved the queue by some other route than `--queue` and still
+ *  has to read state off it. */
+const queueAt = async (hre, address) => hre.ethers.getContractAt(QUEUE_ABI, address);
 
 /** The queue's WRBTC address, or undefined when the read did not answer — the
  *  destination guard then skips its WRBTC arm rather than passing it on a
@@ -128,6 +142,65 @@ const readTopUpFeasible = async (queue, surfaceId) => {
         );
         return false;
     }
+};
+
+/** Who the queue says holds one of its two roles, or undefined when the read
+ *  did not answer. */
+const readRoleHolder = async (queue, role) => {
+    try {
+        return await queue[role]();
+    } catch (error) {
+        return undefined;
+    }
+};
+
+/**
+ * Refuse a lever the configured multisig may not pull, and say which role it
+ * needs either way.
+ *
+ * `resolveToProtocol` is Admin or Owner; every other recovery lever is
+ * Owner-only. Left unchecked, a wallet holding the wrong role spends a full
+ * round of confirmations on a transaction that was always going to revert, and
+ * nothing anyone read beforehand mentioned a role at all. A read that does not
+ * answer warns rather than refuses — incomplete information is not grounds to
+ * block an incident action the queue itself would accept.
+ */
+const requireQueueRole = async (hre, live, taskLabel, multisigAddress, adminAccepted) => {
+    const { getAddress } = hre.ethers.utils;
+    const wallet = getAddress(multisigAddress);
+    const owner = await readRoleHolder(live, "owner");
+    const admin = adminAccepted ? await readRoleHolder(live, "admin") : undefined;
+    const needs = adminAccepted ? "Admin or Owner" : "Owner";
+
+    const holds = [];
+    if (owner !== undefined && getAddress(owner) === wallet) holds.push("Owner");
+    if (admin !== undefined && getAddress(admin) === wallet) holds.push("Admin");
+    if (holds.length > 0) {
+        logger.info(`Role:       needs ${needs}; ${wallet} holds ${holds.join(" and ")}`);
+        return;
+    }
+
+    const unread = [];
+    if (owner === undefined) unread.push("owner()");
+    if (adminAccepted && admin === undefined) unread.push("admin()");
+    if (unread.length > 0) {
+        logger.warn(
+            `${taskLabel}: this call needs ${needs} on the queue, and the queue's ` +
+                `${unread.join(" and ")} could not be read — confirm by hand that ${wallet} ` +
+                "holds it; the queue enforces the role on chain regardless"
+        );
+        return;
+    }
+
+    const held = adminAccepted
+        ? `Owner is ${getAddress(owner)} and Admin is ${getAddress(admin)}`
+        : `Owner is ${getAddress(owner)}`;
+    throw new Error(
+        `${taskLabel}: this call needs ${needs} on the queue and ${wallet} is neither — ` +
+            `${held}. It would revert ` +
+            `${adminAccepted ? "NotAdminOrOwner" : "OwnableUnauthorizedAccount"} after a full ` +
+            "round of confirmations."
+    );
 };
 
 const resolveMultisigAddress = async (hre, multisigParam) => {
@@ -164,7 +237,136 @@ const presentQueueCall = (queueAddress, built, note) => {
     logger.info(`  calldata:  ${built.data}`);
 };
 
-const submitQueueCall = async (hre, { multisigAddress, queueAddress, signerAcc, built }) => {
+/** Whether one party's active index still lists a request. Paginated the way
+ *  the queue pages it, so a party holding more than one page of held
+ *  withdrawals is read to the end rather than to its first 500. */
+const activeListHolds = async (queue, party, id) => {
+    let cursor = 0;
+    for (;;) {
+        const page = await queue.getActive(party, cursor, ACTIVE_PAGE);
+        if (page.ids.some((held) => held.toString() === String(id))) return true;
+        const next = Number(page.nextCursor);
+        if (next === 0 || next <= cursor) return false;
+        cursor = next;
+    }
+};
+
+/**
+ * Re-read the state a submitted recovery call was meant to establish. `true`
+ * when it holds; otherwise a sentence saying what differs — including a read
+ * that did not answer, which is not proof of anything and must never be
+ * reported as if it were.
+ */
+const checkPostcondition = async (queue, postcondition) => {
+    try {
+        switch (postcondition.kind) {
+            case "refundResolved": {
+                for (const id of postcondition.ids) {
+                    const request = await queue.getRequest(id);
+                    const want = recovery.STATUS_BY_NAME[postcondition.status];
+                    if (Number(request.status) !== want) {
+                        return (
+                            `withdrawal ${id} reads ` +
+                            `${STATUS_NAMES[Number(request.status)]}, not ${postcondition.status}`
+                        );
+                    }
+                    // The status alone does not say the queue finished with
+                    // the request: a party still listing it as active would
+                    // mean the index and the status disagree.
+                    for (const party of [request.originator, request.owner, request.receiver]) {
+                        if (await activeListHolds(queue, party, id)) {
+                            return `withdrawal ${id} is still in ${party}'s active list`;
+                        }
+                    }
+                }
+                return true;
+            }
+            case "routeStored": {
+                const route = await queue.getRecoveryRoute(postcondition.routeId);
+                if (Boolean(route.active) !== postcondition.active) {
+                    return `the route ${postcondition.routeId} reads active=${route.active}`;
+                }
+                // topUpPool is not part of the route id, so a route stored
+                // under the right id can still carry the wrong leg.
+                if (Boolean(route.topUpPool) !== postcondition.topUpPool) {
+                    return (
+                        `the route ${postcondition.routeId} reads ` +
+                        `topUpPool=${route.topUpPool}, not ${postcondition.topUpPool}`
+                    );
+                }
+                return true;
+            }
+            case "routeRemoved": {
+                const route = await queue.getRecoveryRoute(postcondition.routeId);
+                return route.active ? `the route ${postcondition.routeId} is still active` : true;
+            }
+            case "topUpFeasible": {
+                const feasible = await queue.topUpFeasible(postcondition.surfaceId);
+                return Boolean(feasible) === postcondition.feasible
+                    ? true
+                    : `${policy.surfaceLabel(postcondition.surfaceId)} reads feasible=${feasible}`;
+            }
+            default:
+                return `no read is registered for a '${postcondition.kind}' postcondition`;
+        }
+    } catch (error) {
+        return `a read this check depends on did not answer (${error.message})`;
+    }
+};
+
+/**
+ * Say whether an executed call left the queue where it meant to.
+ *
+ * "executed" is the wallet's own bookkeeping: the inner call ran without
+ * reverting. "applied" is the queue's own state, read back. The two are printed
+ * as different words on purpose — this is the difference between a refund that
+ * worked and a multisig transaction that merely went through.
+ */
+const reportPostcondition = async (queue, data) => {
+    const postcondition = recovery.postconditionFor(data);
+    if (!postcondition) {
+        logger.warn("  executed, not verified: this call leaves nothing this task can read back");
+        return;
+    }
+    const held = await checkPostcondition(queue, postcondition);
+    if (held === true) {
+        logger.info(`  applied: ${recovery.describePostcondition(postcondition)}`);
+    } else {
+        logger.warn(`  executed, not verified: ${held}`);
+    }
+};
+
+/** What the wallet did with a transaction the instant it was submitted, and,
+ *  when it executed at once because the threshold was already met, what the
+ *  queue now reads. A transaction still waiting on confirmations has nothing
+ *  to verify yet, and is said to be pending rather than silently unreported. */
+const reportSubmission = async (hre, { multisigAddress, txId, queue, data }) => {
+    let executed;
+    try {
+        const wallet = await hre.ethers.getContractAt("MultiSigWallet", multisigAddress);
+        executed = (await wallet.transactions(txId)).executed;
+    } catch (error) {
+        logger.warn(
+            `  the wallet's own record of transaction ${txId} could not be read, so whether it ` +
+                "executed is unknown here — check it with `perimeter:check-block --id " +
+                `${txId}\``
+        );
+        return;
+    }
+    if (!executed) {
+        logger.info(
+            `  pending: transaction ${txId} needs its remaining confirmations. Read the result ` +
+                `back with \`perimeter:check-block --id ${txId}\` once it has executed.`
+        );
+        return;
+    }
+    await reportPostcondition(queue, data);
+};
+
+const submitQueueCall = async (
+    hre,
+    { multisigAddress, queueAddress, signerAcc, built, queue }
+) => {
     const txId = await sendWithMultisigReturningId(
         multisigAddress,
         queueAddress,
@@ -172,6 +374,9 @@ const submitQueueCall = async (hre, { multisigAddress, queueAddress, signerAcc, 
         signerAcc
     );
     logger.info(`  submitted as multisig transaction ${txId}`);
+    if (queue) {
+        await reportSubmission(hre, { multisigAddress, txId, queue, data: built.data });
+    }
     return txId;
 };
 
@@ -196,8 +401,16 @@ task("perimeter:route:show", "List the queue's registered recovery routes")
         const { address, queue: live } = await resolveQueue(hre, "perimeter:route:show", queue);
         logger.info(`Queue:      ${address}`);
 
+        // One surface whose flag does not answer must not cost the operator
+        // the route table underneath, which is the part an incident needs.
         for (const [name, id] of Object.entries(policy.SURFACES)) {
-            const feasible = await live.topUpFeasible(id);
+            let feasible;
+            try {
+                feasible = await live.topUpFeasible(id);
+            } catch (error) {
+                logger.warn(`Top-up on ${name}: feasibility not read`);
+                continue;
+            }
             logger.info(`Top-up on ${name}: ${feasible ? "allowed" : "not allowed"}`);
         }
 
@@ -311,11 +524,23 @@ task(
                 }
                 provenance = {
                     surfaceId: policy.resolveSurface(surface).id,
-                    subProduct: hreEthers.utils.getAddress(subproduct),
-                    token: hreEthers.utils.getAddress(token),
+                    subProduct: recovery.parsePoolAddress(
+                        subproduct,
+                        "perimeter:route:set: --subproduct"
+                    ),
+                    token: recovery.parseAssetAddress(token, "perimeter:route:set: --token"),
                 };
             }
 
+            // Feasibility is only meaningful for a top-up route — an
+            // address-mode route never reads or needs it, so this stays
+            // unread rather than making a call this task has no use for. It
+            // is read BEFORE the destination guard because the queue checks
+            // it first among the top-up arms, and an operator tripping two of
+            // them at once must read the same first reason here as on chain.
+            const feasibleNow = topUpPool
+                ? await readTopUpFeasible(live, provenance.surfaceId)
+                : false;
             const wrbtc = await readWrbtc(live);
             const target = recovery.requireRouteDestination({
                 destination,
@@ -324,6 +549,11 @@ task(
                 topUpPool,
                 queue: queueAddress,
                 wrbtc,
+                surfaceId: provenance.surfaceId,
+                // --set-feasible puts the flag in its own transaction ahead of
+                // this one, so the route call will be met with a feasible
+                // surface by the time it executes.
+                topUpFeasible: feasibleNow || Boolean(setFeasible),
             });
 
             const routeId = recovery.routeIdOf(
@@ -333,27 +563,13 @@ task(
                 target
             );
 
-            // Feasibility is only meaningful for a top-up route — an
-            // address-mode route never reads or needs it, so this stays
-            // unread rather than making a call this task has no use for.
-            const feasibleNow = topUpPool
-                ? await readTopUpFeasible(live, provenance.surfaceId)
-                : false;
-            if (topUpPool && !feasibleNow && !setFeasible) {
-                throw new Error(
-                    `perimeter:route:set: refund-to-pool is not allowed on ` +
-                        `${policy.surfaceLabel(provenance.surfaceId)} yet, so setRecoveryRoute ` +
-                        "would revert TopUpInfeasibleSurface. Re-run with --set-feasible to " +
-                        "submit setTopUpFeasible(surface, true) first."
-                );
-            }
-
             const multisigAddress = await resolveMultisigAddress(hre, multisig);
             const signerAcc = await resolveSigner(hre, signer);
             logger.info(`Queue:      ${queueAddress}`);
             logger.info(`Multisig:   ${multisigAddress}`);
             logger.info(`Submitter:  ${signerAcc}`);
             logger.info(`Route id:   ${routeId}`);
+            await requireQueueRole(hre, live, "perimeter:route:set", multisigAddress, false);
 
             const steps = [];
             if (topUpPool && setFeasible && !feasibleNow) {
@@ -396,11 +612,13 @@ task(
                     queueAddress,
                     signerAcc,
                     built,
+                    queue: live,
                 });
             }
             logger.info(
-                "Read the result back with `perimeter:route:show` once the transactions have " +
-                    "executed — a multisig receipt does not say the inner call ran."
+                "A transaction still waiting on confirmations reads back with " +
+                    "`perimeter:check-block --id <id>`, and the whole route list with " +
+                    "`perimeter:route:show` — a multisig receipt does not say the inner call ran."
             );
         }
     );
@@ -442,31 +660,60 @@ task("perimeter:route:remove", "Remove a recovery route, through the Exchequer m
         logger.info(`Queue:      ${queueAddress}`);
         logger.info(`Multisig:   ${multisigAddress}`);
         logger.info(`Submitter:  ${signerAcc}`);
+        await requireQueueRole(hre, live, "perimeter:route:remove", multisigAddress, false);
         presentQueueCall(queueAddress, built);
         if (dryRun) {
             logger.info("dry run: nothing was submitted");
             return;
         }
-        await submitQueueCall(hre, { multisigAddress, queueAddress, signerAcc, built });
+        await submitQueueCall(hre, {
+            multisigAddress,
+            queueAddress,
+            signerAcc,
+            built,
+            queue: live,
+        });
+        logger.info(
+            "A transaction still waiting on confirmations reads back with " +
+                `\`perimeter:check-block --id <id>\` — a multisig receipt does not say the inner ` +
+                "call ran."
+        );
     });
 
 const STATUS_NAMES = ["None", "Queued", "Executed", "ResolvedToProtocol", "ResolvedByOwner"];
 const BLOCK_NAMES = ["not blocked", "frozen", "blacklisted"];
 
-/** The registered route a set of requests may be recovered along, or null.
- *  Looked up by the provenance the requests themselves carry, never rebuilt
- *  from an assumed destination. */
-const activeRouteFor = async (queue, surfaceId, subProduct, token) => {
+/**
+ * EVERY registered active route a set of requests could be recovered along,
+ * looked up by the provenance the requests themselves carry and never rebuilt
+ * from an assumed destination.
+ *
+ * All of them, not the first: a route id covers surface, pool, asset and
+ * destination, so two routes that differ only in destination coexist happily,
+ * and which one an iteration reaches first is decided by the queue's own set
+ * order — which moves when an unrelated route is removed. Choosing between
+ * them is the caller's business, out loud.
+ */
+const activeRoutesFor = async (queue, surfaceId, subProduct, token) => {
     const { getAddress } = require("ethers").utils;
+    const found = [];
     for (const routeId of await queue.recoveryRouteIds()) {
         const route = await queue.getRecoveryRoute(routeId);
         if (!route.active) continue;
         if (route.surfaceId !== surfaceId) continue;
         if (getAddress(route.subProduct) !== getAddress(subProduct)) continue;
         if (getAddress(route.token) !== getAddress(token)) continue;
-        return { routeId, destination: route.destination, topUpPool: route.topUpPool };
+        found.push({
+            routeId,
+            active: route.active,
+            surfaceId: route.surfaceId,
+            subProduct: route.subProduct,
+            token: route.token,
+            destination: route.destination,
+            topUpPool: route.topUpPool,
+        });
     }
-    return null;
+    return found;
 };
 
 task(
@@ -481,13 +728,7 @@ task(
     .addOptionalParam("multisig", "Multisig address (defaults to the MultiSigWallet deployment)")
     .setAction(async ({ ids, to, dryRun, queue, signer, multisig }, hre) => {
         const { ethers: hreEthers } = hre;
-        const numeric = String(ids)
-            .split(",")
-            .map((part) => part.trim())
-            .filter((part) => part !== "");
-        if (numeric.length === 0) {
-            throw new Error("perimeter:refund: --ids names no withdrawal");
-        }
+        const numeric = recovery.parseRequestIds(ids, "perimeter:refund");
 
         const { address: queueAddress, queue: live } = await resolveQueue(
             hre,
@@ -495,6 +736,20 @@ task(
             queue
         );
         const toPool = String(to).toLowerCase() === "pool";
+
+        // The queue refuses these destinations before it touches a single
+        // request, so they are refused here in the same order. A destination
+        // the chain will not take must never reach co-signers as a
+        // transaction to confirm: the multisig reports it as executed, the
+        // escrow has not moved, and a whole confirmation round is spent.
+        let ownerDestination;
+        if (!toPool) {
+            ownerDestination = recovery.requireOwnerDestination({
+                destination: to,
+                queue: queueAddress,
+                wrbtc: await readWrbtc(live),
+            });
+        }
 
         // Every request is read before anything is built: the two legs have
         // different predicates, and a batch that fails one of them reverts
@@ -534,43 +789,109 @@ task(
                         "--to <address>."
                 );
             }
+            if (!toPool) {
+                recovery.requireOwnerDestinationAsset(ownerDestination, request.token, id);
+            }
             requests.push({ id, request, leg });
         }
 
         let built;
         let expectedStatus;
         let destination;
+        const first = requests[0].request;
+
+        // Both legs, not the pool leg alone: a mixed-asset batch is legal on
+        // chain for the owner's leg, but every total and every "check
+        // afterwards" line below is stated in ONE asset, so a batch holding
+        // two of them reads as a failure on success and invites a
+        // re-submission the queue then refuses as already terminal.
+        const otherAsset = requests.find(
+            ({ request }) =>
+                hreEthers.utils.getAddress(request.token) !==
+                hreEthers.utils.getAddress(first.token)
+        );
+        if (otherAsset) {
+            throw new Error(
+                "perimeter:refund: one call cannot mix requests holding two assets — withdrawal " +
+                    `${requests[0].id} holds ${first.token} and withdrawal ${otherAsset.id} ` +
+                    `holds ${otherAsset.request.token}. Refund each asset's withdrawals in its ` +
+                    "own call."
+            );
+        }
+
         if (toPool) {
-            const first = requests[0].request;
-            if (requests.some(({ request }) => request.surfaceId !== first.surfaceId)) {
+            const otherSurface = requests.find(
+                ({ request }) => request.surfaceId !== first.surfaceId
+            );
+            if (otherSurface) {
                 throw new Error(
-                    "perimeter:refund: a route covers one surface, not several — refund each " +
-                        "surface's withdrawals in its own call"
+                    "perimeter:refund: a route covers one surface, not several — withdrawal " +
+                        `${requests[0].id} is on ${policy.surfaceLabel(first.surfaceId)} and ` +
+                        `withdrawal ${otherSurface.id} is on ` +
+                        `${policy.surfaceLabel(otherSurface.request.surfaceId)}. Refund each ` +
+                        "surface's withdrawals in its own call."
                 );
             }
-            if (
-                requests.some(
-                    ({ request }) =>
-                        hreEthers.utils.getAddress(request.token) !==
-                        hreEthers.utils.getAddress(first.token)
-                )
-            ) {
+            // The queue matches a route against each id's surface, pool AND
+            // asset, and reverts the whole batch on the first that disagrees.
+            // Two pools on one surface is the reachable case: several
+            // sub-products can share a reserve asset.
+            const otherPool = requests.find(
+                ({ request }) =>
+                    hreEthers.utils.getAddress(request.subProduct) !==
+                    hreEthers.utils.getAddress(first.subProduct)
+            );
+            if (otherPool) {
                 throw new Error(
-                    "perimeter:refund: one call cannot mix requests holding two assets"
+                    "perimeter:refund: a route covers one pool, not several — withdrawal " +
+                        `${requests[0].id} came from ${first.subProduct} and withdrawal ` +
+                        `${otherPool.id} came from ${otherPool.request.subProduct}. Refund each ` +
+                        "pool's withdrawals in its own call."
                 );
             }
-            const found = await activeRouteFor(
+            const provenance =
+                `surface (${policy.surfaceLabel(first.surfaceId)}), pool (${first.subProduct}) ` +
+                `and asset (${first.token})`;
+            const matching = await activeRoutesFor(
                 live,
                 first.surfaceId,
                 first.subProduct,
                 first.token
             );
-            if (!found) {
+            if (matching.length === 0) {
                 throw new Error(
                     "perimeter:refund: no active recovery route matches these withdrawals' own " +
-                        `surface (${policy.surfaceLabel(first.surfaceId)}), pool ` +
-                        `(${first.subProduct}) and asset (${first.token}) — register one with ` +
-                        "`perimeter:route:set` first, or refund to an address with --to <address>"
+                        `${provenance} — register one with \`perimeter:route:set\` first, or ` +
+                        "refund to an address with --to <address>"
+                );
+            }
+            // Never pick between two eligible routes: which one a read reaches
+            // first is the queue's set order, and that order changes when an
+            // unrelated route is removed. The same command would then send a
+            // blocked user's escrow somewhere else.
+            if (matching.length > 1) {
+                throw new Error(
+                    "perimeter:refund: more than one active recovery route matches these " +
+                        `withdrawals' own ${provenance}, and which one a refund would take is ` +
+                        "decided by the queue's own storage order, not by this command:\n  " +
+                        matching
+                            .map((route) => recovery.describeRoute(route.routeId, route))
+                            .join("\n  ") +
+                        "\nRemove the one that must not be used with `perimeter:route:remove`, " +
+                        "or name the destination yourself with --to <address>."
+                );
+            }
+            const found = matching[0];
+            // A refund to the pool means exactly that. A route may be active
+            // and still pay a plain address — the id does not cover that flag
+            // — so the flag itself decides, never the route's mere presence.
+            if (!found.topUpPool) {
+                throw new Error(
+                    `perimeter:refund: ${recovery.describeRoute(found.routeId, found)}, so it ` +
+                        "does not top up the pool and --to pool would send a blocked " +
+                        "withdrawal's escrow to that address. Register a top-up route with " +
+                        "`perimeter:route:set --mode topup`, or name the address yourself with " +
+                        "--to <address>."
                 );
             }
             destination = found.destination;
@@ -580,9 +901,10 @@ task(
                 routeId: found.routeId,
             });
             logger.info(`Route:      ${found.routeId}`);
+            logger.info(`  destination:      ${found.destination}`);
             logger.info(`  tops up the pool: ${found.topUpPool}`);
         } else {
-            destination = hreEthers.utils.getAddress(to);
+            destination = ownerDestination;
             expectedStatus = "ResolvedByOwner (status 4)";
             built = recovery.buildRecoveryCall("resolveByOwner", { ids: numeric, destination });
         }
@@ -597,6 +919,8 @@ task(
         logger.info(`Queue:      ${queueAddress}`);
         logger.info(`Multisig:   ${multisigAddress}`);
         logger.info(`Submitter:  ${signerAcc}`);
+        // The pool leg is Admin or Owner; the owner's leg is Owner-only.
+        await requireQueueRole(hre, live, "perimeter:refund", multisigAddress, toPool);
         presentQueueCall(queueAddress, built);
         logger.warn(
             `This moves ${total.toString()} of ${requests[0].request.token} away from the ` +
@@ -622,18 +946,22 @@ task(
             queueAddress,
             signerAcc,
             built,
+            queue: live,
         });
     });
 
 module.exports = {
     resolveQueue,
+    queueAt,
+    checkPostcondition,
+    reportPostcondition,
     readWrbtc,
     resolveMultisigAddress,
     resolveSigner,
     presentQueueCall,
     submitQueueCall,
     readProvenance,
-    activeRouteFor,
+    activeRoutesFor,
     QUEUE_ABI,
     ROUTE_ID,
 };

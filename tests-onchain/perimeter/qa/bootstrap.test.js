@@ -212,21 +212,42 @@ describe("the bootstrap's bouncing receiver", () => {
         );
     });
 
-    it("can hold a queued withdrawal, so the stuck state is reachable", async () => {
+    it("holds a withdrawal whose delivery bounces, and leaves it Queued when the payout is attempted", async function () {
+        this.timeout(10 * 60 * 1000);
         const s = await attachQa(hre);
         const before = (await s.queue.lastRequestId()).toNumber();
         const snap = await engine.snapshot(s, { log: () => {} });
-        const queued = await engine.withdraw(s, {
-            surface: "lender",
-            receiver: s.bouncingReceiver,
-            log: () => {},
-        });
-        const request = await s.queue.getRequest(queued.id);
-        expect(request.receiver.toLowerCase()).to.equal(s.bouncingReceiver.toLowerCase());
-        expect(Number(request.status)).to.equal(1);
+        try {
+            const queued = await engine.withdraw(s, {
+                surface: "lender",
+                receiver: s.bouncingReceiver,
+                log: () => {},
+            });
+            const request = await s.queue.getRequest(queued.id);
+            expect(request.receiver.toLowerCase()).to.equal(s.bouncingReceiver.toLowerCase());
+            expect(Number(request.status)).to.equal(1);
 
-        const reverted = await engine.revert(s, snap.snapshot, { log: () => {} });
-        expect(reverted.applied).to.equal(true);
-        expect((await s.queue.lastRequestId()).toNumber()).to.equal(before);
+            // The stuck state is the point: run the hold out and press the
+            // button, so the bounce itself is observed rather than assumed.
+            const now = (await ethers.provider.getBlock("latest")).timestamp;
+            const remaining = Number(request.unlockAt) - now;
+            await engine.advance(s, Math.max(remaining + 1, 1), { log: () => {} });
+            const attempt = await engine.execute(s, queued.id, { log: () => {} });
+            expect(
+                attempt.refused,
+                "a payout to a receiver that reverts must be refused"
+            ).to.equal(true);
+            expect(attempt.applied).to.equal(false);
+            expect(attempt.reason).to.match(/unable to send value/);
+
+            // Nothing was paid and nothing was consumed: the request is still
+            // the Owner's to redirect, which is what the stuck-payout
+            // exception depends on.
+            expect(Number((await s.queue.getRequest(queued.id)).status)).to.equal(1);
+        } finally {
+            const reverted = await engine.revert(s, snap.snapshot, { log: () => {} });
+            expect(reverted.applied).to.equal(true);
+            expect((await s.queue.lastRequestId()).toNumber()).to.equal(before);
+        }
     });
 });

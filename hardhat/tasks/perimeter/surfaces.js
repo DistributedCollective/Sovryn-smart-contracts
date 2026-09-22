@@ -63,17 +63,36 @@ const stringifyArg = (value) => {
     return String(value);
 };
 
+/** One declared argument, as one display row per value a reader has to judge
+ *  on its own. A struct argument is split into its own components, each under
+ *  `outer.component`, because a tuple rendered as one blob of positional
+ *  values hides which of its booleans is which — and two booleans that mean
+ *  different things are exactly what an operator must not have to count
+ *  commas to tell apart. Only a plain tuple is split; an array keeps its
+ *  single rendered form. */
+const describeInput = (input, value, name) => {
+    if (input.baseType === "tuple" && Array.isArray(input.components)) {
+        return input.components.reduce(
+            (rows, component, i) =>
+                rows.concat(
+                    describeInput(component, value[i], `${name}.${component.name || `arg${i}`}`)
+                ),
+            []
+        );
+    }
+    return [{ name, type: input.type, value: stringifyArg(value) }];
+};
+
 /** Every argument a decoded call's own function fragment declares, name and
  *  type paired with its value already rendered for display — what an
  *  operator needs to see exactly what a call targets (which addresses, which
  *  request ids, which flag, which hash) before submitting or confirming it,
  *  not just which selector it carries. */
 const describeArgs = (fragment, args) =>
-    fragment.inputs.map((input, i) => ({
-        name: input.name || `arg${i}`,
-        type: input.type,
-        value: stringifyArg(args[i]),
-    }));
+    fragment.inputs.reduce(
+        (rows, input, i) => rows.concat(describeInput(input, args[i], input.name || `arg${i}`)),
+        []
+    );
 
 module.exports = {
     SURFACES,

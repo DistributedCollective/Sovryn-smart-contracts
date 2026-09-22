@@ -9,6 +9,8 @@ const {
 } = require("./perimeter/contractCallerExemptions");
 const { resolveOptionalAddress } = require("./perimeter/addressParam");
 const policy = require("./perimeter/policy");
+const recovery = require("./perimeter/recovery");
+const recoveryTasks = require("./perimeter/recoveryTasks");
 
 const logger = new Logs().showInConsole(true);
 
@@ -24,6 +26,50 @@ const printDecodedBlockCall = (decoded) => {
     for (const field of decoded.fields) {
         logger.info(`  ${field.name} (${field.type}): ${field.value}`);
     }
+};
+
+/**
+ * A pool refund names where a blocked user's escrow goes only as a route id —
+ * a hash of four fields, legible to nobody. Resolved here off the same queue
+ * the transaction targets (already verified as the deployed one), so a
+ * co-signer reads the destination and whether the route is switched on at all:
+ * the difference between the refund running and reverting.
+ */
+const printRecoveryRoute = async (hre, queueAddress, decoded) => {
+    if (decoded.signature !== "resolveToProtocol(uint256[],bytes32)") return;
+    const routeId = decoded.args[1];
+    try {
+        const queue = await recoveryTasks.queueAt(hre, queueAddress);
+        logger.info(`  ${recovery.describeRoute(routeId, await queue.getRecoveryRoute(routeId))}`);
+    } catch (error) {
+        logger.warn(
+            `  the route ${routeId} could not be read off the queue, so where this refund sends ` +
+                "cannot be named here — read it with `perimeter:route:show` before confirming"
+        );
+    }
+};
+
+/**
+ * Whether a recovery transaction left the queue where its calldata meant to.
+ *
+ * The wallet's `executed` flag says the inner call ran without reverting; it
+ * says nothing about the state that call was supposed to establish, and the
+ * operator who confirms is very often not the one who submitted. The check is
+ * derived from the stored calldata itself, so a transaction id is all anyone
+ * needs to re-run it.
+ */
+const printRecoveryReadBack = async (hre, tx) => {
+    if (!policy.RECOVERY_LEVERS[policy.decodeCall(tx.data).signature]) return;
+    if (!tx.executed) {
+        logger.info(
+            "  pending: this transaction has not executed, so there is nothing to verify yet"
+        );
+        return;
+    }
+    await recoveryTasks.reportPostcondition(
+        await recoveryTasks.queueAt(hre, tx.destination),
+        tx.data
+    );
 };
 
 /**
@@ -206,6 +252,8 @@ task(
             // message below undisturbed.
             await assertKnownQueue(hre, "perimeter:check-block", tx.destination);
             printDecodedBlockCall(decoded);
+            await printRecoveryRoute(hre, tx.destination, decoded);
+            await printRecoveryReadBack(hre, tx);
         } else {
             logger.info("Call:      NOT an ExitDelayQueue block lever");
         }

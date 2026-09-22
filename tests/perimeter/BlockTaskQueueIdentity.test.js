@@ -186,6 +186,9 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
             });
             expect(raised, raised && raised.message).to.equal(null);
             expect(output).to.include("matches the deployed ExitDelayQueue");
+            expect(output).to.include("freeze(address)");
+            expect(output).to.include("freeze one account");
+            expect(output).to.include("account (address):");
         });
     });
 
@@ -230,12 +233,19 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
             const txId = (await multisig.transactionCount()).sub(1).toString();
 
             let raised = null;
-            try {
-                await hre.run("perimeter:check-block", { id: txId, multisig: multisig.address });
-            } catch (error) {
-                raised = error;
-            }
+            const output = await captureConsole(async () => {
+                try {
+                    await hre.run("perimeter:check-block", {
+                        id: txId,
+                        multisig: multisig.address,
+                    });
+                } catch (error) {
+                    raised = error;
+                }
+            });
             expect(raised, raised && raised.message).to.equal(null);
+            expect(output).to.include("Call:      NOT an ExitDelayQueue block lever");
+            expect(output).to.include(`Target:    ${wrongQueue}`);
         });
     });
 
@@ -267,6 +277,59 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
         });
     });
 
+    it("check-block reads the route a pool refund names off the queue and says where it sends", async () => {
+        const recovery = require("../../hardhat/tasks/perimeter/recovery");
+        const policy = require("../../hardhat/tasks/perimeter/policy");
+        const LENDER = policy.SURFACES.PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW;
+        const StubFactory = await ethers.getContractFactory("MockRecoveryQueue");
+        const stub = await StubFactory.deploy();
+        await stub.deployed();
+        const pool = (await MockExitFeeController.new()).address;
+        const asset = (await MockExitFeeController.new()).address;
+        await (await stub.setRoute(true, LENDER, pool, asset, pool, true)).wait();
+        const routeId = recovery.routeIdOf(LENDER, pool, asset, pool);
+
+        await withKnownQueue(stub.address, async () => {
+            const data = recovery.buildRecoveryCall("resolveToProtocol", {
+                ids: [7],
+                routeId,
+            }).data;
+            await (await multisig.connect(owner).submitTransaction(stub.address, 0, data)).wait();
+            const txId = (await multisig.transactionCount()).sub(1).toString();
+            const output = await captureConsole(() =>
+                hre.run("perimeter:check-block", { id: txId, multisig: multisig.address })
+            );
+            expect(output).to.include(
+                `the route ${routeId} is active on lender withdrawals and tops up the pool ` +
+                    `${pool} with the escrowed ${asset}`
+            );
+        });
+    });
+
+    it("check-block says a pool refund names a route this queue does not hold", async () => {
+        const recovery = require("../../hardhat/tasks/perimeter/recovery");
+        const StubFactory = await ethers.getContractFactory("MockRecoveryQueue");
+        const stub = await StubFactory.deploy();
+        await stub.deployed();
+        const routeId = `0x${"22".repeat(32)}`;
+
+        await withKnownQueue(stub.address, async () => {
+            const data = recovery.buildRecoveryCall("resolveToProtocol", {
+                ids: [7],
+                routeId,
+            }).data;
+            await (await multisig.connect(owner).submitTransaction(stub.address, 0, data)).wait();
+            const txId = (await multisig.transactionCount()).sub(1).toString();
+            const output = await captureConsole(() =>
+                hre.run("perimeter:check-block", { id: txId, multisig: multisig.address })
+            );
+            expect(output).to.include(
+                `the route ${routeId} is not registered on this queue — a refund along it ` +
+                    "reverts RouteInactive"
+            );
+        });
+    });
+
     it("check-block decodes a recovery transaction and still verifies the destination", async () => {
         await withKnownQueue(realQueue, async () => {
             const recovery = require("../../hardhat/tasks/perimeter/recovery");
@@ -283,6 +346,60 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
             expect(output).to.include("matches the deployed ExitDelayQueue");
             expect(output).to.include("removeRecoveryRoute(bytes32)");
             expect(output).to.include(`removes the recovery route 0x${"11".repeat(32)}`);
+            expect(output).to.include(
+                "pending: this transaction has not executed, so there is nothing to verify yet"
+            );
+        });
+    });
+
+    it("check-block reads the queue back for a recovery transaction the permissive stand-in queue let execute without an authorization check, and says it applied", async () => {
+        const recovery = require("../../hardhat/tasks/perimeter/recovery");
+        const policy = require("../../hardhat/tasks/perimeter/policy");
+        const LENDER = policy.SURFACES.PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW;
+        const StubFactory = await ethers.getContractFactory("MockRecoveryQueue");
+        const stub = await StubFactory.deploy();
+        await stub.deployed();
+
+        await withKnownQueue(stub.address, async () => {
+            const data = recovery.buildRecoveryCall("setTopUpFeasible", {
+                surfaceId: LENDER,
+                feasible: true,
+            }).data;
+            await (await multisig.connect(owner).submitTransaction(stub.address, 0, data)).wait();
+            const txId = (await multisig.transactionCount()).sub(1).toString();
+            expect((await multisig.transactions(txId)).executed).to.equal(true);
+            const output = await captureConsole(() =>
+                hre.run("perimeter:check-block", { id: txId, multisig: multisig.address })
+            );
+            expect(output).to.include(
+                "applied: a refund-to-pool route may be registered on lender withdrawals"
+            );
+        });
+    });
+
+    it("check-block says executed but NOT verified for an unknown withdrawal id the permissive stand-in queue let the call execute against without an existence check", async () => {
+        const recovery = require("../../hardhat/tasks/perimeter/recovery");
+        const StubFactory = await ethers.getContractFactory("MockRecoveryQueue");
+        const stub = await StubFactory.deploy();
+        await stub.deployed();
+
+        await withKnownQueue(stub.address, async () => {
+            // The wallet's inner call runs without reverting and the queue
+            // holds no such withdrawal, so nothing was settled — exactly the
+            // gap between "executed" and "applied".
+            const data = recovery.buildRecoveryCall("resolveByOwner", {
+                ids: [99],
+                destination: owner.address,
+            }).data;
+            await (await multisig.connect(owner).submitTransaction(stub.address, 0, data)).wait();
+            const txId = (await multisig.transactionCount()).sub(1).toString();
+            expect((await multisig.transactions(txId)).executed).to.equal(true);
+            const output = await captureConsole(() =>
+                hre.run("perimeter:check-block", { id: txId, multisig: multisig.address })
+            );
+            expect(output).to.include(
+                "executed, not verified: withdrawal 99 reads None, not ResolvedByOwner"
+            );
         });
     });
 });
