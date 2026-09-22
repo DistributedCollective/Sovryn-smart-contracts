@@ -156,6 +156,35 @@ describe("perimeter:submit-block / perimeter:check-block decode the calldata the
         expect(raised, "truncated argument bytes must refuse, not submit").to.not.equal(null);
     });
 
+    it("refuses a real-selector, truncated-argument paste with its own named refusal, not a raw ABI-decode error", async () => {
+        // A genuine `blacklist(address)` selector followed by too few bytes
+        // to decode one address argument — the same truncated-paste shape as
+        // the test above, reproduced against a different lever so the
+        // refusal is checked by its actual wording, not just by "something
+        // was thrown". The decode this task runs before submitting anything
+        // must fail closed into its own crafted message, not surface the ABI
+        // decoder's internal error text.
+        const selector = ethers.utils.id("blacklist(address)").slice(0, 10);
+        const data = `${selector}${"00".repeat(10)}`;
+
+        let raised = null;
+        try {
+            await hre.run("perimeter:submit-block", {
+                queue: queueAddress,
+                data,
+                signer: owner.address,
+                multisig: multisig.address,
+            });
+        } catch (error) {
+            raised = error;
+        }
+        expect(raised, "truncated argument bytes must refuse, not submit").to.not.equal(null);
+        expect(
+            raised.message,
+            "must reach the named refusal, not a raw ABI-decode error"
+        ).to.match(/does not decode as any known ExitDelayQueue block lever/);
+    });
+
     it("check-block shows the identical decoded view for a transaction submit-block already submitted", async () => {
         const target = ethers.Wallet.createRandom().address;
         const data = new ethers.utils.Interface([
@@ -189,6 +218,33 @@ describe("perimeter:submit-block / perimeter:check-block decode the calldata the
             hre.run("perimeter:check-block", { id: txId, multisig: multisig.address })
         );
 
+        expect(output).to.include("NOT an ExitDelayQueue block lever");
+    });
+
+    it("check-block falls back to its generic message, not a raw ABI-decode error, for a transaction whose data is a real selector with truncated argument bytes", async () => {
+        // The read-only inspection path for the same truncated-paste shape:
+        // any signer can submit an arbitrary-bytes multisig transaction, so
+        // this data never goes through submit-block's own guard — it is
+        // submitted directly, the way an already-pending transaction would
+        // reach check-block for inspection before a co-signer confirms it.
+        const selector = ethers.utils.id("blacklist(address)").slice(0, 10);
+        const data = `${selector}${"00".repeat(10)}`;
+        await (await multisig.connect(owner).submitTransaction(queueAddress, 0, data)).wait();
+        const txId = (await multisig.transactionCount()).sub(1).toString();
+
+        let raised = null;
+        let output = "";
+        try {
+            output = await captureConsole(() =>
+                hre.run("perimeter:check-block", { id: txId, multisig: multisig.address })
+            );
+        } catch (error) {
+            raised = error;
+        }
+        expect(
+            raised,
+            "a malformed-but-selector-prefixed transaction must not crash the read-only check"
+        ).to.equal(null);
         expect(output).to.include("NOT an ExitDelayQueue block lever");
     });
 });

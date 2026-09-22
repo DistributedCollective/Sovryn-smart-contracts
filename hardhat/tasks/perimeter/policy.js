@@ -627,7 +627,12 @@ const decodeCall = (data) => {
     const controllerEntry = SETTER_SELECTORS[selector];
     if (controllerEntry) {
         const fragment = controllerInterface().getFunction(controllerEntry.kind);
-        const args = controllerInterface().decodeFunctionData(fragment, data);
+        let args;
+        try {
+            args = controllerInterface().decodeFunctionData(fragment, data);
+        } catch (e) {
+            return undefined;
+        }
         return {
             target: "controller",
             signature: controllerEntry.signature,
@@ -640,7 +645,12 @@ const decodeCall = (data) => {
     const queueSignature = QUEUE_LEVER_SELECTORS[selector];
     if (queueSignature) {
         const fragment = queueInterface().getFunction(queueSignature);
-        const args = queueInterface().decodeFunctionData(fragment, data);
+        let args;
+        try {
+            args = queueInterface().decodeFunctionData(fragment, data);
+        } catch (e) {
+            return undefined;
+        }
         return {
             target: "queue",
             signature: queueSignature,
