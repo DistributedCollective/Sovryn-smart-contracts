@@ -71,6 +71,22 @@ The treasury stake alone does not carry it, and the friendly 37.97M alone does
 not either. Both are needed. If friendly turnout drops below about 16.7M the
 proposal fails, so turnout still has to be organised.
 
+### The freeze is what protects this vote
+
+The blocking threshold is measured on votes CAST, not on total staked SOV, and
+the margin is thinner than the totals suggest: against these numbers the
+attacker would need only about **913,000 more SOV** — roughly 9.1M more voting
+power at the maximum lock — to push the vote below the 70% bar and defeat the
+recovery. That is a small sum relative to SOV liquidity across all chains.
+
+They cannot do it, for one reason only: `stake()` and `extendStakingDuration()`
+are both gated `whenNotPaused whenNotFrozen`, and staking is frozen and paused.
+**No attacker can add a single unit of voting power until staking reopens.**
+
+Treat this as a hard invariant, not a detail. It is the reason the freeze must
+hold until execution, and the reason nobody should be talked into reopening
+early to relieve honest stakers.
+
 ---
 
 ## Checklist
@@ -127,15 +143,27 @@ duration, delegated to `0x428A80f48aB417E17A12Ec81A2671c4846BdB2be`.
 > Do not stake for the Guardians more than once. The proposal builder reads
 > their single position from chain and refuses to build if it finds anything else.
 
-### 3. Deploy the modules
+### 3. Deploy the module
 
-Deploy `StakingRecoveryModule`, `StakingWithdrawModule`, `StakingAdminModule`,
-`StakingGovernanceModule` and `StakingStakeModule`. The proposal reads all five
-from the deployment records.
+**One module only.** `StakingRecoveryModule` is the entire deployment; nothing
+already on chain is replaced. The proposal reads its address from the
+deployment record.
 
-- [ ] All five deployed and recorded.
-- [ ] `StakingRecoveryModule.ATTACKER_LOCK_DATE()` reads `1884076095`, and both
-      attacker wallets still hold their positions at that date.
+```bash
+DEPLOY_STAKING_RECOVERY_MODULE=true \
+  npx hardhat deploy --tags StakingRecoveryModule --network rskSovrynMainnet
+npx hardhat etherscan-verify --api-key anything --network rskSovrynMainnet
+```
+
+The script deploys and verifies only — it never registers. Registration is
+action 1 of the proposal. The module is deliberately absent from
+`getStakingModulesNames()`, because that list also feeds the scripts that
+register modules through the multisig, which would install the recovery
+capability outside Bitocracy. Do not add it there.
+
+- [ ] Deployed, recorded, and source verified.
+- [ ] The script's constant check passed (it aborts on any mismatch).
+- [ ] Both attacker wallets still hold their positions at `1884076095`.
 
 ### 4. Finalise the proposal text
 
