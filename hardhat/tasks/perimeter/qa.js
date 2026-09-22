@@ -377,6 +377,7 @@ const runUp = async ({ delay, governance, fee, keepThreshold, secondOwner }, hre
     row("fee receiver", state.feeReceiver);
     row("governance", state.governance);
     row("withdraw wrapper", state.withdrawWrapper);
+    row("bouncing receiver", state.bouncingReceiver);
     if (state.warning) row("warning", state.warning);
     console.log("");
     console.log(`  state file: ${STATE_FILE}`);

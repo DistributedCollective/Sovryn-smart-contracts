@@ -128,6 +128,14 @@ task(
         // nothing here is a substitute for `07_BlockExits.s.sol`'s own
         // preview.
         const decoded = policy.decodeCall(data);
+        if (decoded && policy.RECOVERY_LEVERS[decoded.signature]) {
+            throw new Error(
+                `perimeter:submit-block: ${decoded.signature} is a recovery lever, not a block ` +
+                    "lever — this task submits calldata pasted from 07_BlockExits.s.sol only. " +
+                    "Build a recovery call with the task that validates its arguments: " +
+                    "`perimeter:route:set`, `perimeter:route:remove` or `perimeter:refund`."
+            );
+        }
         if (!decoded || decoded.target !== "queue") {
             throw new Error(
                 `perimeter:submit-block: calldata with selector ${data.slice(0, 10)} does not ` +

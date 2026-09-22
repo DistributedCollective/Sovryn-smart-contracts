@@ -17,6 +17,7 @@ const { ethers } = hre;
 
 const { bootstrapQa, attachQa, STATE_FILE, TEST_KEY, RBTC_PER_ACCOUNT } = require("./bootstrap");
 const { servesDelayBuild } = require("../perimeterSipTestHelpers");
+const engine = require("./engine");
 
 describe("QA bootstrap", () => {
     let state;
@@ -181,5 +182,51 @@ describe("QA bootstrap", () => {
                 expect(onDisk.phase2[part].actions).to.be.greaterThan(0);
             }
         }
+    });
+});
+
+describe("the bootstrap's bouncing receiver", () => {
+    it("is deployed, carries code, and refuses a native payment", async () => {
+        const s = await attachQa(hre);
+        expect(s.bouncingReceiver, "the bootstrap records a bouncing receiver").to.be.a("string");
+        expect(await hre.ethers.provider.getCode(s.bouncingReceiver)).to.not.equal("0x");
+        const [payer] = await hre.ethers.getSigners();
+        let raised = null;
+        try {
+            await (
+                await payer.sendTransaction({
+                    to: s.bouncingReceiver,
+                    value: hre.ethers.utils.parseEther("0.001"),
+                    gasLimit: 200000,
+                })
+            ).wait();
+        } catch (error) {
+            raised = error;
+        }
+        expect(
+            raised,
+            "a payment to it must revert, or it cannot stage a stuck payout"
+        ).to.not.equal(null);
+        expect(engine.revertReason(s.queue, raised)).to.equal(
+            "MockBouncingReceiver: refuses payment"
+        );
+    });
+
+    it("can hold a queued withdrawal, so the stuck state is reachable", async () => {
+        const s = await attachQa(hre);
+        const before = (await s.queue.lastRequestId()).toNumber();
+        const snap = await engine.snapshot(s, { log: () => {} });
+        const queued = await engine.withdraw(s, {
+            surface: "lender",
+            receiver: s.bouncingReceiver,
+            log: () => {},
+        });
+        const request = await s.queue.getRequest(queued.id);
+        expect(request.receiver.toLowerCase()).to.equal(s.bouncingReceiver.toLowerCase());
+        expect(Number(request.status)).to.equal(1);
+
+        const reverted = await engine.revert(s, snap.snapshot, { log: () => {} });
+        expect(reverted.applied).to.equal(true);
+        expect((await s.queue.lastRequestId()).toNumber()).to.equal(before);
     });
 });

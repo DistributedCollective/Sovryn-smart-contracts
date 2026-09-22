@@ -25,31 +25,19 @@
  * plan it before then rather than submitting a call that would revert.
  */
 const { ethers } = require("ethers");
-
-/** keccak256 of the UTF-8 surface name, the way the controller hashes it. */
-const surfaceIdFor = (name) => ethers.utils.keccak256(ethers.utils.toUtf8Bytes(name));
-
-/** Every surface this controller hooks, name -> id. */
-const SURFACES = Object.freeze({
-    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW: surfaceIdFor(
-        "PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW"
-    ),
-    PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW: surfaceIdFor(
-        "PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW"
-    ),
-    PERIMETER_SURFACE_ZERO_WITHDRAW_COLL: surfaceIdFor("PERIMETER_SURFACE_ZERO_WITHDRAW_COLL"),
-    PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS: surfaceIdFor("PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS"),
-    PERIMETER_SURFACE_AMM_REMOVE_LIQUIDITY: surfaceIdFor("PERIMETER_SURFACE_AMM_REMOVE_LIQUIDITY"),
-});
-
-/** A short plain-words phrase for each surface, used inside `meaning` sentences. */
-const SURFACE_PHRASES = Object.freeze({
-    PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW: "lender withdrawals",
-    PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW: "borrower withdrawals",
-    PERIMETER_SURFACE_ZERO_WITHDRAW_COLL: "Zero collateral withdrawals",
-    PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS: "Zero surplus claims",
-    PERIMETER_SURFACE_AMM_REMOVE_LIQUIDITY: "AMM liquidity removals",
-});
+// SURFACES, SURFACE_PHRASES, surfaceLabel, stringifyArg and describeArgs
+// live in surfaces.js, not here, so recovery.js (required below, for the
+// recovery family decodeCall also reads) can use them without requiring
+// this file back — that would complete a require cycle, since this file
+// requires recovery.js.
+const {
+    SURFACES,
+    SURFACE_PHRASES,
+    surfaceLabel,
+    stringifyArg,
+    describeArgs,
+} = require("./surfaces");
+const recovery = require("./recovery");
 
 /** The two surfaces with no sub-product tier: Zero withdrawals are not keyed
  *  on a pool, so a sub-product entry there would be meaningless. */
@@ -138,11 +126,6 @@ const surfaceIdOf = (surfaceInput) => {
         return surfaceInput.id;
     }
     return resolveSurface(surfaceInput).id;
-};
-
-const surfaceLabel = (id) => {
-    const name = NAME_BY_ID[String(id).toLowerCase()];
-    return name ? SURFACE_PHRASES[name] : `surface ${id}`;
 };
 
 /**
@@ -557,32 +540,6 @@ const buildCall = (kind, args) => {
     return { signature, data, meaning: def.meaning(positional) };
 };
 
-/** Render a decoded arg for display: tuples as "(a, b)", everything else via
- *  its own string form (works for addresses, hex ids, bools and BigNumbers
- *  alike, and a bytes32 already decodes as its own hex string — this never
- *  interprets one, it only prints it). */
-const stringifyArg = (value) => {
-    if (Array.isArray(value)) {
-        return `(${value.map(stringifyArg).join(", ")})`;
-    }
-    if (value && typeof value === "object" && typeof value.toString === "function") {
-        return value.toString();
-    }
-    return String(value);
-};
-
-/** Every argument a decoded call's own function fragment declares, name and
- *  type paired with its value already rendered for display — what an
- *  operator needs to see exactly what a call targets (which addresses, which
- *  request ids, which flag, which hash) before submitting or confirming it,
- *  not just which selector it carries. */
-const describeArgs = (fragment, args) =>
-    fragment.inputs.map((input, i) => ({
-        name: input.name || `arg${i}`,
-        type: input.type,
-        value: stringifyArg(args[i]),
-    }));
-
 /**
  * The ExitDelayQueue's block levers, by bare (name-free) signature — the
  * canonical form a selector is hashed from — paired with a plain-words
@@ -693,6 +650,13 @@ const decodeCall = (data) => {
             fields: describeArgs(fragment, args),
         };
     }
+    // The queue's recovery family. Kept in its own module because those calls
+    // are BUILT by the task that submits them rather than pasted as calldata,
+    // so they carry argument validation a block lever does not need. Decoded
+    // here so a co-signer inspecting a submitted transaction reads one format
+    // for both families.
+    const recovered = recovery.decodeRecoveryCall(data);
+    if (recovered) return recovered;
     return undefined;
 };
 
@@ -992,6 +956,7 @@ const actorFeeDelayDivergence = ({ build, resultFee, bypass } = {}) => {
 
 module.exports = {
     SURFACES,
+    SURFACE_PHRASES,
     SURFACES_WITHOUT_SUBPRODUCT,
     CALL_KINDS,
     resolveSurface,
@@ -1008,6 +973,7 @@ module.exports = {
     stringifyArg,
     describeArgs,
     BLOCK_LEVERS,
+    RECOVERY_LEVERS: recovery.RECOVERY_LEVERS,
     QUEUE_LEVER_ABI,
     queueInterface,
     unionAddresses,

@@ -13,4 +13,5 @@ require("./redeem-zero-collateral");
 require("./data-queries");
 require("./perimeter");
 require("./perimeter/policyTasks");
+require("./perimeter/recoveryTasks");
 require("./perimeter/qa");

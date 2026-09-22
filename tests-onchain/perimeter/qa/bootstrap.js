@@ -869,6 +869,32 @@ const ensureWithdrawWrapper = async (hre, history) => {
 };
 
 /**
+ * A one-function stand-in for a payout destination that refuses every
+ * native payment (contracts/mockup/perimeter/MockBouncingReceiver.sol), so a
+ * withdrawal queued to it produces the one state the stuck-payout exception
+ * procedure exists to be rehearsed against: a held request whose delivery
+ * cannot succeed. State file: `bouncingReceiver`.
+ *
+ * Stateless, so redeploying costs nothing; reused when an earlier run on
+ * this same node already left one with code still present, the same
+ * idempotence `ensureWithdrawWrapper` follows.
+ */
+const ensureBouncingReceiver = async (hre, history) => {
+    const { ethers } = hre;
+    if (history && history.bouncingReceiver) {
+        if ((await ethers.provider.getCode(history.bouncingReceiver)) !== "0x") {
+            return ethers.utils.getAddress(history.bouncingReceiver);
+        }
+    }
+    const deployer = (await ethers.getSigners())[0];
+    const receiver = await (
+        await ethers.getContractFactory("MockBouncingReceiver", deployer)
+    ).deploy();
+    await receiver.deployed();
+    return ethers.utils.getAddress(receiver.address);
+};
+
+/**
  * RBTC and XUSD for the accounts the operator drives from MetaMask.
  *
  * RBTC is written straight into the balances. XUSD is MINTED by the token's own
@@ -1180,6 +1206,7 @@ const bootstrapQa = async (hre, opts = {}) => {
     const operator = await ensureOperator(hre, provider, multisig, keepThreshold, secondOwner);
     const funding = await fundQaAccounts(hre, provider, accounts);
     const withdrawWrapper = await ensureWithdrawWrapper(hre, history);
+    const bouncingReceiver = await ensureBouncingReceiver(hre, history);
     log(
         `  operator: ${operator.owners.length} multisig owners, threshold ${operator.required}; ` +
             `${accounts.length} accounts at ${RBTC_PER_ACCOUNT} RBTC / ` +
@@ -1193,6 +1220,7 @@ const bootstrapQa = async (hre, opts = {}) => {
         testKey: TEST_KEY,
         suspects: SUSPECTS,
         withdrawWrapper,
+        bouncingReceiver,
         phase1,
         phase2,
         how,
@@ -1249,6 +1277,7 @@ const attachQa = async (hre) => {
             ethers.provider
         ),
         multisig: await ethers.getContractAt("MultiSigWallet", state.multisig),
+        bouncingReceiver: state.bouncingReceiver,
         state,
     };
 };
@@ -1258,6 +1287,7 @@ module.exports = {
     attachQa,
     ensureOperator,
     ensureWithdrawWrapper,
+    ensureBouncingReceiver,
     upgradeWithExemptions,
     armWithExemptions,
     assertLocalQaFork,

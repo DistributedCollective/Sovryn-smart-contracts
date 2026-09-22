@@ -238,4 +238,51 @@ describe("perimeter:submit-block / perimeter:check-block verify --queue against 
             expect(raised, raised && raised.message).to.equal(null);
         });
     });
+
+    it("submit-block refuses recovery calldata and names the task that builds it", async () => {
+        await withKnownQueue(realQueue, async () => {
+            const recovery = require("../../hardhat/tasks/perimeter/recovery");
+            const routeData = recovery.buildRecoveryCall("setTopUpFeasible", {
+                surfaceId: require("../../hardhat/tasks/perimeter/policy").SURFACES
+                    .PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+                feasible: true,
+            }).data;
+            let raised = null;
+            try {
+                await hre.run("perimeter:submit-block", {
+                    queue: realQueue,
+                    data: routeData,
+                    signer: owner.address,
+                    multisig: multisig.address,
+                });
+            } catch (error) {
+                raised = error;
+            }
+            expect(
+                raised,
+                "recovery calldata must not be submitted as a block lever"
+            ).to.not.equal(null);
+            expect(raised.message).to.match(/is a recovery lever, not a block lever/);
+            expect(raised.message).to.match(/perimeter:route:set/);
+        });
+    });
+
+    it("check-block decodes a recovery transaction and still verifies the destination", async () => {
+        await withKnownQueue(realQueue, async () => {
+            const recovery = require("../../hardhat/tasks/perimeter/recovery");
+            const routeData = recovery.buildRecoveryCall("removeRecoveryRoute", {
+                routeId: `0x${"11".repeat(32)}`,
+            }).data;
+            await (
+                await multisig.connect(owner).submitTransaction(realQueue, 0, routeData)
+            ).wait();
+            const txId = (await multisig.transactionCount()).sub(1).toString();
+            const output = await captureConsole(() =>
+                hre.run("perimeter:check-block", { id: txId, multisig: multisig.address })
+            );
+            expect(output).to.include("matches the deployed ExitDelayQueue");
+            expect(output).to.include("removeRecoveryRoute(bytes32)");
+            expect(output).to.include(`removes the recovery route 0x${"11".repeat(32)}`);
+        });
+    });
 });
