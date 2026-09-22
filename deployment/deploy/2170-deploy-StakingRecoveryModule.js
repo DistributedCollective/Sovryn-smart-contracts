@@ -45,6 +45,23 @@ const EXPECTED = {
  *   SKIP_VERIFY=true                      deploy without verifying
  *   ETHERSCAN_API_KEY=<key>               optional; Blockscout accepts any value
  */
+/**
+ * Ask the block explorer whether it really holds verified sources, rather than
+ * trusting that `etherscan-verify` did not throw. Returns false on any doubt.
+ */
+async function isVerifiedOnExplorer(hre, address) {
+    const base = hre.network.config.verify?.etherscan?.apiUrl;
+    if (!base) return false;
+    try {
+        const res = await fetch(`${base}/api/v2/smart-contracts/${address}`);
+        if (!res.ok) return false;
+        const body = await res.json();
+        return body.is_verified === true;
+    } catch (e) {
+        return false;
+    }
+}
+
 const func = async function (hre) {
     const {
         deployments: { deploy, log },
@@ -157,8 +174,17 @@ const func = async function (hre) {
                     apiKey,
                     contractName: "StakingRecoveryModule",
                     solcInput: true,
+                    // No source file in this repo carries an SPDX header, so
+                    // etherscan-verify SKIPS the contract with a warning and
+                    // does NOT throw. Supply the repo's licence explicitly.
+                    license: "Apache-2.0",
+                    forceLicense: true,
                 });
-                verified = true;
+
+                // Never infer success from the absence of an exception: the
+                // task logs and continues on several skip paths. Ask the
+                // explorer what it actually holds.
+                verified = await isVerifiedOnExplorer(hre, tx.address);
             } catch (e) {
                 if (i === attempts) {
                     log(col.red("  verification did not complete: " + e.message));
@@ -174,7 +200,18 @@ const func = async function (hre) {
                 }
             }
         }
-        if (verified) log(col.green("  source verified"));
+        if (verified) {
+            log(col.green("  source verified (confirmed with the explorer)"));
+        } else {
+            log(col.red("  NOT verified. The contract IS deployed at " + tx.address + "."));
+            log(
+                col.red(
+                    "  retry: npx hardhat etherscan-verify --contract-name StakingRecoveryModule" +
+                        " --license Apache-2.0 --force-license --solc-input --network " +
+                        hre.network.name
+                )
+            );
+        }
     } else {
         log(
             col.yellow(

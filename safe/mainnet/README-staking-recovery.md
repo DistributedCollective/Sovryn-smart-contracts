@@ -159,7 +159,18 @@ source and aborts on any mismatch, refuses to continue if the recovery selectors
 are already registered on the proxy, then verifies the source on Blockscout
 (retrying while it indexes) and prints the address to paste into the SIP as the
 `New contract` value. A verification failure is reported but never aborts — by
-then the contract exists, and the run prints the manual retry command.
+then the contract exists, and the run prints the manual retry command:
+
+```bash
+npx hardhat etherscan-verify --contract-name StakingRecoveryModule \
+  --license Apache-2.0 --force-license --solc-input --network rskSovrynMainnet
+```
+
+The licence flags are required: no Solidity file in this repo carries an SPDX
+header, and without them `etherscan-verify` skips the contract with a warning
+instead of failing. The script confirms the outcome by asking the explorer
+whether it holds verified sources, rather than trusting that the task did not
+throw.
 
 It deploys and verifies only — it never registers. Registration is
 action 1 of the proposal. The module is deliberately absent from
@@ -172,6 +183,14 @@ capability outside Bitocracy. Do not add it there.
 - [ ] The constant check and the not-registered check both passed.
 - [ ] The printed address is the one going into the SIP.
 - [ ] Both attacker wallets still hold their positions at `1884076095`.
+
+**Already done for SIP-0095.** The module is deployed at
+`0x33bE65Cc9865EF26C8997358C9705D31e6c7b4EF`, fully verified on Blockscout
+(Apache-2.0, solc 0.5.17, optimizer 200 runs). Independently confirmed: the
+deployed runtime bytecode is byte-for-byte identical to a local build of the
+reviewed source, the five constants read back correctly on chain, and the two
+selectors are `recoverAttackerStake()` `0x0b5d2269` and
+`recoverGuardiansStake(uint256)` `0xee7dc0b3`.
 
 ### 4. Finalise the proposal text
 
