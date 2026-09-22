@@ -436,8 +436,18 @@ const describeRequest = async (s, id, now) => {
     };
 };
 
-/** Everything the console and the dapp draw their pages from. */
-const status = async (s) => {
+/** Everything the console and the dapp draw their pages from.
+ *
+ *  `opts.scan` overrides how many of the wallet's most recent transactions
+ *  get walked for pending ones — MULTISIG_TAIL (25) by default. A submission
+ *  early in a long session can fall out of the default tail while still
+ *  unconfirmed; raise this to still find it by scanning further back. */
+const status = async (s, opts = {}) => {
+    const scan = opts.scan === undefined ? MULTISIG_TAIL : Number(opts.scan);
+    if (!Number.isInteger(scan) || scan <= 0) {
+        throw new Error("perimeter:qa status: --scan must be a positive whole number");
+    }
+
     const now = await chainNow();
     const last = (await s.queue.lastRequestId()).toNumber();
     const requests = [];
@@ -449,9 +459,14 @@ const status = async (s) => {
     // fork and no use to an operator, who is looking for the one they just
     // submitted.
     const total = (await s.multisig.transactionCount()).toNumber();
+    const required = (await s.multisig.required()).toNumber();
     const pending = [];
-    for (let id = total - 1; id >= 0 && id >= total - MULTISIG_TAIL; id--) {
-        if (!(await s.multisig.transactions(id)).executed) pending.unshift(id);
+    const pendingConfirmations = {};
+    for (let id = total - 1; id >= 0 && id >= total - scan; id--) {
+        if (!(await s.multisig.transactions(id)).executed) {
+            pending.unshift(id);
+            pendingConfirmations[id] = (await s.multisig.getConfirmationCount(id)).toNumber();
+        }
     }
 
     return {
@@ -465,16 +480,28 @@ const status = async (s) => {
         feeEnabled: await s.controller.exitFeeEnabled(),
         lastRequestId: last,
         requests,
-        multisigRequired: (await s.multisig.required()).toNumber(),
+        multisigRequired: required,
         multisigTransactionCount: total,
         multisigPending: pending,
-        multisigPendingScanned: MULTISIG_TAIL,
+        // Per pending transaction id: how many of the `multisigRequired`
+        // confirmations it already carries — what a two-signature drill
+        // needs to watch a submission wait on its second signer.
+        multisigPendingConfirmations: pendingConfirmations,
+        multisigPendingScanned: scan,
     };
 };
 
 /** Take a withdrawal on one surface. With the perimeter switched off the
  *  product pays on the spot and queues nothing, which is a result rather than a
- *  failure — the caller is told which of the two happened. */
+ *  failure — the caller is told which of the two happened.
+ *
+ *  `opts.setupOnly` only means something on the surplus surface: it stops
+ *  after the redemption that CREATES the claimable surplus, before the
+ *  separate call that claims it (and, with the perimeter armed, queues the
+ *  delayed exit) ever runs — see drivers.queueSurplusClaim. There is no
+ *  queued request to describe yet, so this returns early with the account
+ *  and the surplus amount read straight off the pool, rather than falling
+ *  into the queued/paid-direct branches below. */
 const withdraw = async (s, opts = {}) => {
     const surface = opts.surface;
     const driver = drivers.SURFACE_DRIVERS[surface];
@@ -482,6 +509,20 @@ const withdraw = async (s, opts = {}) => {
         throw new Error(
             `perimeter:qa: unknown surface '${surface}' — one of: ` +
                 Object.keys(drivers.SURFACE_DRIVERS).join(", ")
+        );
+    }
+    if (opts.setupOnly && surface !== "surplus") {
+        throw new Error(
+            "perimeter:qa withdraw: --setup-only only applies to --surface surplus — every other " +
+                "surface's own withdrawal call is what queues the exit, so there is no separate " +
+                "setup step to stop short of"
+        );
+    }
+    if (opts.through && surface !== "lender") {
+        throw new Error(
+            "perimeter:qa withdraw: --through only drives the lender surface today " +
+                "(drivers.queueLenderWithdrawalThrough) — the other three surfaces' drivers do not " +
+                "yet have a --through path"
         );
     }
     const log = logOf(opts);
@@ -494,8 +535,26 @@ const withdraw = async (s, opts = {}) => {
         receiver,
         amount: opts.amount,
         expectQueued,
+        setupOnly: opts.setupOnly,
+        through: opts.through,
         log,
     });
+
+    if (opts.setupOnly) {
+        log(
+            `  SETUP ONLY  surplus claim ready for ${originator}: ${result.surplusGross.toString()} ` +
+                "wei surplus claimable on the pool, not yet claimed"
+        );
+        return {
+            command: "withdraw",
+            surface,
+            as: originator,
+            account: originator,
+            setupOnly: true,
+            surplusGross: result.surplusGross.toString(),
+        };
+    }
+
     const now = await chainNow();
     // Reads the receiver's NATIVE balance for every surface — correct only
     // because each current driver's direct-pay leg resolves to native RBTC
@@ -883,6 +942,75 @@ const kill = async (s, on, opts = {}) => {
     return { command: "kill", enabled, ...result, receipt: undefined };
 };
 
+/**
+ * Move the controller's Owner role to another address, and back: on every
+ * real network both the Owner and the Admin role are held by the Exchequer
+ * multisig, and nothing else here moves either, so the console's
+ * refusal-at-send for a lever whose role the multisig lacks cannot be
+ * produced any other way. Fork only, like everything else in this file
+ * (assertQa's own guard, run by the caller before this).
+ *
+ * Both steps of OpenZeppelin's Ownable2Step (transferOwnership, then
+ * acceptOwnership from the new owner) are driven directly by impersonating
+ * whichever address currently holds the role that has to call it — the same
+ * shortcut ensureOperator already takes for the multisig's own onlyWallet
+ * functions — rather than routed through the multisig's own submit/confirm
+ * flow: the point of this drill is to produce a controller the multisig does
+ * NOT own, so the multisig's own signature flow is exactly what must not be
+ * in the way of setting it up.
+ *
+ * `--owner <address>` refuses when the controller is not currently owned by
+ * the Exchequer multisig — a role move already in effect and not restored —
+ * so a chained move can never leave an ambiguous "restore to what?" state.
+ * `--restore` always moves the role back to the Exchequer multisig, and
+ * refuses when the controller already reads that as its owner.
+ */
+const role = async (s, opts = {}) => {
+    const log = logOf(opts);
+    const currentOwner = ethers.utils.getAddress(await s.controller.owner());
+    const multisig = ethers.utils.getAddress(s.state.multisig);
+
+    let toAddress;
+    if (opts.restore) {
+        if (opts.owner) {
+            throw new Error("perimeter:qa role: pass --owner <address> or --restore, not both");
+        }
+        if (currentOwner === multisig) {
+            throw new Error(
+                "perimeter:qa role --restore: the controller's Owner is already the Exchequer " +
+                    "multisig — nothing to restore"
+            );
+        }
+        toAddress = multisig;
+    } else {
+        if (!opts.owner || !ethers.utils.isAddress(opts.owner)) {
+            throw new Error("perimeter:qa role: pass --owner <address> or --restore");
+        }
+        if (currentOwner !== multisig) {
+            throw new Error(
+                `perimeter:qa role --owner: the controller's Owner is already ${currentOwner}, ` +
+                    "not the Exchequer multisig — restore it first with `perimeter:qa role --restore`"
+            );
+        }
+        toAddress = ethers.utils.getAddress(opts.owner);
+    }
+
+    const fromSigner = await drivers.solventSigner(s, currentOwner);
+    await (await s.controller.connect(fromSigner).transferOwnership(toAddress)).wait();
+    const toSigner = await drivers.solventSigner(s, toAddress);
+    await (await s.controller.connect(toSigner).acceptOwnership()).wait();
+
+    const owner = ethers.utils.getAddress(await s.controller.owner());
+    if (owner !== toAddress) {
+        throw new Error(
+            `perimeter:qa role: transferOwnership/acceptOwnership ran, but the controller reads ` +
+                `owner ${owner}, not the ${toAddress} this move asked for`
+        );
+    }
+    log(`  OK  role: controller Owner moved from ${currentOwner} to ${owner}`);
+    return { command: "role", from: currentOwner, to: owner, restored: Boolean(opts.restore) };
+};
+
 const routeIdOf = (surfaceId, subProduct, token, destination) =>
     ethers.utils.keccak256(
         ethers.utils.defaultAbiCoder.encode(
@@ -1028,18 +1156,24 @@ const activeRouteFor = async (s, surfaceId, subProduct, token) => {
 };
 
 /**
- * Send escrow away from its receiver. The two legs do NOT have the same reach.
+ * Send escrow away from its receiver. The two legs do NOT have the same reach,
+ * but both turn on the same thing: a BLACKLISTED party. A freeze alone never
+ * authorizes either leg (it keeps a request held but in place — a bouncing
+ * recipient is the parties' own matter, self-service via
+ * `recoverStuckExit(id, altReceiver)`), and neither leg cares whether the
+ * queue is paused or whether the request is still inside its delay window.
  *
- * `--to pool` walks the pre-approved route, and the queue admits a request only
- * when its originator or its owner is BLACKLISTED — a freeze is not enough, and
- * a blacklisted receiver never authorizes it. The route must also match the
- * request's own surface, sub-product and token.
+ * `--to pool` walks the pre-approved route, and the queue admits a request
+ * only when its originator or its owner is BLACKLISTED — a blacklisted
+ * receiver never authorizes it. The route must also match the request's own
+ * surface, sub-product and token (`ExitDelayQueue.resolveToProtocol`).
  *
- * `--to <address>` is the owner's catch-all, and it is wider: the queue admits
- * any request whose originator, owner or receiver is blocked in either degree
- * (frozen or blacklisted), OR that is sitting in a paused queue, OR that is
- * still inside its delay window. Only a request past its unlock time with no
- * party blocked and the queue unpaused is out of its reach.
+ * `--to <address>` is the owner's catch-all, and it is wider only in WHICH
+ * role counts: the queue admits any request whose originator, owner OR
+ * receiver is BLACKLISTED (`ExitDelayQueue.resolveByOwner`). A request whose
+ * only blocked party is frozen, not blacklisted, is refused
+ * (`NotResolvableByOwner`) — the same as a request with no blocked party at
+ * all.
  */
 const refund = async (s, ids, to, opts = {}) => {
     const numeric = ids.map((id) => Number(id));
@@ -1350,4 +1484,5 @@ module.exports = {
     confirm,
     snapshot,
     revert,
+    role,
 };

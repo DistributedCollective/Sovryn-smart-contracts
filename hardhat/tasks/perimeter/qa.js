@@ -42,6 +42,7 @@ const SUBCOMMANDS = [
     "confirm",
     "snapshot",
     "revert",
+    "role",
 ];
 
 const row = (label, value) => console.log(`  ${String(label).padEnd(22)}${value}`);
@@ -77,7 +78,17 @@ const printStatus = (state) => {
         "multisig txs",
         `${state.multisigTransactionCount} (last ${state.multisigPendingScanned} scanned)`
     );
-    row("multisig pending", state.multisigPending.length ? state.multisigPending.join(", ") : "—");
+    row(
+        "multisig pending",
+        state.multisigPending.length
+            ? state.multisigPending
+                  .map(
+                      (id) =>
+                          `${id} (${state.multisigPendingConfirmations[id]}/${state.multisigRequired})`
+                  )
+                  .join(", ")
+            : "—"
+    );
     if (state.multisigRequired === 1 && state.multisigPending.length) {
         // At threshold 1 every lever this tool sends executes on submission, so
         // anything still pending is the live wallet's own backlog, carried in
@@ -158,6 +169,13 @@ task("perimeter:qa", "Bring up a local QA fork and drive its withdrawal queue")
         "up: leave the multisig's signature threshold as it is instead of dropping it to 1"
     )
     .addOptionalParam(
+        "secondOwner",
+        "up: also seat this address as an Exchequer multisig owner and set the confirmation " +
+            "requirement to 2, for a real two-signature drill. Refused together with --keep-threshold",
+        undefined,
+        types.string
+    )
+    .addOptionalParam(
         "surface",
         "withdraw: lender, borrower, zero or surplus",
         undefined,
@@ -178,9 +196,37 @@ task("perimeter:qa", "Bring up a local QA fork and drive its withdrawal queue")
         undefined,
         types.string
     )
+    .addOptionalParam(
+        "through",
+        "withdraw: address of a deployed wrapper contract that borrows/withdraws on the acting " +
+            "account's behalf, so the queued request's recorded OWNER is that contract — see " +
+            "bootstrapQa's deployed `withdrawWrapper`",
+        undefined,
+        types.string
+    )
+    .addFlag(
+        "setupOnly",
+        "withdraw --surface surplus: stop after the redemption, before the claim, leaving a " +
+            "claimable surplus sitting on the acting account instead of claiming it"
+    )
     .addOptionalParam("to", "refund: 'pool' or an address", undefined, types.string)
     .addFlag("blacklisted", "release: undo a blacklist rather than a freeze")
     .addFlag("alsoReceiver", "freeze/blacklist: block the payout address too")
+    .addOptionalParam(
+        "owner",
+        "role: move the controller's Owner role to this address (refused unless the Exchequer " +
+            "multisig currently holds it)",
+        undefined,
+        types.string
+    )
+    .addFlag("restore", "role: move the controller's Owner role back to the Exchequer multisig")
+    .addOptionalParam(
+        "scan",
+        "status: how many of the multisig's most recent transactions to scan for pending ones " +
+            "(default 25)",
+        undefined,
+        types.int
+    )
     .addFlag(
         "viaConsole",
         "print the calldata instead of sending it — works on every lever that goes through the " +
@@ -225,7 +271,7 @@ task("perimeter:qa", "Bring up a local QA fork and drive its withdrawal queue")
         let record;
         switch (subcommand) {
             case "status":
-                record = await engine.status(s);
+                record = await engine.status(s, { scan: params.scan });
                 printStatus(record);
                 console.log("");
                 console.log(`  recorded in ${engine.appendState(record)}`);
@@ -235,6 +281,8 @@ task("perimeter:qa", "Bring up a local QA fork and drive its withdrawal queue")
                     ...opts,
                     surface: params.surface,
                     amount: params.amount ? hre.ethers.utils.parseEther(params.amount) : undefined,
+                    through: params.through,
+                    setupOnly: params.setupOnly,
                 });
                 break;
             case "advance":
@@ -285,6 +333,13 @@ task("perimeter:qa", "Bring up a local QA fork and drive its withdrawal queue")
                 if (!args[0]) throw new Error("perimeter:qa revert: give a snapshot id");
                 record = await engine.revert(s, args[0], opts);
                 break;
+            case "role":
+                record = await engine.role(s, {
+                    ...opts,
+                    owner: params.owner,
+                    restore: params.restore,
+                });
+                break;
             default:
                 throw new Error(`perimeter:qa: '${subcommand}' has no action`);
         }
@@ -295,7 +350,7 @@ task("perimeter:qa", "Bring up a local QA fork and drive its withdrawal queue")
         console.log(`  recorded in ${engine.appendState(record)}`);
     });
 
-const runUp = async ({ delay, governance, fee, keepThreshold }, hre) => {
+const runUp = async ({ delay, governance, fee, keepThreshold, secondOwner }, hre) => {
     if (fee !== "on" && fee !== "off") {
         throw new Error(`perimeter:qa: --fee takes 'on' or 'off', not '${fee}'`);
     }
@@ -305,6 +360,7 @@ const runUp = async ({ delay, governance, fee, keepThreshold }, hre) => {
         governance,
         fee: fee === "on",
         keepThreshold,
+        secondOwner,
     });
 
     console.log("");
@@ -320,6 +376,7 @@ const runUp = async ({ delay, governance, fee, keepThreshold }, hre) => {
     row("charge", state.feeEnabled ? "on" : "off");
     row("fee receiver", state.feeReceiver);
     row("governance", state.governance);
+    row("withdraw wrapper", state.withdrawWrapper);
     if (state.warning) row("warning", state.warning);
     console.log("");
     console.log(`  state file: ${STATE_FILE}`);

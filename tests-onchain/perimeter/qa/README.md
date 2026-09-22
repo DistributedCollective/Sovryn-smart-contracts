@@ -46,8 +46,9 @@ Options:
 | --- | --- |
 | `--delay <seconds>` | hold length to arm; omitted, a controller that already carries a hold keeps it, and one that carries none gets 120 |
 | `--fee on\|off` | `on` (default) also closes the charge switch; `off` arms the hold alone |
-| `--keep-threshold` | leave the multisig threshold alone instead of dropping it to 1 |
+| `--keep-threshold` | leave the multisig threshold alone instead of dropping it to 1. Refused together with `--second-owner` |
 | `--governance impersonate\|real` | `real` walks the proposals through actual governance instead, which jumps the chain clock days ahead and makes every countdown in the dapps meaningless |
+| `--second-owner <address>` | also seats this address as an Exchequer multisig owner and sets the confirmation requirement to 2 instead of 1 — a real two-signature drill. `status` then shows requirement `2` and, per pending transaction, how many of those 2 it already carries |
 
 Run it again at any time. A node that already carries the release is attached
 to, not rebuilt: the addresses are re-read, a missing half of an exemption is
@@ -69,10 +70,13 @@ fresh node.
 the RPC and fork block; the queue, controller, multisig, protocol and Zero
 addresses and the iRBTC/iXUSD pools; `feeReceiver`, where the perimeter's charge
 lands, beside `feesController`, the protocol's own fee stream that this release
-leaves alone; the armed `delaySeconds` and `feeEnabled`; and, per proposal,
-`how` it was settled beside the `stateAtFork` the governor reported when this
-bootstrap found it — `Pending`, `Active`, `Queued`, `Executed` and so on, so a
-fork carrying a release the voters had not finished says so after the fact.
+leaves alone; the armed `delaySeconds` and `feeEnabled`; `withdrawWrapper`, the
+deployed `MockQaThroughWrapper` `withdraw --through` drives (redeployed only
+when the one an earlier run left behind no longer has code on this node); and,
+per proposal, `how` it was settled beside the `stateAtFork` the governor
+reported when this bootstrap found it — `Pending`, `Active`, `Queued`,
+`Executed` and so on, so a fork carrying a release the voters had not finished
+says so after the fact.
 
 > **The state file contains a private key in clear.** It is hardhat's published
 > mnemonic account 0 — `0xf39Fd…2266` — together with accounts 1-3 as the
@@ -101,9 +105,12 @@ the dapps draw wrong for the rest of the session.
 
 | command | what it does | example |
 | --- | --- | --- |
-| `status` | the whole queue: paused, kill switch, hold, charge, every request with its parties, unlock and block states, and the multisig transactions still pending | `perimeter:qa status` |
+| `status` | the whole queue: paused, kill switch, hold, charge, every request with its parties, unlock and block states, and the multisig transactions still pending, each with its own confirmation count | `perimeter:qa status` |
+| | `--scan <n>` scans this many of the wallet's most recent transactions for pending ones instead of the default 25 — a submission early in a long session can fall out of the default tail while still unconfirmed | `perimeter:qa status --scan 200` |
 | `withdraw` | takes a withdrawal on one surface — `lender`, `borrower`, `zero` or `surplus` | `perimeter:qa withdraw --surface lender --as suspect1 --receiver 0x…` |
 | | `--amount` is in RBTC and means something different per surface: on `lender` how much to lend and then withdraw, on `borrower` and `zero` how much collateral to take back out. `surplus` ignores it — the surplus is whatever the redemption left | `perimeter:qa withdraw --surface zero --amount 0.002` |
+| | `--setup-only` (surplus only) stops after the redemption that creates the surplus, before the separate call that claims it — leaves a claimable surplus on the acting account and prints it, instead of claiming it | `perimeter:qa withdraw --surface surplus --as suspect2 --setup-only` |
+| | `--through <wrapper>` (lender only) drives the deployed `withdrawWrapper` instead of the pool directly, so the queued request's OWNER is that contract, not the signer | `perimeter:qa withdraw --surface lender --through 0x…` |
 | `advance` | jumps the chain clock by n seconds and warns that every wallet countdown is now wrong | `perimeter:qa advance 121` |
 | `execute` | releases one request as its originator and proves the receiver was paid to the wei | `perimeter:qa execute 3` |
 | `execute-all` | releases every request one actor may release | `perimeter:qa execute-all --as test` |
@@ -113,9 +120,10 @@ the dapps draw wrong for the rest of the session.
 | `pause` / `unpause` | stops and restarts every payout; ingress and blocking keep working while paused | `perimeter:qa pause` |
 | `kill` | the controller's switch: `off` makes new withdrawals pass straight through, `on` re-arms the hold. Requests already queued keep their own unlock either way | `perimeter:qa kill off` |
 | `route` | registers a recovery route for a surface — `topup` back into the pool the exit came from, or `address` to a named destination | `perimeter:qa route lender topup` |
-| `refund` | sends escrow away from its receiver, with a different reach per leg. `--to pool` walks the registered route and needs the originator or the owner **blacklisted** — a freeze does not do it, and a blacklisted receiver does not either. `--to <address>` is the owner's catch-all and takes any request whose originator, owner or receiver is frozen or blacklisted, or that sits in a paused queue, or that is still inside its hold; only an unlocked request with nobody blocked and the queue unpaused is out of its reach | `perimeter:qa refund 6 --to pool` |
+| `refund` | sends escrow away from its receiver. Both legs turn on a **blacklisted** party only — a freeze does not do it, whether the queue is paused or the request is still inside its hold makes no difference either. `--to pool` needs the originator or the owner blacklisted, and a blacklisted receiver does not qualify it. `--to <address>` is the owner's catch-all and takes any request whose originator, owner **or** receiver is blacklisted; a request with no blacklisted party is out of its reach | `perimeter:qa refund 6 --to pool` |
 | `confirm` | adds confirmations from the wallet's real owners to a pending multisig transaction (only needed after `up --keep-threshold`) | `perimeter:qa confirm 2231` |
 | `snapshot` / `revert` | takes a chain snapshot and rewinds to it | `perimeter:qa snapshot` then `perimeter:qa revert 0x1f` |
+| `role` | moves the controller's Owner role to another address (`--owner <address>`, refused unless the Exchequer multisig currently holds it), or back (`--restore`, refused once it already does). Fork only, like everything else here — produces the role mismatch the console's own refusal-at-send otherwise has nothing to exercise against | `perimeter:qa role --owner 0x…` then `perimeter:qa role --restore` |
 
 `--via-console` prints the call's selector, arguments, calldata and the multisig
 `submitTransaction` calldata instead of sending anything — so the operator
@@ -150,11 +158,28 @@ __decryptionAlreadyDone__=TRUE npx hardhat test \
   tests-onchain/perimeter/qa/bootstrap.test.js --network rskForkedMainnetQa
 __decryptionAlreadyDone__=TRUE npx hardhat test \
   tests-onchain/perimeter/qa/engine.test.js --network rskForkedMainnetQa
+__decryptionAlreadyDone__=TRUE npx hardhat test \
+  tests-onchain/perimeter/qa/submitBlock.test.js --network rskForkedMainnetQa
 ```
 
 The engine test writes to the fork and puts nothing back — the states it leaves
 behind are what the dapps are then driven against. Run it once per `up`; to run
 it again, restart the node and bootstrap it afresh.
+
+The rest of this directory's `*.test.js` files (`drivers*`, `engine*Check`,
+`engine*Guards`, `engine*Scan`, `bootstrapEnsureOperator`, `node.test.js`
+excepted) run isolated — no fork, no `--network` — against fakes or, for
+`ensureOperator`, a real `MultiSigWallet` deployed on the default in-process
+network:
+
+```
+__decryptionAlreadyDone__=TRUE npx hardhat test tests-onchain/perimeter/qa/*.test.js
+```
+
+(that glob also picks up `bootstrap.test.js`, `engine.test.js`,
+`node.test.js` and `submitBlock.test.js`, whose `before()` hooks throw "run
+with --network rskForkedMainnetQa" and fail outright without one — list the
+isolated files explicitly, or filter them out, to avoid those four failures.)
 
 ## Stop the node
 

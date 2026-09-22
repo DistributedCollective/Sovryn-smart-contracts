@@ -805,8 +805,14 @@ const armWithExemptions = async (controller, { delaySeconds, fee, foundHolding }
  * `addOwner` and `changeRequirement` are onlyWallet — the wallet has to be its
  * own caller — so the multisig ADDRESS is what gets impersonated here, not any
  * of its signers.
+ *
+ * `secondOwner`, when given, also seats that address and sets the
+ * requirement to 2 instead — a real two-signature drill the console has no
+ * other way to stage, since every other path either drops the threshold to
+ * 1 or leaves the wallet's real threshold (three of seven, with co-owners
+ * whose keys nobody has) in place.
  */
-const ensureOperator = async (hre, provider, multisig, keepThreshold) => {
+const ensureOperator = async (hre, provider, multisig, keepThreshold, secondOwner) => {
     const walletSigner = await impersonateSolvent(
         hre,
         provider,
@@ -819,13 +825,47 @@ const ensureOperator = async (hre, provider, multisig, keepThreshold) => {
     if (!(await multisig.isOwner(TEST_KEY.address))) {
         await (await multisig.connect(walletSigner).addOwner(TEST_KEY.address)).wait();
     }
-    if (!keepThreshold && Number(await multisig.required()) !== 1) {
+    if (secondOwner) {
+        const address = hre.ethers.utils.getAddress(secondOwner);
+        if (!(await multisig.isOwner(address))) {
+            await (await multisig.connect(walletSigner).addOwner(address)).wait();
+        }
+        if (Number(await multisig.required()) !== 2) {
+            await (await multisig.connect(walletSigner).changeRequirement(2)).wait();
+        }
+    } else if (!keepThreshold && Number(await multisig.required()) !== 1) {
         await (await multisig.connect(walletSigner).changeRequirement(1)).wait();
     }
     return {
         owners: await multisig.getOwners(),
         required: Number(await multisig.required()),
     };
+};
+
+/**
+ * A one-function stand-in for a product that borrows/withdraws on a user's
+ * behalf (contracts/mockup/perimeter/MockQaThroughWrapper.sol), so
+ * `perimeter:qa withdraw --through <wrapper>` can produce a queued request
+ * whose recorded OWNER is a contract — the one shape nothing else here can
+ * produce.
+ *
+ * Stateless, so redeploying costs nothing; reused when an earlier run on
+ * this same node already left one with code still present, the same
+ * idempotence every other part of this bootstrap follows.
+ */
+const ensureWithdrawWrapper = async (hre, history) => {
+    const { ethers } = hre;
+    if (history && history.withdrawWrapper) {
+        if ((await ethers.provider.getCode(history.withdrawWrapper)) !== "0x") {
+            return ethers.utils.getAddress(history.withdrawWrapper);
+        }
+    }
+    const deployer = (await ethers.getSigners())[0];
+    const wrapper = await (
+        await ethers.getContractFactory("MockQaThroughWrapper", deployer)
+    ).deploy();
+    await wrapper.deployed();
+    return ethers.utils.getAddress(wrapper.address);
 };
 
 /**
@@ -991,6 +1031,21 @@ const bootstrapQa = async (hre, opts = {}) => {
     if (requestedDelay !== null && (!Number.isInteger(requestedDelay) || requestedDelay <= 0)) {
         throw new Error("perimeter QA: --delay must be a positive whole number of seconds");
     }
+    // --second-owner asks for a real two-signature drill (requirement 2);
+    // --keep-threshold asks to leave the threshold exactly as the wallet
+    // already carries it. Refused together, before any fork read, rather
+    // than silently letting one win — the same "refuse before touching the
+    // chain" shape this file already uses for --delay above.
+    const secondOwner = opts.secondOwner;
+    if (secondOwner !== undefined && !hre.ethers.utils.isAddress(secondOwner)) {
+        throw new Error(`perimeter QA: --second-owner must be an address, got '${secondOwner}'`);
+    }
+    if (secondOwner !== undefined && keepThreshold) {
+        throw new Error(
+            "perimeter QA: --second-owner asks for a 2-of-N confirmation requirement and " +
+                "--keep-threshold asks to leave the requirement alone — pick one"
+        );
+    }
 
     await assertLocalQaFork(hre);
     // Set before anything reads the overrides: the perimeter stack is attached
@@ -1122,8 +1177,9 @@ const bootstrapQa = async (hre, opts = {}) => {
     );
 
     const accounts = [TEST_KEY.address, ...SUSPECTS];
-    const operator = await ensureOperator(hre, provider, multisig, keepThreshold);
+    const operator = await ensureOperator(hre, provider, multisig, keepThreshold, secondOwner);
     const funding = await fundQaAccounts(hre, provider, accounts);
+    const withdrawWrapper = await ensureWithdrawWrapper(hre, history);
     log(
         `  operator: ${operator.owners.length} multisig owners, threshold ${operator.required}; ` +
             `${accounts.length} accounts at ${RBTC_PER_ACCOUNT} RBTC / ` +
@@ -1136,6 +1192,7 @@ const bootstrapQa = async (hre, opts = {}) => {
         governance: recordedGovernance,
         testKey: TEST_KEY,
         suspects: SUSPECTS,
+        withdrawWrapper,
         phase1,
         phase2,
         how,
@@ -1199,6 +1256,8 @@ const attachQa = async (hre) => {
 module.exports = {
     bootstrapQa,
     attachQa,
+    ensureOperator,
+    ensureWithdrawWrapper,
     upgradeWithExemptions,
     armWithExemptions,
     assertLocalQaFork,

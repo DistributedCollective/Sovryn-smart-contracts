@@ -206,6 +206,32 @@ const assertRequestParties = (label, request, expected) => {
  * two lines above; passed through rather than guessed, because gas is never
  * paid in an ERC20 and crediting it back to a token balance would be wrong.
  */
+
+/**
+ * This module's `s` comes from two different fixtures that shape it
+ * differently: the interactive QA CLI's own `attachQa`
+ * (tests-onchain/perimeter/qa/bootstrap.js) carries the ExitFeeController at
+ * the top level, `s.controller`; `perimeterDelayE2E.test.js`'s `s`
+ * (tests-onchain/perimeter/phase2Stack.js's `setupPhase2Stack` /
+ * `attachToInstalledPhase2Stack`) carries the same, real, live controller
+ * nested as `s.stack.controller` instead. Both are read here rather than
+ * hard-coding one shape, so the fee-accounting check this function backs
+ * works for either caller without weakening what it checks. A caller whose
+ * `s` supplies neither shape gets a loud, named failure — never a silent
+ * skip of the fee check.
+ */
+const controllerOf = (s) => {
+    const controller = (s && s.controller) || (s && s.stack && s.stack.controller);
+    if (!controller) {
+        throw new Error(
+            "fee accounting not checked: this driver's `s` carries neither `controller` nor " +
+                "`stack.controller` — the caller's fixture does not supply an ExitFeeController " +
+                "for the fee-accounting check to read"
+        );
+    }
+    return controller;
+};
+
 const assertExitFeeAccounted = async (
     s,
     {
@@ -238,7 +264,7 @@ const assertExitFeeAccounted = async (
         );
     }
     const gross = netRecorded.add(feeReceived);
-    const quote = await s.controller.quoteExitFee(surfaceId, subProduct, actor, gross);
+    const quote = await controllerOf(s).quoteExitFee(surfaceId, subProduct, actor, gross);
     if (!quote.feeAmount.eq(feeReceived)) {
         const skip = findVaultRevertSkip(receipt, surfaceId, actor);
         if (skip) {
@@ -317,12 +343,16 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
     const receiver = opts.receiver || originator;
     const amount = opts.amount || LEND_AMOUNT;
 
+    if (opts.through) {
+        return queueLenderWithdrawalThrough(s, signer, receiver, amount, opts);
+    }
+
     const held = await s.iRBTC.balanceOf(originator);
     await (await s.iRBTC.connect(signer).mintWithBTC(originator, false, { value: amount })).wait();
     const minted = (await s.iRBTC.balanceOf(originator)).sub(held);
     if (!minted.gt(0)) throw new Error("lender withdrawal: no iRBTC position was minted");
 
-    const feeReceiver = await s.controller.feeReceiver();
+    const feeReceiver = await controllerOf(s).feeReceiver();
     const before = {
         originator: await nativeBalance(originator),
         receiver: await nativeBalance(receiver),
@@ -386,6 +416,106 @@ const queueLenderWithdrawal = async (s, signer, opts = {}) => {
         "floor"
     );
     return { id, request, receipt, before, fee, subProduct: s.iRBTC.address };
+};
+
+/**
+ * `opts.through` variant of the lender driver: a QA-only wrapper contract
+ * (contracts/mockup/perimeter/MockQaThroughWrapper.sol, deployed by
+ * bootstrapQa as `state.withdrawWrapper`) mints and immediately burns the
+ * position ITSELF, so the queued request's originator and owner are the
+ * wrapper's own address rather than `signer`'s — an unlocked withdrawal
+ * whose recorded owner is a contract, deliverable by anyone, which is the
+ * one queue state nothing else here can produce. `signer` only funds the
+ * call and names `receiver`; every assertion below reads the wrapper as the
+ * actor the product itself attributes the exit fee to — `msg.sender` at
+ * both the mint and the burn — matching what the real product code does
+ * whenever any contract sits
+ * between a user and the pool (see
+ * contracts/mockup/perimeter/MockThirdPartyWrapper.sol's own docstring for
+ * the same attribution rule, proven for the ERC20-underlying `burn()` path).
+ */
+const queueLenderWithdrawalThrough = async (s, signer, receiver, amount, opts) => {
+    const wrapperAddress = ethers.utils.getAddress(opts.through);
+    const wrapper = await ethers.getContractAt("MockQaThroughWrapper", wrapperAddress, signer);
+
+    const feeReceiver = await controllerOf(s).feeReceiver();
+    const before = {
+        originator: await nativeBalance(wrapperAddress),
+        receiver: await nativeBalance(receiver),
+    };
+    const feeBefore = await nativeBalance(feeReceiver);
+    const lastIdBefore = await s.queue.lastRequestId();
+    const tokenPriceBefore = await s.iRBTC.tokenPrice();
+
+    // The mint and the burn both happen inside this one call, so there is no
+    // before/after balance of the WRAPPER to read `minted` off — its iToken
+    // balance is zero on both sides of the transaction by construction (mint
+    // then immediately burn, same as a vault passing a user's funds straight
+    // through). The wrapper's own return value is the only source for it;
+    // read it with a static call first — no state change, no gas — so it is
+    // known before the real send needs it for the gross-grounding floor.
+    const minted = await wrapper.callStatic.withdrawLenderOnBehalf(s.iRBTC.address, receiver, {
+        value: amount,
+    });
+    if (!minted.gt(0)) {
+        throw new Error("lender withdrawal --through: no iRBTC position was minted");
+    }
+    const receipt = await (
+        await wrapper.withdrawLenderOnBehalf(s.iRBTC.address, receiver, { value: amount })
+    ).wait();
+
+    const { id, request } = await queuedBy(
+        s,
+        "lender withdrawal --through",
+        PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        lastIdBefore,
+        opts
+    );
+    if (!request) {
+        return {
+            id,
+            request,
+            receipt,
+            before,
+            subProduct: s.iRBTC.address,
+            owner: wrapperAddress,
+        };
+    }
+    // msg.sender at both the mint and the burn is the wrapper, never
+    // `signer` — the whole point of this path.
+    assertRequestParties("lender withdrawal --through", request, {
+        originator: wrapperAddress,
+        owner: wrapperAddress,
+        receiver,
+    });
+    const feeAfter = await nativeBalance(feeReceiver);
+    const fee = await assertExitFeeAccounted(s, {
+        label: "lender withdrawal --through",
+        surfaceId: PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW,
+        subProduct: s.iRBTC.address,
+        actor: wrapperAddress,
+        feeReceiver,
+        feeReceiverBefore: feeBefore,
+        feeReceiverAfter: feeAfter,
+        feeAsset: ZERO_ADDRESS,
+        netRecorded: request.amount,
+        receipt,
+    });
+    assertGrossIndependentlyGrounded(
+        "lender withdrawal --through",
+        fee,
+        minted.mul(tokenPriceBefore).div(ethers.constants.WeiPerEther),
+        "floor"
+    );
+    return {
+        id,
+        request,
+        receipt,
+        before,
+        fee,
+        subProduct: s.iRBTC.address,
+        owner: wrapperAddress,
+    };
 };
 
 const PRICE_FEEDS_ABI = [
@@ -519,7 +649,7 @@ const queueBorrowerCollateralWithdraw = async (s, signer, opts = {}) => {
         .find((parsed) => parsed && parsed.name === "Borrow");
     if (!borrowEvent) throw new Error("borrower withdrawal: the borrow did not open a loan");
 
-    const feeReceiver = await s.controller.feeReceiver();
+    const feeReceiver = await controllerOf(s).feeReceiver();
     const before = {
         originator: await nativeBalance(originator),
         receiver: await nativeBalance(receiver),
@@ -643,7 +773,7 @@ const queueZeroCollWithdraw = async (s, signer, opts = {}) => {
         ).wait();
     }
 
-    const feeReceiver = await s.controller.feeReceiver();
+    const feeReceiver = await controllerOf(s).feeReceiver();
     const before = {
         originator: await nativeBalance(originator),
         receiver: await nativeBalance(receiver),
@@ -735,6 +865,12 @@ const derivedActor = (from, tag) =>
  * spend. A redeemer that still cannot cover the redemption opens its own
  * high-ratio trove — which sits above the probe in the queue, so the probe stays
  * first — and spends that ZUSD instead.
+ *
+ * `opts.setupOnly` stops after the redemption, before claimCollateral() —
+ * the one call that both claims the surplus and queues the delayed exit — is
+ * ever sent, leaving a claimable surplus sitting on `victim`'s account
+ * instead. There is otherwise no way to produce that state: the redemption
+ * and the claim are always one command.
  */
 const queueSurplusClaim = async (s, signer, opts = {}) => {
     const victim = await addressOf(signer);
@@ -878,7 +1014,26 @@ const queueSurplusClaim = async (s, signer, opts = {}) => {
     const surplusGross = await collSurplusPool.getCollateral(victim);
     if (!surplusGross.gt(0)) throw new Error("surplus claim: the redemption left no surplus");
 
-    const feeReceiver = await s.controller.feeReceiver();
+    // `opts.setupOnly` stops here, before claimCollateral() ever runs — the
+    // redemption above is what CREATES the surplus, and claimCollateral() is
+    // the separate call that both claims it and (with the perimeter armed)
+    // queues the exit. There is no other way to leave a claimable surplus
+    // sitting on an account: the two are otherwise inseparable, one call.
+    if (opts.setupOnly) {
+        return {
+            id: null,
+            request: null,
+            receipt: null,
+            before: null,
+            surplusGross,
+            redeemer: redeemerAddress,
+            subProduct: ZERO_ADDRESS,
+            account: victim,
+            setupOnly: true,
+        };
+    }
+
+    const feeReceiver = await controllerOf(s).feeReceiver();
     const before = {
         originator: await nativeBalance(victim),
         receiver: await nativeBalance(receiver),
