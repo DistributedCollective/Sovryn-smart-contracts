@@ -152,17 +152,25 @@ deployment record.
 ```bash
 DEPLOY_STAKING_RECOVERY_MODULE=true \
   npx hardhat deploy --tags StakingRecoveryModule --network rskSovrynMainnet
-npx hardhat etherscan-verify --api-key anything --network rskSovrynMainnet
 ```
 
-The script deploys and verifies only — it never registers. Registration is
+One command. It deploys, checks every hard-coded constant against the reviewed
+source and aborts on any mismatch, refuses to continue if the recovery selectors
+are already registered on the proxy, then verifies the source on Blockscout
+(retrying while it indexes) and prints the address to paste into the SIP as the
+`New contract` value. A verification failure is reported but never aborts — by
+then the contract exists, and the run prints the manual retry command.
+
+It deploys and verifies only — it never registers. Registration is
 action 1 of the proposal. The module is deliberately absent from
 `getStakingModulesNames()`, because that list also feeds the scripts that
 register modules through the multisig, which would install the recovery
 capability outside Bitocracy. Do not add it there.
 
-- [ ] Deployed, recorded, and source verified.
-- [ ] The script's constant check passed (it aborts on any mismatch).
+- [ ] Deployed and recorded; the run reported the source verified (if not, retry
+      with the command it printed before proceeding).
+- [ ] The constant check and the not-registered check both passed.
+- [ ] The printed address is the one going into the SIP.
 - [ ] Both attacker wallets still hold their positions at `1884076095`.
 
 ### 4. Finalise the proposal text

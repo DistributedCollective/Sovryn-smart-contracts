@@ -261,10 +261,14 @@ module.exports = {
             tags: ["testnet"],
             // Source verification target for `hardhat etherscan-verify` (hardhat-deploy):
             // Rootstock Blockscout, etherscan-compatible API. The task submits the
-            // standard-JSON input stored in the deployment record; Blockscout accepts
-            // any non-empty --api-key value.
+            // standard-JSON input stored in the deployment record. Blockscout accepts
+            // any non-empty key, so the fallback below lets `hardhat etherscan-verify`
+            // run with no --api-key flag; set ETHERSCAN_API_KEY to override.
             verify: {
-                etherscan: { apiUrl: "https://rootstock-testnet.blockscout.com" },
+                etherscan: {
+                    apiUrl: "https://rootstock-testnet.blockscout.com",
+                    apiKey: process.env.ETHERSCAN_API_KEY || "blockscout",
+                },
             },
             //timeout: 20000, // increase if needed; 20000 is the default value
             //allowUnlimitedContractSize, //EIP170 contrtact size restriction temporal testnet workaround
@@ -279,7 +283,10 @@ module.exports = {
             timeout: 900000,
             // Source verification target for `hardhat etherscan-verify` (see testnet note).
             verify: {
-                etherscan: { apiUrl: "https://rootstock.blockscout.com" },
+                etherscan: {
+                    apiUrl: "https://rootstock.blockscout.com",
+                    apiKey: process.env.ETHERSCAN_API_KEY || "blockscout",
+                },
             },
             //timeout: 20000, // increase if needed; 20000 is the default value
         },
