@@ -2343,7 +2343,7 @@ const getArgsSipStakingRecovery = async (hre) => {
             "defensive stake to the Exchequer without the early-unstaking penalty, through a " +
             "one-off module that is added and removed in the same transaction. No other " +
             "staking behaviour is changed. " +
-            "Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0095.md, sha256: ____",
+            "Details: https://github.com/DistributedCollective/SIPS/blob/c54f88c/SIP-0095.md, sha256: 64dcd4785c6df5058be3d6bc113a471e413b2dff8cbf40066787a3aabad26cce",
     };
 
     assertDescriptionFinalized(args.description);
