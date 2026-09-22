@@ -247,4 +247,36 @@ describe("perimeter:submit-block / perimeter:check-block decode the calldata the
         ).to.equal(null);
         expect(output).to.include("NOT an ExitDelayQueue block lever");
     });
+
+    it("perimeter:policy:check-tx reaches its own named refusal, not a raw ABI-decode error, for a real controller-setter selector with truncated argument bytes", async () => {
+        // decodeCall's OTHER branch — the controller-setter decode, not the
+        // queue-lever decode the tests above reproduce. A genuine
+        // `setFeeReceiver(address)` selector followed by too few bytes to
+        // decode one address argument, the same truncated-paste shape;
+        // perimeter:policy:check-tx is the task that relies on this branch
+        // for every submitted controller transaction.
+        const selector = ethers.utils.id("setFeeReceiver(address)").slice(0, 10);
+        const data = `${selector}${"00".repeat(10)}`;
+        await (await multisig.connect(owner).submitTransaction(queueAddress, 0, data)).wait();
+        const txId = (await multisig.transactionCount()).sub(1).toString();
+
+        let raised = null;
+        try {
+            await hre.run("perimeter:policy:check-tx", {
+                id: txId,
+                multisig: multisig.address,
+                controller: queueAddress,
+            });
+        } catch (error) {
+            raised = error;
+        }
+        expect(
+            raised,
+            "truncated argument bytes must refuse, not vouch for the call as safe to confirm"
+        ).to.not.equal(null);
+        expect(
+            raised.message,
+            "must reach the named controller-branch refusal, not a raw ABI-decode error"
+        ).to.match(/does not decode as any known controller policy call/);
+    });
 });
