@@ -9,7 +9,7 @@
  *   3. staking is reopened and ordinary stakers work again.
  *
  * Run with:
- *   __decryptionAlreadyDone__=TRUE npx hardhat test tests/staking/StakingRecoveryFork.test.js
+ *   RSK_FORK_TESTS=true __decryptionAlreadyDone__=TRUE npx hardhat test tests/staking/StakingRecoveryFork.test.js
  */
 const { expect } = require("chai");
 const { ethers, network } = require("hardhat");
@@ -68,7 +68,12 @@ async function impersonate(address) {
     return await ethers.getSigner(address);
 }
 
-describe("Staking recovery on an RSK mainnet fork", () => {
+// These drive a fork of live RSK mainnet: they need network access and take
+// minutes, so `npx hardhat test` skips them. Run them explicitly with
+// RSK_FORK_TESTS=true.
+const describeFork = process.env.RSK_FORK_TESTS === "true" ? describe : describe.skip;
+
+describeFork("Staking recovery on an RSK mainnet fork", () => {
     let staking, proxy, sov, recoveryModule;
     let totalVotingPowerBefore, recoveredWeight;
     let guardians, timelock, exchequer;

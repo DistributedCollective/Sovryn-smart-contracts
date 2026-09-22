@@ -14,7 +14,7 @@
  *   4. staking is reopened from the Safe.
  *
  * Run with:
- *   __decryptionAlreadyDone__=TRUE npx hardhat test tests/staking/StakingRecoveryRehearsal.test.js
+ *   RSK_FORK_TESTS=true __decryptionAlreadyDone__=TRUE npx hardhat test tests/staking/StakingRecoveryRehearsal.test.js
  */
 const { expect } = require("chai");
 const { ethers, network } = require("hardhat");
@@ -184,7 +184,12 @@ async function safeExec(safe, owners, threshold, to, data, operation) {
         );
 }
 
-describe("Staking recovery dress rehearsal", () => {
+// These drive a fork of live RSK mainnet: they need network access and take
+// minutes, so `npx hardhat test` skips them. Run them explicitly with
+// RSK_FORK_TESTS=true.
+const describeFork = process.env.RSK_FORK_TESTS === "true" ? describe : describe.skip;
+
+describeFork("Staking recovery dress rehearsal", () => {
     let staking, sov, safe, multisig, governor, recoveryModule;
     let safeOwners, safeThreshold, msOwners, msRequired;
     let guardiansLockDate, proposalId;
