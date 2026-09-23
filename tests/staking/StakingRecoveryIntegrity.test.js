@@ -199,6 +199,7 @@ describe("Staking recovery data integrity", () => {
         // the weight each recovered position contributes, before it is taken
         let { bn, t } = await at();
         const totalBefore = await staking.getPriorTotalVotingPower(bn, t);
+        const stakedAtDateBefore = await staking.getPriorTotalStakesForDate(until, bn);
         const weights = [];
         for (const who of [f.attacker, f.secondary, f.guardians]) {
             weights.push(await staking.getPriorWeightedStake(who, bn, t));
@@ -211,8 +212,32 @@ describe("Staking recovery data integrity", () => {
         await network.provider.send("evm_mine");
 
         ({ bn, t } = await at());
-        // the aggregate quorum and the proposal threshold are computed from
-        expect(await staking.getPriorTotalVotingPower(bn, t)).to.equal(totalBefore.sub(removed));
+
+        // The STAKE ledger is the exact invariant: no weighting, no division,
+        // so the date's total must fall by precisely the SOV recovered.
+        expect(await staking.getPriorTotalStakesForDate(until, bn)).to.equal(
+            stakedAtDateBefore.sub(f.amount).sub(f.secondaryAmount).sub(small)
+        );
+
+        // Voting power cannot be asserted to the wei against a sum of
+        // per-account figures. _totalPowerByDate truncates ONCE over the
+        // date's aggregate stake (staked * weight / WEIGHT_FACTOR), while
+        // getPriorWeightedStake truncates per account. Summing three
+        // per-account truncations is therefore permitted to differ from the
+        // aggregate truncation by up to one wei per account. Asserting
+        // equality made this test pass or fail on the wall-clock moment,
+        // because the weights move with `until - now` and the residue lands
+        // either side of a boundary: CI saw a 1-wei gap, a local run of the
+        // identical file saw none.
+        const TRUNCATION_SLACK = 3; // one wei per recovered account, plus one
+        const after = await staking.getPriorTotalVotingPower(bn, t);
+        const drift = after.sub(totalBefore.sub(removed)).abs();
+        expect(
+            drift.lte(TRUNCATION_SLACK),
+            `total voting power drifted ${drift} wei from the recovered weight, ` +
+                `which is beyond integer truncation and means real weight was lost or kept`
+        ).to.equal(true);
+
         // and the recovered accounts now carry no weight at all
         for (const who of [f.attacker, f.secondary, f.guardians]) {
             expect(await staking.getPriorWeightedStake(who, bn, t)).to.equal(0);
