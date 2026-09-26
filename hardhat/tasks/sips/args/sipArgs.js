@@ -2316,6 +2316,18 @@ const getArgsSipStakingRecovery = async (hre) => {
             `at lock date ${guardiansLockDate.toString()}`
     );
 
+    // sips:create asserts every target is owned by the governor's timelock, and
+    // reads that owner from here rather than trusting the target list. All four
+    // actions run against the staking proxy, so its owner is read once from
+    // chain and repeated per action - hard coding it would defeat the check.
+    const stakingOwner = await (
+        await ethers.getContractAt(
+            ["function owner() view returns (address)"],
+            stakingProxyAddress
+        )
+    ).owner();
+    console.log(`Staking proxy owner (must be the timelock): ${stakingOwner}`);
+
     const abiCoder = ethers.utils.defaultAbiCoder;
     const args = {
         targets: [
@@ -2324,6 +2336,7 @@ const getArgsSipStakingRecovery = async (hre) => {
             stakingProxyAddress,
             stakingProxyAddress,
         ],
+        targetOwnerValidationAddresses: [stakingOwner, stakingOwner, stakingOwner, stakingOwner],
         values: [0, 0, 0, 0],
         signatures: [
             "addModule(address)",
@@ -2337,12 +2350,18 @@ const getArgsSipStakingRecovery = async (hre) => {
             abiCoder.encode(["uint256"], [guardiansLockDate]),
             abiCoder.encode(["address"], [recoveryModuleAddress]),
         ],
+        // Bitocracy renders the description as: line 1 title, line 2 link,
+        // line 3 one-line summary, then a --- rule and a short body. Written
+        // as a single run-on string it lands as one unreadable blob, which is
+        // why SIP-0094 was corrected to this shape. Keep the newlines, and
+        // keep it short - the detail belongs in the SIP document, not here.
         description:
-            "SIP-0095: Staking recovery. " +
-            "Returns the SOV staked by both attacker addresses and the Contracts Guardians' " +
-            "defensive stake to the Exchequer without the early-unstaking penalty, through a " +
-            "one-off module that is added and removed in the same transaction. No other " +
-            "staking behaviour is changed. " +
+            "SIP-0095: Staking Recovery — Sweep of the Attacker's Staked SOV (GovernorOwner)\n" +
+            "https://github.com/DistributedCollective/SIPS/blob/a86654f/SIP-0095.md\n" +
+            "Disarms the attacker by taking the SOV they staked to seize governance and returning " +
+            "it to the Exchequer.\n" +
+            "---\n" +
+            "Executes 4 actions on the Staking contract, atomically. " +
             "Details: https://github.com/DistributedCollective/SIPS/blob/a86654f/SIP-0095.md, sha256: 2d2b6aafb511e999f5f8d3b3f791f47e52eb4285f18915c469c413a4eda178d4",
     };
 
