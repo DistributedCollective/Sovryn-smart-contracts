@@ -129,6 +129,63 @@ const innerCallReason = async (s, contract, signature, args) => {
     }
 };
 
+/** The attached contract instance whose ABI decodes a revert from `address`,
+ *  matched by address against every interface `confirm` might have to decode
+ *  a stored multisig transaction's destination against — not every `s` this
+ *  engine attaches carries all of these, so each is optional. */
+const contractForDestination = (s, address) => {
+    const target = ethers.utils.getAddress(address);
+    const candidates = [s.queue, s.controller, s.feeSharingCollector].filter(Boolean);
+    return candidates.find((c) => ethers.utils.getAddress(c.address) === target) || null;
+};
+
+/** What the wallet's STORED-but-unexecuted inner call would do, asked of the
+ *  node without sending anything. Unlike `innerCallReason` — used at
+ *  submission time, while the signature and args that produced the call are
+ *  still at hand — `confirm` runs this on a transaction it may only know by
+ *  id: `transactions(id)` gives back the destination, value and calldata the
+ *  wallet itself would replay.
+ *
+ *  Replayed through the MATCHED contract's own `callStatic`, exactly the way
+ *  `innerCallReason` does it above — not a bare `signer.call(...)`. A plain
+ *  call this engine's own fork answers a revert with the revert's encoded
+ *  bytes handed back as an ordinary result, not a thrown error (ethers has no
+ *  declared return type to check a raw call against); routing it through the
+ *  contract's own ABI, decoded against the function `parseTransaction`
+ *  recovers from the stored calldata, gets ethers' normal decode-time
+ *  mismatch and a proper, decodable revert instead. */
+const innerCallReasonForStoredTx = async (s, txId) => {
+    const stored = await s.multisig.transactions(txId);
+    const asWallet = await drivers.solventSigner(s, s.multisig.address);
+    const contract = contractForDestination(s, stored.destination);
+    if (contract) {
+        try {
+            const parsed = contract.interface.parseTransaction({
+                data: stored.data,
+                value: stored.value,
+            });
+            await contract.connect(asWallet).callStatic[parsed.signature](...parsed.args);
+            return null;
+        } catch (error) {
+            return revertReason(contract, error);
+        }
+    }
+    // No attached instance's ABI matches this destination — fall back to a
+    // bare replay. See the note above: a revert here comes back as a
+    // resolved value carrying the revert's own bytes, not a thrown error, so
+    // both shapes are read.
+    try {
+        const result = await asWallet.call({
+            to: stored.destination,
+            data: stored.data,
+            value: stored.value,
+        });
+        return result && result !== "0x" ? revertReason(null, { data: result }) : null;
+    } catch (error) {
+        return revertReason(null, error);
+    }
+};
+
 /**
  * One write, with the state it claims to change read back afterwards.
  *
@@ -1320,6 +1377,7 @@ const confirm = async (s, txId, opts = {}) => {
             note: confirmNote(verdict, { executed: true, alreadyExecuted: true }),
         };
     }
+    const required = (await s.multisig.required()).toNumber();
     const owners = await s.multisig.getOwners();
     const added = [];
     for (const owner of owners) {
@@ -1341,10 +1399,28 @@ const confirm = async (s, txId, opts = {}) => {
                 gasCharges: [...(postcondition.args.gasCharges || []), gas.chargeOf(receipt)],
             };
         }
+        // The wallet tries the inner call as soon as this confirmation
+        // reaches the threshold. If it swallowed a revert, `executed` stays
+        // false forever — no later confirmation changes that outcome, so
+        // adding more from the remaining owners would only spend their gas
+        // to learn nothing new. Stop here rather than working through every
+        // owner regardless.
+        if ((await s.multisig.transactions(id)).executed) break;
+        if ((await s.multisig.getConfirmationCount(id)).toNumber() >= required) break;
     }
     const executed = (await s.multisig.transactions(id)).executed;
+    const confirmations = (await s.multisig.getConfirmationCount(id)).toNumber();
+    // Once the threshold is reached without `executed` ever turning true, the
+    // wallet already tried the inner call and swallowed its revert — read
+    // that revert back by replaying the exact call the wallet has on file,
+    // rather than reporting the bare fact that nothing applied.
+    const swallowedReason =
+        !executed && confirmations >= required ? await innerCallReasonForStoredTx(s, id) : null;
     const verdict = await confirmVerdict(s, postcondition, executed);
-    const note = confirmNote(verdict, { executed, alreadyExecuted: false });
+    const note =
+        swallowedReason !== null
+            ? `the inner call was swallowed: ${swallowedReason}`
+            : confirmNote(verdict, { executed, alreadyExecuted: false });
     const label = !executed
         ? "NOT APPLIED"
         : !verdict.verified
@@ -1353,7 +1429,7 @@ const confirm = async (s, txId, opts = {}) => {
             ? "OK"
             : "NOT APPLIED";
     const detail = !executed
-        ? " — the inner call was swallowed"
+        ? ` — ${note || "the inner call was swallowed"}`
         : !verdict.verified || !verdict.applied
           ? ` — ${note}`
           : "";
@@ -1365,8 +1441,8 @@ const confirm = async (s, txId, opts = {}) => {
         verified: verdict.verified,
         note,
         confirmedBy: added,
-        confirmations: (await s.multisig.getConfirmationCount(id)).toNumber(),
-        required: (await s.multisig.required()).toNumber(),
+        confirmations,
+        required,
     };
 };
 

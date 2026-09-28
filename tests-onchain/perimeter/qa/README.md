@@ -160,11 +160,16 @@ __decryptionAlreadyDone__=TRUE npx hardhat test \
   tests-onchain/perimeter/qa/engine.test.js --network rskForkedMainnetQa
 __decryptionAlreadyDone__=TRUE npx hardhat test \
   tests-onchain/perimeter/qa/submitBlock.test.js --network rskForkedMainnetQa
+__decryptionAlreadyDone__=TRUE npx hardhat test \
+  tests-onchain/perimeter/qa/engineConfirmSwallowedInnerCall.test.js --network rskForkedMainnetQa
 ```
 
 The engine test writes to the fork and puts nothing back — the states it leaves
 behind are what the dapps are then driven against. Run it once per `up`; to run
-it again, restart the node and bootstrap it afresh.
+it again, restart the node and bootstrap it afresh. The confirm/swallowed-inner-call
+test raises and then restores the multisig's own threshold, so it may run before
+or after the engine test on the same fork without either leaving the other a
+threshold it did not expect to find.
 
 The rest of this directory's `*.test.js` files (`drivers*`, `engine*Check`,
 `engine*Guards`, `engine*Scan`, `bootstrapEnsureOperator`, `node.test.js`
@@ -177,9 +182,10 @@ __decryptionAlreadyDone__=TRUE npx hardhat test tests-onchain/perimeter/qa/*.tes
 ```
 
 (that glob also picks up `bootstrap.test.js`, `engine.test.js`,
-`node.test.js` and `submitBlock.test.js`, whose `before()` hooks throw "run
-with --network rskForkedMainnetQa" and fail outright without one — list the
-isolated files explicitly, or filter them out, to avoid those four failures.)
+`engineConfirmSwallowedInnerCall.test.js`, `node.test.js` and `submitBlock.test.js`,
+whose `before()` hooks throw "run with --network rskForkedMainnetQa" and fail
+outright without one — list the isolated files explicitly, or filter them out,
+to avoid those five failures.)
 
 ## Stop the node
 
