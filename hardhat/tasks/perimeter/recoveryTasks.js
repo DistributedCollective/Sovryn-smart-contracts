@@ -956,6 +956,8 @@ module.exports = {
     checkPostcondition,
     reportPostcondition,
     readWrbtc,
+    readTopUpFeasible,
+    requireQueueRole,
     resolveMultisigAddress,
     resolveSigner,
     presentQueueCall,
