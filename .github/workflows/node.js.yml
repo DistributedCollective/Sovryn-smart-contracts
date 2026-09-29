@@ -73,6 +73,7 @@ jobs:
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           HARDHAT_USE_SOLCJS: "true"
+        shell: bash
         run: |
           set +e
           npm run test 2>&1 | tee test-output.log
