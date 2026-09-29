@@ -2275,6 +2275,100 @@ const getArgsSip0094Part3 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+/**
+ * Staking recovery SIP - September 2026 governance-capture incident.
+ *
+ * Four actions in one proposal, executed by the owner timelock:
+ *   1. add the one-off StakingRecoveryModule,
+ *   2. return the SOV staked by both attacker addresses to the Exchequer,
+ *      penalty free,
+ *   3. return the SOV the Contracts Guardians Safe staked to defend the vote,
+ *   4. remove the one-off module again.
+ *
+ * No existing module is replaced and no staking behaviour is changed, so the
+ * proposal does nothing beyond moving the three positions to the treasury.
+ */
+const getArgsSipStakingRecovery = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+
+    const stakingProxyAddress = (await get("StakingProxy")).address;
+    const recoveryModuleAddress = (await get("StakingRecoveryModule")).address;
+
+    // The Guardians' defensive stake is placed during the incident, so which
+    // two-week slot it landed on depends on when the Safe bundle ran. Read the
+    // position from chain rather than assuming the maximum lock date.
+    const recovery = await ethers.getContractAt("StakingRecoveryModule", recoveryModuleAddress);
+    const staking = await ethers.getContractAt("StakingStakeModule", stakingProxyAddress);
+    const guardiansSafe = await recovery.GUARDIANS_SAFE();
+    const [guardiansDates, guardiansStakes] = await staking.getStakes(guardiansSafe);
+    if (guardiansDates.length !== 1) {
+        throw new Error(
+            `Staking recovery: expected exactly one Guardians Safe position, found ` +
+                `${guardiansDates.length}. Recover them before creating the proposal.`
+        );
+    }
+    const guardiansLockDate = guardiansDates[0];
+    console.log(
+        `Guardians Safe stake: ${ethers.utils.formatEther(guardiansStakes[0])} SOV ` +
+            `at lock date ${guardiansLockDate.toString()}`
+    );
+
+    // sips:create asserts every target is owned by the governor's timelock, and
+    // reads that owner from here rather than trusting the target list. All four
+    // actions run against the staking proxy, so its owner is read once from
+    // chain and repeated per action - hard coding it would defeat the check.
+    const stakingOwner = await (
+        await ethers.getContractAt(
+            ["function owner() view returns (address)"],
+            stakingProxyAddress
+        )
+    ).owner();
+    console.log(`Staking proxy owner (must be the timelock): ${stakingOwner}`);
+
+    const abiCoder = ethers.utils.defaultAbiCoder;
+    const args = {
+        targets: [
+            stakingProxyAddress,
+            stakingProxyAddress,
+            stakingProxyAddress,
+            stakingProxyAddress,
+        ],
+        targetOwnerValidationAddresses: [stakingOwner, stakingOwner, stakingOwner, stakingOwner],
+        values: [0, 0, 0, 0],
+        signatures: [
+            "addModule(address)",
+            "recoverAttackerStake()",
+            "recoverGuardiansStake(uint256)",
+            "removeModule(address)",
+        ],
+        data: [
+            abiCoder.encode(["address"], [recoveryModuleAddress]),
+            "0x",
+            abiCoder.encode(["uint256"], [guardiansLockDate]),
+            abiCoder.encode(["address"], [recoveryModuleAddress]),
+        ],
+        // Bitocracy renders the description as: line 1 title, line 2 link,
+        // line 3 one-line summary, then a --- rule and a short body. Written
+        // as a single run-on string it lands as one unreadable blob, which is
+        // why SIP-0094 was corrected to this shape. Keep the newlines, and
+        // keep it short - the detail belongs in the SIP document, not here.
+        description:
+            "SIP-0095: Staking Recovery — Sweep of the Attacker's Staked SOV (GovernorOwner)\n" +
+            "https://github.com/DistributedCollective/SIPS/blob/a86654f/SIP-0095.md\n" +
+            "Disarms the attacker by taking the SOV they staked to seize governance and returning " +
+            "it to the Exchequer.\n" +
+            "---\n" +
+            "Executes 4 actions on the Staking contract, atomically. " +
+            "Details: https://github.com/DistributedCollective/SIPS/blob/a86654f/SIP-0095.md, sha256: 2d2b6aafb511e999f5f8d3b3f791f47e52eb4285f18915c469c413a4eda178d4",
+    };
+
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -2304,4 +2398,5 @@ module.exports = {
     getArgsSip0094Part1,
     getArgsSip0094Part2,
     getArgsSip0094Part3,
+    getArgsSipStakingRecovery,
 };

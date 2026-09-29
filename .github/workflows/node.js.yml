@@ -48,6 +48,18 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
+      - name: Cache Hardhat compilers
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-hardhat-compilers
+        with:
+          # Solidity compiler binaries downloaded by Hardhat are stored here. Restoring
+          # them from cache avoids re-triggering Hardhat's compiler download logic, which
+          # is prone to a known race condition when it does run
+          # (https://github.com/NomicFoundation/hardhat/issues/8569).
+          path: ~/.cache/hardhat-nodejs/compilers-v2
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('hardhat.config.js') }}
+
       - name: Installing Packages
         run: npm ci --parallel=1
       - name: Checking Formatting
@@ -61,7 +73,23 @@ jobs:
         env:
           NODE_OPTIONS: "--max_old_space_size=4096"
           HARDHAT_USE_SOLCJS: "true"
-        run: npm run test
+        shell: bash
+        run: |
+          set +e
+          npm run test 2>&1 | tee test-output.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ] && grep -qE "spawn .*solc-linux-amd64.* EACCES" test-output.log; then
+            # Hardhat has a known race condition where concurrent compilation jobs can
+            # observe a partially downloaded/un-chmod'ed compiler binary as "ready"
+            # (https://github.com/NomicFoundation/hardhat/issues/8569). Clear the
+            # affected compiler cache and retry once.
+            echo "Detected known Hardhat compiler-download race condition. Clearing compiler cache and retrying..."
+            rm -rf "$HOME/.cache/hardhat-nodejs/compilers-v2"
+            npm run test
+          else
+            exit "$status"
+          fi
       # - name: Increasing the memory
       #   run: export NODE_OPTIONS="--max-old-space-size=7168"
       # - name: Code Coverage
