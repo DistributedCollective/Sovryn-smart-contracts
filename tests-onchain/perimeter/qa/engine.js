@@ -35,8 +35,14 @@ const gas = require("./gas");
 const { STATUS, BLOCK } = drivers;
 const ZERO_ADDRESS = ethers.constants.AddressZero;
 
-/** Where the engine records what it did, next to the bootstrap's state file. */
-const LOG_FILE = path.join(__dirname, "..", "..", "..", "qa", "state.json");
+/** Where the engine records what it did, next to the bootstrap's state file:
+ *  `qa/`, unless PERIMETER_QA_STATE_DIR names another directory. */
+const LOG_FILE = path.join(
+    process.env.PERIMETER_QA_STATE_DIR
+        ? path.resolve(process.env.PERIMETER_QA_STATE_DIR)
+        : path.join(__dirname, "..", "..", "..", "qa"),
+    "state.json"
+);
 
 /** The gas every multisig send states. The wallet's own frame keeps 1/64 of
  *  whatever is left, so an ESTIMATED limit hands the inner call too little: it

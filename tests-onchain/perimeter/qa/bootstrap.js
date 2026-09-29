@@ -62,7 +62,13 @@ const controllerFixture = require("../fixtures/ExitFeeController.json");
 const queueFixture = require("../fixtures/ExitDelayQueue.json");
 
 const CHAIN_ID = 30;
-const STATE_FILE = path.join(__dirname, "..", "..", "..", "qa", "perimeter-qa.json");
+/** Where the state files live: `qa/`, unless PERIMETER_QA_STATE_DIR names another
+ *  directory, so a second fork on its own port keeps its own address book
+ *  instead of overwriting the first fork's. */
+const QA_STATE_DIR = process.env.PERIMETER_QA_STATE_DIR
+    ? path.resolve(process.env.PERIMETER_QA_STATE_DIR)
+    : path.join(__dirname, "..", "..", "..", "qa");
+const STATE_FILE = path.join(QA_STATE_DIR, "perimeter-qa.json");
 
 const DEFAULT_DELAY_SECONDS = 120;
 const RBTC_PER_ACCOUNT = "100";
