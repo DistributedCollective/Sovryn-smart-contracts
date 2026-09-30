@@ -145,8 +145,10 @@ contract MockExitDelayQueue is IExitDelayQueueHook {
         require(amount > 0, "MockQueue: zero amount");
         require(delaySeconds >= minimumDelaySeconds, "MockQueue: delay below floor");
         // measured-delta: surplus over backing must cover `amount`; credit exactly.
-        uint256 surplus = IERC20(token).balanceOf(address(this)) - totalEscrowed[token];
-        require(surplus >= amount, "MockQueue: received amount mismatch");
+        require(
+            _surplus(IERC20(token).balanceOf(address(this)), totalEscrowed[token]) >= amount,
+            "MockQueue: received amount mismatch"
+        );
         totalEscrowed[token] += amount;
         return
             _store(
@@ -202,8 +204,10 @@ contract MockExitDelayQueue is IExitDelayQueueHook {
     ) external onlyAllowedSource returns (uint256 id) {
         require(amount > 0, "MockQueue: zero amount");
         require(delaySeconds >= minimumDelaySeconds, "MockQueue: delay below floor");
-        uint256 surplus = address(this).balance - totalEscrowed[address(0)];
-        require(surplus >= amount, "MockQueue: received amount mismatch");
+        require(
+            _surplus(address(this).balance, totalEscrowed[address(0)]) >= amount,
+            "MockQueue: received amount mismatch"
+        );
         totalEscrowed[address(0)] += amount;
         return
             _store(
@@ -218,6 +222,13 @@ contract MockExitDelayQueue is IExitDelayQueueHook {
                     receiver
                 )
             );
+    }
+
+    /// @dev Balance held beyond what is already escrowed. A balance at or
+    ///      below the escrowed total has no surplus: zero, never a wrapped
+    ///      difference.
+    function _surplus(uint256 balance, uint256 escrowed) internal pure returns (uint256) {
+        return balance > escrowed ? balance - escrowed : 0;
     }
 
     function _build(

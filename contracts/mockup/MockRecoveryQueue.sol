@@ -43,6 +43,9 @@ contract MockRecoveryQueue {
     mapping(address => uint256[]) private activeIds;
     bytes32[] private routeIds;
 
+    /// @notice Largest page `getActive` returns; a larger request is cut to it.
+    uint256 public constant MAX_GET_ACTIVE_PAGE = 500;
+
     address public admin;
     address public owner;
     address public wrbtc;
@@ -137,6 +140,7 @@ contract MockRecoveryQueue {
         uint256 cursor,
         uint256 n
     ) external view returns (uint256[] memory ids, uint256 nextCursor) {
+        if (n > MAX_GET_ACTIVE_PAGE) n = MAX_GET_ACTIVE_PAGE;
         uint256[] storage set = activeIds[party];
         if (cursor >= set.length || n == 0) return (new uint256[](0), 0);
         uint256 end = cursor + n;
