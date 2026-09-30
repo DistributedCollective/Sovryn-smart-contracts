@@ -67,6 +67,7 @@ const DELAY = 3600;
 
 contract("Perimeter delay — borrower/margin exit, uint128 bound", (accounts) => {
     let owner, account1, feeReceiver;
+    let ownerNativeBefore;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds;
     let controller, queue;
 
@@ -111,6 +112,14 @@ contract("Perimeter delay — borrower/margin exit, uint128 bound", (accounts) =
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
             await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
+        ownerNativeBefore = new BN(await web3.eth.getBalance(owner));
+    });
+
+    // The owner's native balance is set to the boundary size by the native
+    // collateral tests; put it back so the files that run after this one see
+    // the balance the account started with.
+    after(async () => {
+        await setBalance(owner, ownerNativeBefore);
     });
 
     beforeEach(async () => {

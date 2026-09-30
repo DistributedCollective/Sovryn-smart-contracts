@@ -64,6 +64,7 @@ const DELAY = 3600;
 
 contract("Perimeter delay — lender exit, uint128 bound", (accounts) => {
     let lender, user, feeReceiver, whale, receiver;
+    let whaleNativeBefore;
     let SUSD, WRBTC, RBTC, BZRX, priceFeeds, sovryn;
     let iSUSD, iWRBTC;
     let controller, queue;
@@ -153,6 +154,14 @@ contract("Perimeter delay — lender exit, uint128 bound", (accounts) => {
         [lender, user, feeReceiver, whale, receiver, ...accounts] = accounts;
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
         await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
+        whaleNativeBefore = new BN(await web3.eth.getBalance(whale));
+    });
+
+    // The lender's native balance is set to the boundary size by the WRBTC
+    // tests; put it back so the files that run after this one see the balance
+    // the account started with.
+    after(async () => {
+        await setBalance(whale, whaleNativeBefore);
     });
 
     beforeEach(async () => {
