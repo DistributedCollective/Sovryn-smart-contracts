@@ -478,6 +478,7 @@ describe("perimeter:route:lending-pools", () => {
         });
         expect(await count()).to.equal(before);
         expect(output).to.match(/pending transactions could not be read/);
+        expect(output).to.include("out of gas");
         await expectRawTransactions(rawLines(output), planned);
     });
 
@@ -491,6 +492,7 @@ describe("perimeter:route:lending-pools", () => {
         expect(output).to.match(
             /whether the signer .* is an owner of the multisig .* could not be read/
         );
+        expect(output).to.include("out of gas");
         expect(output).to.include(
             "nothing was sent; send each transaction below from an owner account"
         );
@@ -616,27 +618,91 @@ describe("perimeter:route:lending-pools", () => {
         expect(plan.skipped.filter((skip) => skip.reason === "alreadyWaiting")).to.have.length(1);
     });
 
-    /** An hre whose multisig fails the reads named in `failing`, the way a call
-     *  over its gas limit does, and answers every other read. */
-    const walletReadFailsHre = (...failing) =>
+    /** An hre whose multisig contract answers through `wrap(contract)`, which
+     *  returns an object standing in for it; every other contract is the real one. */
+    const walletHre = (wrap) =>
         Object.assign(Object.create(hre), {
             ethers: Object.assign(Object.create(ethers), {
                 getContractAt: async (abi, address, signer) => {
                     const contract = await ethers.getContractAt(abi, address, signer);
-                    if (Array.isArray(abi) && address === multisig.address) {
-                        return new Proxy(contract, {
-                            get: (target, property) =>
-                                failing.includes(property)
-                                    ? async () => {
-                                          throw new Error("call exception: out of gas");
-                                      }
-                                    : target[property],
-                        });
-                    }
-                    return contract;
+                    return Array.isArray(abi) && address === multisig.address
+                        ? wrap(contract)
+                        : contract;
                 },
             }),
         });
+
+    /** `contract` with the reads in `replacements` (name to function) swapped
+     *  for other functions and every other read left as it is. */
+    const withReads = (contract, replacements) =>
+        Object.create(
+            contract,
+            Object.fromEntries(
+                Object.entries(replacements).map(([name, value]) => [name, { value }])
+            )
+        );
+
+    /** An hre whose multisig fails the reads named in `failing`, the way a call
+     *  over its gas limit does, and answers every other read. */
+    const walletReadFailsHre = (...failing) =>
+        walletHre((contract) =>
+            withReads(
+                contract,
+                Object.fromEntries(
+                    failing.map((name) => [
+                        name,
+                        async () => {
+                            throw new Error("call exception: out of gas");
+                        },
+                    ])
+                )
+            )
+        );
+
+    /** An hre whose multisig fails the first try of every read named in
+     *  `failing` for each distinct argument list and answers the tries after. */
+    const walletReadsFlakyHre = (...failing) => {
+        const tried = new Set();
+        return walletHre((contract) =>
+            withReads(
+                contract,
+                Object.fromEntries(
+                    failing.map((name) => [
+                        name,
+                        async (...args) => {
+                            const key = `${name}:${args
+                                .filter((arg) => typeof arg !== "object")
+                                .join(",")}`;
+                            if (!tried.has(key)) {
+                                tried.add(key);
+                                throw new Error("504 gateway timeout");
+                            }
+                            return contract[name](...args);
+                        },
+                    ])
+                )
+            )
+        );
+    };
+
+    it("tries a failed read of the multisig again and goes on when the next try answers", async () => {
+        await seatWallet([owner, second], 2);
+        const [allow] = await plannedCalldata();
+        const waitingId = await submitByHand(allow);
+        const before = await count();
+        let plan;
+        const output = await captureConsole(async () => {
+            plan = await lendingRoutes.runLendingRoutes(
+                params(),
+                walletReadsFlakyHre("transactionCount", "transactions")
+            );
+        });
+        expect(output).to.include(
+            `already waiting for confirmations as multisig transaction ${waitingId}`
+        );
+        expect(plan.submitted).to.have.length(pools.length);
+        expect(await count()).to.equal(before + pools.length);
+    });
 
     for (const failing of ["transactionCount", "transactions"]) {
         it(`refuses to send when ${failing} on the multisig fails, and points at --dry-run`, async () => {
@@ -648,6 +714,7 @@ describe("perimeter:route:lending-pools", () => {
             );
             expect(error, "an unreadable pending set must refuse").to.not.equal(null);
             expect(error.message).to.match(/pending transactions could not be read/);
+            expect(error.message).to.include("out of gas");
             expect(error.message).to.include("--dry-run");
             expect(error.message).to.match(/Nothing was sent/);
             expect(await count()).to.equal(before);
@@ -701,6 +768,7 @@ describe("perimeter:route:lending-pools", () => {
         });
         expect(plan.transactions).to.have.length(1 + pools.length);
         expect(output).to.match(/pending transactions could not be read/);
+        expect(output).to.include("out of gas");
         expect(output).to.include("dry run: nothing was submitted");
     });
 

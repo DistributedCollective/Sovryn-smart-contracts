@@ -20,6 +20,11 @@ const POOL_PAGE = 50;
 /** How many of the multisig's transactions are read at once. */
 const WALLET_READ_BATCH = 25;
 
+/** How many times one read of the multisig is tried before the read fails, and
+ *  the pause after the first failed try, which doubles after each further one. */
+const WALLET_READ_ATTEMPTS = 4;
+const WALLET_READ_RETRY_MS = 400;
+
 const PROTOCOL_ABI = [
     "function getLoanPoolsList(uint256 start, uint256 count) view returns (bytes32[])",
     "function loanPoolToUnderlying(address) view returns (address)",
@@ -293,6 +298,21 @@ const prepareLendingRoutes = async (
     };
 };
 
+/** The result of `read()`, tried again after a pause when it throws, and the
+ *  last error once every try has failed. */
+const withRetries = async (read) => {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            return await read();
+        } catch (error) {
+            if (attempt >= WALLET_READ_ATTEMPTS) throw error;
+            await new Promise((resolve) =>
+                setTimeout(resolve, WALLET_READ_RETRY_MS * 2 ** (attempt - 1))
+            );
+        }
+    }
+};
+
 /**
  * Every transaction the multisig holds that has not executed, with its
  * destination, value and data, read at the block `at`, in ascending id order.
@@ -300,20 +320,23 @@ const prepareLendingRoutes = async (
  * Every transaction the wallet has ever stored is read by its id, a batch of
  * ids at a time, and the ones not executed are kept. Each read costs the same
  * however long the wallet's history is, so the answer covers all of it and the
- * count of past transactions bounds only how many reads are made. The wallet's
+ * count of past transactions bounds only how many reads are made; a read that
+ * fails is tried again before the whole read is given up. The wallet's
  * own filtered views (`getTransactionCount`, `getTransactionIds`) are not used:
  * each of them loops over the whole history inside one call, so the gas one call
  * needs grows with every transaction the wallet stores.
  */
 const readPendingCalls = async (hre, multisigAddress, at = {}) => {
     const wallet = await hre.ethers.getContractAt(WALLET_ABI, multisigAddress);
-    const total = (await wallet.transactionCount(at)).toNumber();
+    const total = (await withRetries(() => wallet.transactionCount(at))).toNumber();
     logger.info(`Reading the ${total} transactions of the multisig to find those still waiting`);
     const held = [];
     for (let end = total; end > 0; end -= WALLET_READ_BATCH) {
         const ids = [];
         for (let id = Math.max(0, end - WALLET_READ_BATCH); id < end; id++) ids.push(id);
-        const read = await Promise.all(ids.map((id) => wallet.transactions(id, at)));
+        const read = await Promise.all(
+            ids.map((id) => withRetries(() => wallet.transactions(id, at)))
+        );
         read.forEach((tx, i) => {
             if (tx.destination === hre.ethers.constants.AddressZero) {
                 throw new Error(
