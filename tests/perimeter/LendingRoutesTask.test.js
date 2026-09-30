@@ -648,6 +648,123 @@ describe("perimeter:route:lending-pools", () => {
         expect(plan.skipped.filter((skip) => skip.reason === "alreadyWaiting")).to.have.length(1);
     });
 
+    const NOTICE_FROM_1 =
+        "Only multisig transactions from #1 on are checked for a call already waiting; " +
+        "an identical call waiting at an earlier id would not be found.";
+
+    /** Two transactions waiting in a threshold-2 wallet: the allow call at id 0 and
+     *  the route call of the first pool at id 1. Returns the planned calldata. */
+    const waitAllowAndFirstRoute = async () => {
+        await seatWallet([owner, second], 2);
+        const planned = await plannedCalldata();
+        await submitByHand(planned[0]);
+        await submitByHand(planned[1]);
+        return planned;
+    };
+
+    it("checks every stored multisig transaction by default, and for --waiting-from 0", async () => {
+        for (const extra of [{}, { waitingFrom: 0 }]) {
+            await waitAllowAndFirstRoute();
+            const before = await count();
+            let plan;
+            const output = await captureConsole(async () => {
+                plan = await run(extra);
+            });
+            const waiting = plan.skipped.filter((skip) => skip.reason === "alreadyWaiting");
+            expect(waiting.map((skip) => skip.multisigTransactionIds)).to.deep.equal([
+                ["0"],
+                ["1"],
+            ]);
+            expect(output).to.include("Reading the 2 transactions of the multisig");
+            expect(output).to.not.include("Only multisig transactions from");
+            expect(await count()).to.equal(before + pools.length - 1);
+        }
+    });
+
+    it("checks only the transactions from --waiting-from on, says so and lists the range read", async () => {
+        const planned = await waitAllowAndFirstRoute();
+        const before = await count();
+        let plan;
+        const output = await captureConsole(async () => {
+            plan = await run({ waitingFrom: 1 });
+        });
+        expect(output).to.include(NOTICE_FROM_1);
+        expect(output).to.include("Reading multisig transactions #1 to #1 (1 of 2)");
+        expect(output.indexOf(NOTICE_FROM_1)).to.be.lessThan(output.indexOf("Pools:"));
+        // The identical call below the id is not found, so it is sent; the one at the id is skipped.
+        const waiting = plan.skipped.filter((skip) => skip.reason === "alreadyWaiting");
+        expect(waiting.map((skip) => skip.multisigTransactionIds)).to.deep.equal([["1"]]);
+        expect(waiting[0].kind).to.equal("setRecoveryRoute");
+        const stored = await storedSince(before);
+        expect(stored.map((tx) => tx.data)).to.deep.equal([planned[0], ...planned.slice(2)]);
+        expect(plan.waitingFrom).to.equal(1);
+    });
+
+    it("prints the call waiting below --waiting-from as a raw transaction and skips the one at the id", async () => {
+        const planned = await waitAllowAndFirstRoute();
+        const before = await count();
+        const output = await captureConsole(() =>
+            run({ signer: outsider.address, waitingFrom: 1 })
+        );
+        expect(await count()).to.equal(before);
+        expect(output).to.include(NOTICE_FROM_1);
+        await expectRawTransactions(rawLines(output), [planned[0], ...planned.slice(2)]);
+    });
+
+    it("checks no transaction when --waiting-from is the transaction count, and sends every call", async () => {
+        await waitAllowAndFirstRoute();
+        const before = await count();
+        let plan;
+        const output = await captureConsole(async () => {
+            plan = await run({ waitingFrom: before });
+        });
+        expect(output).to.include(
+            `Reading no multisig transaction: #${before} is the multisig's transaction count`
+        );
+        expect(plan.skipped.filter((skip) => skip.reason === "alreadyWaiting")).to.have.length(0);
+        expect(await count()).to.equal(before + 1 + pools.length);
+    });
+
+    it("refuses a --waiting-from that is not a whole number of 0 or more before anything is read or sent", async () => {
+        await seatWallet([owner, second], 2);
+        const before = await count();
+        for (const bad of [-1, 1.5, "abc", Number.NaN]) {
+            let error;
+            const output = await captureConsole(async () => {
+                error = await rejection(
+                    lendingRoutes.runLendingRoutes(params({ waitingFrom: bad }), hre)
+                );
+            });
+            expect(error, `${bad} must be refused`).to.not.equal(null);
+            expect(error.message).to.include("--waiting-from must be");
+            expect(error.message).to.include(`'${bad}'`);
+            expect(output).to.not.include("Network:");
+            expect(await count()).to.equal(before);
+        }
+        expect(await stub.topUpFeasible(LENDER)).to.equal(false);
+    });
+
+    it("refuses a --waiting-from above the transaction count, naming the count, in every mode", async () => {
+        await waitAllowAndFirstRoute();
+        const before = await count();
+        for (const extra of [
+            {},
+            { dryRun: true },
+            { signer: outsider.address },
+            { rawTx: true },
+        ]) {
+            let error;
+            const output = await captureConsole(async () => {
+                error = await rejection(run({ ...extra, waitingFrom: before + 1 }));
+            });
+            expect(error, JSON.stringify(extra)).to.not.equal(null);
+            expect(error.message).to.include(`--waiting-from ${before + 1} is above`);
+            expect(error.message).to.include(`transaction count ${before}`);
+            expect(rawLines(output)).to.have.length(0);
+            expect(await count()).to.equal(before);
+        }
+    });
+
     /** An hre whose multisig contract answers through `wrap(contract)`, which
      *  returns an object standing in for it; every other contract is the real one. */
     const walletHre = (wrap) =>

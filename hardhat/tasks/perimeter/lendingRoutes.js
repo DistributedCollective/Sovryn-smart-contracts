@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const { task } = require("hardhat/config");
+const { task, types } = require("hardhat/config");
 const { ethers } = require("ethers");
 const Logs = require("node-logs");
 const { getSignerFromAccount } = require("../../../deployment/helpers/helpers");
@@ -345,12 +345,17 @@ const prepareLendingRoutes = async (
     };
 };
 
+/** A `--waiting-from` the wallet cannot honour. Kept apart from a wallet that
+ *  does not answer, which a dry run may go on past. */
+class WaitingFromError extends Error {}
+
 /**
  * Every transaction the multisig holds that has not executed, with its
  * destination, value and data, read at the block `at`, in ascending id order.
  *
- * Every transaction the wallet has ever stored is read by its id, a batch of
- * ids at a time, and the ones not executed are kept. Each read costs the same
+ * Every transaction the wallet has ever stored, from the id `from` on, is read
+ * by its id, a batch of ids at a time, and the ones not executed are kept. With
+ * `from` above 0 an earlier transaction is not read, and the output says so. Each read costs the same
  * however long the wallet's history is, so the answer covers all of it and the
  * count of past transactions bounds only how many reads are made; a read that
  * fails is tried again before the whole read is given up. The wallet's
@@ -358,14 +363,35 @@ const prepareLendingRoutes = async (
  * each of them loops over the whole history inside one call, so the gas one call
  * needs grows with every transaction the wallet stores.
  */
-const readPendingCalls = async (hre, multisigAddress, at = {}) => {
+const readPendingCalls = async (hre, multisigAddress, at = {}, { from = 0 } = {}) => {
     const wallet = await hre.ethers.getContractAt(WALLET_ABI, multisigAddress);
     const total = (await withRetries(() => wallet.transactionCount(at))).toNumber();
-    logger.info(`Reading the ${total} transactions of the multisig to find those still waiting`);
+    if (from > total) {
+        throw new WaitingFromError(
+            `${TASK}: --waiting-from ${from} is above the multisig's transaction count ${total}; ` +
+                `the ids run from 0 to ${total - 1}, and ${total} is the most it can be`
+        );
+    }
+    if (from === 0) {
+        logger.info(
+            `Reading the ${total} transactions of the multisig to find those still waiting`
+        );
+    } else {
+        logger.warn(
+            `Only multisig transactions from #${from} on are checked for a call already waiting; ` +
+                "an identical call waiting at an earlier id would not be found."
+        );
+        logger.info(
+            from === total
+                ? `Reading no multisig transaction: #${from} is the multisig's transaction count`
+                : `Reading multisig transactions #${from} to #${total - 1} (${total - from} of ` +
+                      `${total}) to find those still waiting`
+        );
+    }
     const held = [];
-    for (let end = total; end > 0; end -= WALLET_READ_BATCH) {
+    for (let end = total; end > from; end -= WALLET_READ_BATCH) {
         const ids = [];
-        for (let id = Math.max(0, end - WALLET_READ_BATCH); id < end; id++) ids.push(id);
+        for (let id = Math.max(from, end - WALLET_READ_BATCH); id < end; id++) ids.push(id);
         const read = await Promise.all(
             ids.map((id) => withRetries(() => wallet.transactions(id, at)))
         );
@@ -435,11 +461,12 @@ const describeWaiting = (label, ids, failedIds, required) => {
  *  confirmation it needs and did not execute. When the waiting list cannot be
  *  read, a run that sends refuses; any other run says the plan does not account
  *  for it. */
-const leaveOutWaiting = async (hre, plan, { multisigAddress, sends, at }) => {
+const leaveOutWaiting = async (hre, plan, { multisigAddress, sends, at, waitingFrom }) => {
     let pending;
     try {
-        pending = await readPendingCalls(hre, multisigAddress, at);
+        pending = await readPendingCalls(hre, multisigAddress, at, { from: waitingFrom });
     } catch (error) {
+        if (error instanceof WaitingFromError) throw error;
         const said = `${TASK}: the multisig's pending transactions could not be read (${error.message})`;
         if (!sends) {
             logger.warn(`${said} — the plan below does not say which calls are already waiting`);
@@ -827,7 +854,17 @@ const presentOwnership = (ownership, { signerAddress, multisigAddress, dryRun })
     );
 };
 
-const runLendingRoutes = async ({ queue, protocol, multisig, signer, dryRun, rawTx }, hre) => {
+const runLendingRoutes = async (
+    { queue, protocol, multisig, signer, dryRun, rawTx, waitingFrom },
+    hre
+) => {
+    const from = waitingFrom === undefined || waitingFrom === null ? 0 : waitingFrom;
+    if (!Number.isSafeInteger(from) || from < 0) {
+        throw new Error(
+            `${TASK}: --waiting-from must be a multisig transaction id, a whole number of 0 or ` +
+                `more, got '${waitingFrom}'`
+        );
+    }
     const { address: queueAddress, queue: live } = await recoveryTasks.resolveQueue(
         hre,
         TASK,
@@ -858,7 +895,8 @@ const runLendingRoutes = async ({ queue, protocol, multisig, signer, dryRun, raw
         feasibilityRequired: rawTx || !dryRun,
     });
     plan.signer = signerAddress;
-    await leaveOutWaiting(hre, plan, { multisigAddress, sends, at });
+    plan.waitingFrom = from;
+    await leaveOutWaiting(hre, plan, { multisigAddress, sends, at, waitingFrom: from });
     presentPlan(plan);
 
     if (!sends) {
@@ -906,6 +944,13 @@ task(
         "Signer name ('signer' or 'deployer') or an address; a signer that owns the multisig submits " +
             "the transactions itself",
         "deployer"
+    )
+    .addOptionalParam(
+        "waitingFrom",
+        "Check only multisig transactions from this id on for a call already waiting " +
+            "(default 0: every stored transaction)",
+        undefined,
+        types.int
     )
     .addFlag("dryRun", "Print the plan without submitting anything")
     .addFlag(
