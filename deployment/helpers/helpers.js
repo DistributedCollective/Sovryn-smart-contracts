@@ -271,7 +271,7 @@ const sendWithMultisigReturningId = async (
     value = 0
 ) => {
     const { ethers } = hre;
-    const signer = await ethers.getSigner(sender);
+    const signer = await getSignerFromAccount(hre, sender);
     const multisig = await ethers.getContractAt("MultiSigWallet", multisigAddress, signer);
     const gasEstimated = (
         await multisig.estimateGas.submitTransaction(contractAddress, value, data)

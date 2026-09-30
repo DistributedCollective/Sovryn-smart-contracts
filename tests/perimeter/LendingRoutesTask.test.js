@@ -1136,3 +1136,56 @@ describe("perimeter:route:lending-pools", () => {
         );
     });
 });
+
+/**
+ * What the task tells the co-signers about a route transaction confirmed before
+ * the allow transaction has executed, checked against the real wallet: the call
+ * fails inside the wallet without failing the confirmation, the transaction
+ * stays not executed with its confirmations, and an owner who confirmed it
+ * executes it once the call can succeed.
+ */
+describe("the multisig wallet, for a call confirmed before it can succeed", () => {
+    it("records an execution failure, keeps the confirmations, and lets an owner who confirmed it execute the call once it can succeed", async () => {
+        const [first, second, third] = await ethers.getSigners();
+        const Wallet = await ethers.getContractFactory("MultiSigWallet");
+        const wallet = await Wallet.deploy([first.address, second.address], 2);
+        await wallet.deployed();
+        const own = new ethers.utils.Interface([
+            "function changeRequirement(uint256 required)",
+            "function addOwner(address owner)",
+        ]);
+
+        // With two owners a threshold of three is refused: this call cannot
+        // succeed until the wallet has a third owner.
+        await wallet
+            .connect(first)
+            .submitTransaction(
+                wallet.address,
+                0,
+                own.encodeFunctionData("changeRequirement", [3])
+            );
+        const confirmed = await (await wallet.connect(second).confirmTransaction(0)).wait();
+        expect(confirmed.events.map((event) => event.event)).to.include("ExecutionFailure");
+        expect((await wallet.transactions(0)).executed).to.equal(false);
+        expect((await wallet.getConfirmationCount(0)).toNumber()).to.equal(2);
+
+        // The call it waits on executes.
+        await wallet
+            .connect(first)
+            .submitTransaction(
+                wallet.address,
+                0,
+                own.encodeFunctionData("addOwner", [third.address])
+            );
+        await (await wallet.connect(second).confirmTransaction(1)).wait();
+        expect((await wallet.transactions(1)).executed).to.equal(true);
+
+        const outsiderTry = await rejection(wallet.connect(third).executeTransaction(0));
+        expect(outsiderTry, "an owner who did not confirm cannot execute it").to.not.equal(null);
+        expect((await wallet.transactions(0)).executed).to.equal(false);
+
+        await (await wallet.connect(first).executeTransaction(0)).wait();
+        expect((await wallet.transactions(0)).executed).to.equal(true);
+        expect((await wallet.required()).toNumber()).to.equal(3);
+    });
+});
