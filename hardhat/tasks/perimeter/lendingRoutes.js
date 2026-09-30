@@ -355,8 +355,9 @@ class WaitingFromError extends Error {}
  *
  * Every transaction the wallet has ever stored, from the id `from` on, is read
  * by its id, a batch of ids at a time, and the ones not executed are kept. With
- * `from` above 0 an earlier transaction is not read, and the output says so. Each read costs the same
- * however long the wallet's history is, so the answer covers all of it and the
+ * `from` above 0 an earlier transaction is not read, and the output says so.
+ * Each read costs the same however long the wallet's history is, so the answer
+ * covers all of it and the
  * count of past transactions bounds only how many reads are made; a read that
  * fails is tried again before the whole read is given up. The wallet's
  * own filtered views (`getTransactionCount`, `getTransactionIds`) are not used:
@@ -369,7 +370,9 @@ const readPendingCalls = async (hre, multisigAddress, at = {}, { from = 0 } = {}
     if (from > total) {
         throw new WaitingFromError(
             `${TASK}: --waiting-from ${from} is above the multisig's transaction count ${total}; ` +
-                `the ids run from 0 to ${total - 1}, and ${total} is the most it can be`
+                (total === 0
+                    ? "the multisig holds no transaction, so 0 is the only value it can be"
+                    : `the ids run from 0 to ${total - 1}, and ${total} is the most it can be`)
         );
     }
     if (from === 0) {

@@ -648,9 +648,10 @@ describe("perimeter:route:lending-pools", () => {
         expect(plan.skipped.filter((skip) => skip.reason === "alreadyWaiting")).to.have.length(1);
     });
 
-    const NOTICE_FROM_1 =
-        "Only multisig transactions from #1 on are checked for a call already waiting; " +
+    const noticeFrom = (id) =>
+        `Only multisig transactions from #${id} on are checked for a call already waiting; ` +
         "an identical call waiting at an earlier id would not be found.";
+    const NOTICE_FROM_1 = noticeFrom(1);
 
     /** Two transactions waiting in a threshold-2 wallet: the allow call at id 0 and
      *  the route call of the first pool at id 1. Returns the planned calldata. */
@@ -718,6 +719,7 @@ describe("perimeter:route:lending-pools", () => {
         const output = await captureConsole(async () => {
             plan = await run({ waitingFrom: before });
         });
+        expect(output).to.include(noticeFrom(before));
         expect(output).to.include(
             `Reading no multisig transaction: #${before} is the multisig's transaction count`
         );
@@ -725,7 +727,23 @@ describe("perimeter:route:lending-pools", () => {
         expect(await count()).to.equal(before + 1 + pools.length);
     });
 
-    it("refuses a --waiting-from that is not a whole number of 0 or more before anything is read or sent", async () => {
+    it("prints the partial-scan warning on a dry run, which sends nothing and plans the call waiting below the id", async () => {
+        const planned = await waitAllowAndFirstRoute();
+        const before = await count();
+        let plan;
+        const output = await captureConsole(async () => {
+            plan = await dry({ waitingFrom: 1 });
+        });
+        expect(output).to.include(NOTICE_FROM_1);
+        expect(output).to.include("dry run: nothing was submitted");
+        expect(await count()).to.equal(before);
+        expect(plan.transactions.map((tx) => tx.calldata)).to.deep.equal([
+            planned[0],
+            ...planned.slice(2),
+        ]);
+    });
+
+    it("refuses a --waiting-from that is not a whole number of 0 or more before the queue is resolved or anything is sent", async () => {
         await seatWallet([owner, second], 2);
         const before = await count();
         for (const bad of [-1, 1.5, "abc", Number.NaN]) {
@@ -738,10 +756,21 @@ describe("perimeter:route:lending-pools", () => {
             expect(error, `${bad} must be refused`).to.not.equal(null);
             expect(error.message).to.include("--waiting-from must be");
             expect(error.message).to.include(`'${bad}'`);
+            expect(output).to.not.include("could NOT be verified independently");
             expect(output).to.not.include("Network:");
             expect(await count()).to.equal(before);
         }
         expect(await stub.topUpFeasible(LENDER)).to.equal(false);
+    });
+
+    it("words the refusal for a multisig that holds no transaction without a range", async () => {
+        const error = await rejection(run({ waitingFrom: 1 }));
+        expect(error).to.not.equal(null);
+        expect(error.message).to.include(
+            "--waiting-from 1 is above the multisig's transaction count 0"
+        );
+        expect(error.message).to.include("the multisig holds no transaction");
+        expect(error.message).to.not.include("-1");
     });
 
     it("refuses a --waiting-from above the transaction count, naming the count, in every mode", async () => {
