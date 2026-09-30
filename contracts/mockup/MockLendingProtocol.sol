@@ -32,6 +32,11 @@ contract MockLendingProtocol {
         }
     }
 
+    /// @notice List a pool a second time, as a list read across a change would.
+    function listAgain(address pool) external {
+        pools.push(pool);
+    }
+
     function getLoanPoolsList(
         uint256 start,
         uint256 count

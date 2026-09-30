@@ -6,14 +6,18 @@
  * leaves out, and that it never sends anywhere but a local QA fork.
  *
  * The queue is a stand-in that stores what each call sets, the protocol is a
- * stand-in that lists pools, and the wallet is the real multisig. The routes'
- * behaviour against the real queue is covered on a fork by the operator step
- * in the deployment runbook.
+ * stand-in that lists pools, and the wallet is the real multisig. The stand-in
+ * queue enforces none of the real queue's own refusals (a surface that does not
+ * allow refund-to-pool, a destination that is not the pool), and no committed
+ * test runs this task against the real queue. That is covered by running the
+ * task with --submit on a local QA fork and reading `perimeter:route:show` back,
+ * as recorded in fix-lending-report.md beside the walk's briefs.
  *
  * Run:
  *   __decryptionAlreadyDone__=TRUE npx hardhat test tests/perimeter/LendingRoutesTask.test.js
  */
 const fs = require("fs");
+const { execFileSync } = require("child_process");
 const os = require("os");
 const path = require("path");
 const { expect } = require("chai");
@@ -61,6 +65,27 @@ const rejection = async (promise) => {
         return error;
     }
     return null;
+};
+
+/** An hre that answers the local QA fork guard's questions — a loopback url,
+ *  chain 30, the qa tag, a hardhat node — while every send still goes to the
+ *  in-process chain the tests run on. */
+const forkLikeHre = () => {
+    const provider = {
+        getNetwork: async () => ({ chainId: 30 }),
+        send: async (method) => {
+            if (method !== "web3_clientVersion") throw new Error(`unexpected rpc call ${method}`);
+            return "HardhatNetwork/2.22.5/@nomicfoundation/edr/0.3.7";
+        },
+    };
+    return Object.assign(Object.create(hre), {
+        network: {
+            name: "rskForkedMainnetQa",
+            config: { url: "http://127.0.0.1:8548" },
+            tags: { qa: true },
+        },
+        ethers: Object.assign(Object.create(ethers), { provider }),
+    });
 };
 
 describe("perimeter:route:lending-pools", () => {
@@ -388,7 +413,7 @@ describe("perimeter:route:lending-pools", () => {
     it("submits the printed calldata to the queue through the multisig, in order", async () => {
         const plan = await run();
         const before = await multisig.transactionCount();
-        await lendingRoutes.submitLendingRoutes(hre, plan, {
+        await lendingRoutes.submitLendingRoutes(forkLikeHre(), plan, {
             multisigAddress: multisig.address,
             queueAddress: stub.address,
             signerAcc: owner.address,
@@ -411,5 +436,149 @@ describe("perimeter:route:lending-pools", () => {
             expect(route.active).to.equal(true);
             expect(route.topUpPool).to.equal(true);
         }
+    });
+
+    it("reports a pool holding its top-up route and another active route as a conflict, naming the other route and its destination", async () => {
+        const [held] = sortedPools();
+        await stub.setTopUpFeasible(LENDER, true);
+        for (const entry of pools) {
+            await stub.setRoute(true, LENDER, entry.pool, entry.asset, entry.pool, true);
+        }
+        const elsewhere = ethers.Wallet.createRandom().address;
+        await stub.setRoute(true, LENDER, held.pool, held.asset, elsewhere, false);
+        const otherId = recovery.routeIdOf(LENDER, held.pool, held.asset, elsewhere);
+        const topUpId = recovery.routeIdOf(LENDER, held.pool, held.asset, held.pool);
+        let plan;
+        const output = await captureConsole(async () => {
+            plan = await run();
+        });
+        expect(plan.transactions).to.have.length(0);
+        const conflicts = plan.skipped.filter((skip) => skip.reason === "otherRouteActive");
+        expect(conflicts).to.have.length(1);
+        expect(conflicts[0].pool).to.equal(held.pool);
+        expect(conflicts[0].routeIds).to.have.members([topUpId, otherId]);
+        expect(plan.skipped.filter((skip) => skip.reason === "topUpRouteActive")).to.have.length(
+            pools.length - 1
+        );
+        expect(output).to.include(otherId);
+        expect(output).to.include(elsewhere);
+        expect(output).to.match(/`perimeter:refund --to pool` will refuse to choose/);
+        expect(output).to.match(/perimeter:route:remove/);
+        expect(output).to.not.include("every pool has its route");
+        expect(output).to.match(/nothing to register, but 1 pool has conflicting active routes/);
+        expect(
+            batchFile().skipped.filter((skip) => skip.reason === "otherRouteActive")
+        ).to.have.length(1);
+    });
+
+    it("says a conflict stands at the end of a run that still has routes to register", async () => {
+        const [held] = sortedPools();
+        await stub.setRoute(true, LENDER, held.pool, held.asset, held.pool, true);
+        await stub.setRoute(
+            true,
+            LENDER,
+            held.pool,
+            held.asset,
+            ethers.Wallet.createRandom().address,
+            false
+        );
+        const output = await captureConsole(async () => {
+            await run();
+        });
+        expect(batchFile().transactions).to.have.length(pools.length);
+        expect(output).to.match(/1 pool has conflicting active routes/);
+        expect(output).to.not.include("every pool has its route");
+    });
+
+    it("defaults the batch file into the git-ignored out directory, named for the network and the block", async () => {
+        const file = lendingRoutes.defaultBatchFile("rskSovrynMainnet", 1234);
+        expect(file).to.equal(
+            path.join("out", "perimeter-lending-routes.rskSovrynMainnet.block-1234.json")
+        );
+        // Exit status 0 means a rule ignores it; anything else throws.
+        execFileSync("git", ["check-ignore", "-q", file], {
+            cwd: path.join(__dirname, "..", ".."),
+        });
+    });
+
+    it("writes the batch under out/ in the working directory when --out is not given", async () => {
+        const previous = process.cwd();
+        process.chdir(outDir);
+        try {
+            const plan = await hre.run(TASK, {
+                queue: stub.address,
+                protocol: protocol.address,
+                multisig: multisig.address,
+            });
+            const expected = path.join(
+                outDir,
+                lendingRoutes.defaultBatchFile(plan.network, plan.readAtBlock)
+            );
+            expect(fs.existsSync(fs.realpathSync(expected))).to.equal(true);
+        } finally {
+            process.chdir(previous);
+        }
+    });
+
+    it("refuses to overwrite an existing batch file and leaves it as it was", async () => {
+        await run();
+        const first = fs.readFileSync(out, "utf8");
+        const error = await rejection(run());
+        expect(error, "a second run onto the same file must refuse").to.not.equal(null);
+        expect(error.message).to.include(out);
+        expect(error.message).to.match(/already exists/);
+        expect(fs.readFileSync(out, "utf8")).to.equal(first);
+    });
+
+    it("refuses --submit with a message that names the network and what a QA fork is", async () => {
+        const error = await rejection(run({ submit: true }));
+        expect(error).to.not.equal(null);
+        expect(error.message).to.include(`${TASK}: --submit is refused on network 'hardhat'`);
+        expect(error.message).to.match(/loopback node.*chain id 30.*tagged qa/);
+        expect(error.message).to.not.match(/impersonates|rewrites balances/);
+    });
+
+    it("refuses to send from submitLendingRoutes itself on a network that is not a QA fork", async () => {
+        const plan = await run();
+        const before = (await multisig.transactionCount()).toString();
+        const error = await rejection(
+            lendingRoutes.submitLendingRoutes(hre, plan, {
+                multisigAddress: multisig.address,
+                queueAddress: stub.address,
+                signerAcc: owner.address,
+                queue: await recoveryTasks.queueAt(hre, stub.address),
+            })
+        );
+        expect(error, "the sender must carry its own guard").to.not.equal(null);
+        expect(error.message).to.include(`${TASK}: --submit is refused on network 'hardhat'`);
+        expect((await multisig.transactionCount()).toString()).to.equal(before);
+    });
+
+    it("reads the pools and the routes at the block it records, not at a later one", async () => {
+        const block = await ethers.provider.getBlockNumber();
+        const added = await deployPool("iNEW", "NEW");
+        await stub.setTopUpFeasible(LENDER, true);
+        await stub.setRoute(true, LENDER, pools[0].pool, pools[0].asset, pools[0].pool, true);
+        const plan = await lendingRoutes.prepareLendingRoutes(hre, {
+            queueAddress: stub.address,
+            live: await recoveryTasks.queueAt(hre, stub.address),
+            protocolAddress: protocol.address,
+            multisigAddress: multisig.address,
+            blockNumber: block,
+        });
+        expect(plan.readAtBlock).to.equal(block);
+        expect(plan.poolsListed).to.equal(pools.length);
+        expect(plan.transactions.map((tx) => tx.pool).filter(Boolean)).to.not.include(added.pool);
+        expect(plan.skipped).to.have.length(0);
+        expect(plan.refundToPoolAllowed).to.equal(false);
+        expect(plan.transactions).to.have.length(1 + pools.length);
+    });
+
+    it("refuses a protocol list that names one pool twice", async () => {
+        await protocol.listAgain(pools[0].pool);
+        const error = await rejection(run());
+        expect(error).to.not.equal(null);
+        expect(error.message).to.include(pools[0].pool);
+        expect(error.message).to.match(/lists .* twice/);
     });
 });

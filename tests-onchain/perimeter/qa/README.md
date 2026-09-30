@@ -66,8 +66,21 @@ fresh node.
 
 ## The state file
 
-`qa/perimeter-qa.json` (git-ignored) is the address book everything else reads:
-the RPC and fork block; the queue, controller, multisig, protocol and Zero
+`qa/perimeter-qa.json` (git-ignored) is the address book everything else reads. Beside
+it, `qa/state.json` is the log the `perimeter:qa` commands append to. Both live in `qa/`
+unless `PERIMETER_QA_STATE_DIR` names another directory (absolute, or relative to the
+working directory); set it to the same directory for every command that talks to a
+given fork. A second fork on its own port needs its own directory, because `up` reads
+and rewrites the address book and would otherwise replace the first fork's:
+
+```
+export PERIMETER_QA_STATE_DIR=/path/to/second-fork-state
+```
+
+The node's pid and log files are not affected by it: they stay per port under `qa/`
+(`qa/node.<port>.pid`, `qa/node.<port>.log`), as in "Boot the node" above.
+
+The address book holds the RPC and fork block; the queue, controller, multisig, protocol and Zero
 addresses and the iRBTC/iXUSD pools; `feeReceiver`, where the perimeter's charge
 lands, beside `feesController`, the protocol's own fee stream that this release
 leaves alone; the armed `delaySeconds` and `feeEnabled`; `withdrawWrapper`, the

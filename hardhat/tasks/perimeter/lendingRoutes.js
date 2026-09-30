@@ -35,9 +35,9 @@ const walletInterface = new ethers.utils.Interface([
 
 /** A display symbol, or undefined when the contract does not answer for one.
  *  Only ever used to label a line; nothing is built from it. */
-const readSymbol = async (hre, address, abi) => {
+const readSymbol = async (hre, address, abi, at) => {
     try {
-        const symbol = await (await hre.ethers.getContractAt(abi, address)).symbol();
+        const symbol = await (await hre.ethers.getContractAt(abi, address)).symbol(at);
         return typeof symbol === "string" && symbol !== "" ? symbol : undefined;
     } catch (error) {
         return undefined;
@@ -53,18 +53,24 @@ const readSymbol = async (hre, address, abi) => {
  * pool the two disagree on is refused, because a route built from either would
  * register cleanly and then refuse every refund it was meant for.
  *
- * Sorted by address so two operators reading the same block produce the same
- * batch: the protocol's own list order moves when a pool is removed.
+ * Every read is made at the one block `at` names, so the list and each pool's
+ * answers describe the same state; a pool listed twice is refused. Sorted by
+ * address so two operators reading the same block produce the same batch: the
+ * protocol's own list order moves when a pool is removed.
  */
-const readLendingPools = async (hre, protocolAddress) => {
+const readLendingPools = async (hre, protocolAddress, at) => {
     const { ethers: hreEthers } = hre;
     const protocol = await hreEthers.getContractAt(PROTOCOL_ABI, protocolAddress);
 
     const listed = [];
     for (let start = 0; ; start += POOL_PAGE) {
-        const page = await protocol.getLoanPoolsList(start, POOL_PAGE);
+        const page = await protocol.getLoanPoolsList(start, POOL_PAGE, at);
         for (const word of page) {
-            listed.push(hreEthers.utils.getAddress(hreEthers.utils.hexDataSlice(word, 12)));
+            const pool = hreEthers.utils.getAddress(hreEthers.utils.hexDataSlice(word, 12));
+            if (listed.includes(pool)) {
+                throw new Error(`${TASK}: the protocol lists the pool ${pool} twice`);
+            }
+            listed.push(pool);
         }
         if (page.length < POOL_PAGE) break;
     }
@@ -77,7 +83,7 @@ const readLendingPools = async (hre, protocolAddress) => {
         let asset;
         try {
             asset = hreEthers.utils.getAddress(
-                await (await hreEthers.getContractAt(POOL_ABI, pool)).loanTokenAddress()
+                await (await hreEthers.getContractAt(POOL_ABI, pool)).loanTokenAddress(at)
             );
         } catch (error) {
             throw new Error(
@@ -85,7 +91,7 @@ const readLendingPools = async (hre, protocolAddress) => {
                     "withdrawals escrow cannot be read and no route can be built for it"
             );
         }
-        const recorded = hreEthers.utils.getAddress(await protocol.loanPoolToUnderlying(pool));
+        const recorded = hreEthers.utils.getAddress(await protocol.loanPoolToUnderlying(pool, at));
         if (recorded !== asset) {
             throw new Error(
                 `${TASK}: the pool ${pool} escrows ${asset} but the protocol records ${recorded} ` +
@@ -95,12 +101,16 @@ const readLendingPools = async (hre, protocolAddress) => {
         pools.push({
             pool,
             asset,
-            symbol: await readSymbol(hre, pool, POOL_ABI),
-            assetSymbol: await readSymbol(hre, asset, TOKEN_ABI),
+            symbol: await readSymbol(hre, pool, POOL_ABI, at),
+            assetSymbol: await readSymbol(hre, asset, TOKEN_ABI, at),
         });
     }
     return pools.sort((a, b) => (a.pool.toLowerCase() < b.pool.toLowerCase() ? -1 : 1));
 };
+
+const routeLine = (route) =>
+    `route ${route.routeId} (${route.topUpPool ? "top-up" : "address mode"}, ` +
+    `destination ${route.destination})`;
 
 const poolPhrase = (entry) => `${entry.symbol ? `${entry.symbol} ` : ""}pool ${entry.pool}`;
 const assetPhrase = (entry) => `asset ${entry.assetSymbol || entry.asset}`;
@@ -137,18 +147,25 @@ const transactionFor = (built, queueAddress, extra) => {
  * refund-to-pool routes on lender withdrawals (left out when they already are
  * allowed), then one route registration per pool, in pool address order.
  *
- * A pool that already has an active top-up route is left out and listed. So is
- * a pool that has some OTHER active route on the same surface, pool and asset:
- * a second matching route makes `perimeter:refund --to pool` refuse to choose
- * between them, so it is left for the operator to remove first.
+ * A pool whose only active route is a top-up route is left out and listed. So
+ * is a pool with any OTHER active route on the same surface, pool and asset,
+ * whether or not it also has a top-up route: a second matching route makes
+ * `perimeter:refund --to pool` refuse to choose between them, so it is reported
+ * as a conflict and left for the operator to remove first.
+ *
+ * Every read is made at one block, `blockNumber` or, when it is not given, the
+ * head at the start; the batch records that block.
  */
 const prepareLendingRoutes = async (
     hre,
-    { queueAddress, live, protocolAddress, multisigAddress }
+    { queueAddress, live, protocolAddress, multisigAddress, blockNumber }
 ) => {
-    const pools = await readLendingPools(hre, protocolAddress);
-    const feasibleNow = await recoveryTasks.readTopUpFeasible(live, LENDER);
-    const wrbtc = await recoveryTasks.readWrbtc(live);
+    const blockTag =
+        blockNumber !== undefined ? blockNumber : await hre.ethers.provider.getBlockNumber();
+    const at = { blockTag };
+    const pools = await readLendingPools(hre, protocolAddress, at);
+    const feasibleNow = await recoveryTasks.readTopUpFeasible(live, LENDER, at);
+    const wrbtc = await recoveryTasks.readWrbtc(live, at);
 
     const transactions = [];
     const skipped = [];
@@ -171,10 +188,12 @@ const prepareLendingRoutes = async (
             live,
             LENDER,
             entry.pool,
-            entry.asset
+            entry.asset,
+            at
         );
         const topUp = matching.find((route) => route.topUpPool);
-        if (topUp) {
+        const others = matching.filter((route) => !topUp || route.routeId !== topUp.routeId);
+        if (topUp && others.length === 0) {
             skipped.push({
                 ...entry,
                 reason: "topUpRouteActive",
@@ -183,19 +202,23 @@ const prepareLendingRoutes = async (
             });
             continue;
         }
-        if (matching.length > 0) {
+        if (others.length > 0) {
             skipped.push({
                 ...entry,
                 reason: "otherRouteActive",
                 routeIds: matching.map((route) => route.routeId),
+                topUpRouteId: topUp ? topUp.routeId : undefined,
                 detail:
-                    `${poolPhrase(entry)} has another active route on the same surface and ` +
-                    "asset, and a second matching route makes a refund to the pool refuse to " +
-                    "choose between them — remove it with `perimeter:route:remove` and run this " +
-                    "task again:\n    " +
-                    matching
-                        .map((route) => recovery.describeRoute(route.routeId, route))
-                        .join("\n    "),
+                    `${poolPhrase(entry)} ` +
+                    (topUp
+                        ? `has its active top-up route ${topUp.routeId} and another active route`
+                        : "has another active route") +
+                    " on the same surface, pool and asset — " +
+                    (topUp ? "" : "once a top-up route is added, ") +
+                    "`perimeter:refund --to pool` will refuse to choose between them. " +
+                    `Remove ${topUp ? "the other route" : "it"} with \`perimeter:route:remove\` ` +
+                    "and run this task again:\n    " +
+                    others.map(routeLine).join("\n    "),
             });
             continue;
         }
@@ -245,7 +268,7 @@ const prepareLendingRoutes = async (
     return {
         network: hre.network.name,
         chainId: (await hre.ethers.provider.getNetwork()).chainId,
-        readAtBlock: await hre.ethers.provider.getBlockNumber(),
+        readAtBlock: blockTag,
         queue: queueAddress,
         multisig: multisigAddress,
         protocol: protocolAddress,
@@ -281,8 +304,18 @@ const presentPlan = (plan) => {
     for (const skip of plan.skipped) {
         logger.warn(`Left out: ${skip.detail}`);
     }
+    const conflicts = plan.skipped.filter((skip) => skip.reason === "otherRouteActive");
+    const conflictSummary =
+        `${conflicts.length} ${conflicts.length === 1 ? "pool has" : "pools have"} conflicting ` +
+        "active routes (listed above), and `perimeter:refund --to pool` refuses for " +
+        `${conflicts.length === 1 ? "it" : "them"} until the other ` +
+        `${conflicts.length === 1 ? "route is" : "routes are"} removed`;
     if (plan.transactions.length === 0) {
-        logger.info("nothing to prepare: every pool has its route and the surface allows it");
+        if (conflicts.length === 0) {
+            logger.info("nothing to prepare: every pool has its route and the surface allows it");
+        } else {
+            logger.warn(`nothing to register, but ${conflictSummary}`);
+        }
         return;
     }
     for (const tx of plan.transactions) {
@@ -298,30 +331,37 @@ const presentPlan = (plan) => {
                 "order, and check the first one executed before confirming the rest."
         );
     }
+    if (conflicts.length > 0) logger.warn(conflictSummary);
 };
 
 /** Refuse to send anywhere but a local QA fork, before anything is read. The
- *  guard is the one every QA command runs behind: loopback url, a hardhat or
+ *  check is the one every QA command runs behind: loopback url, a hardhat or
  *  anvil node, chain id 30, and the `qa` network tag. */
 const requireForkForSubmit = async (hre) => {
     try {
         await assertLocalQaFork(hre);
     } catch (error) {
-        throw new Error(
-            `${TASK}: --submit sends through the multisig and runs on a local QA fork only. ` +
-                "Without --submit this task only reads and prints the batch, on any network. " +
-                error.message
+        const refusal = new Error(
+            `${TASK}: --submit is refused on network '${hre.network.name}' ` +
+                `(${(hre.network.config && hre.network.config.url) || "no url"}): sending ` +
+                "through the multisig runs on a local QA fork only — a loopback node running " +
+                "hardhat or anvil, chain id 30, on a network tagged qa. Without --submit this " +
+                "task only reads and prints the batch, on any network. Nothing was sent."
         );
+        refusal.cause = error;
+        throw refusal;
     }
 };
 
 /** Submit the batch through the multisig, one transaction after another in the
- *  batch's own order, each read back against the queue. */
+ *  batch's own order, each read back against the queue. Carries its own guard,
+ *  so it refuses on any network that is not a local QA fork whoever calls it. */
 const submitLendingRoutes = async (
     hre,
     plan,
     { multisigAddress, queueAddress, signerAcc, queue }
 ) => {
+    await requireForkForSubmit(hre);
     const submitted = [];
     for (const tx of plan.transactions) {
         logger.info(`Submitting transaction ${tx.index} of ${plan.transactions.length}`);
@@ -335,6 +375,26 @@ const submitLendingRoutes = async (
         submitted.push({ index: tx.index, multisigTransactionId: txId.toString() });
     }
     return submitted;
+};
+
+/** Where the batch goes when --out is not given: the git-ignored `out/`
+ *  directory, named for the network and the block it was read at. */
+const defaultBatchFile = (network, block) =>
+    path.join("out", `perimeter-lending-routes.${network}.block-${block}.json`);
+
+/** Write the batch to a file that does not exist yet; an existing file is
+ *  never replaced, since it may be the one co-signers are comparing against. */
+const writeBatchFile = (file, plan) => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    try {
+        fs.writeFileSync(file, `${JSON.stringify(plan, null, 2)}\n`, { flag: "wx" });
+    } catch (error) {
+        if (error.code !== "EEXIST") throw error;
+        throw new Error(
+            `${TASK}: ${file} already exists and this task never overwrites a batch file — ` +
+                "remove it or name another with --out"
+        );
+    }
 };
 
 const resolveProtocolAddress = async (hre, protocolParam) => {
@@ -376,13 +436,13 @@ const runLendingRoutes = async ({ queue, protocol, multisig, signer, out, submit
         protocolAddress,
         multisigAddress,
     });
-    presentPlan(plan);
 
     const file = path.resolve(
         process.cwd(),
-        out || `perimeter-lending-routes.${plan.network}.json`
+        out || defaultBatchFile(plan.network, plan.readAtBlock)
     );
-    fs.writeFileSync(file, `${JSON.stringify(plan, null, 2)}\n`);
+    writeBatchFile(file, plan);
+    presentPlan(plan);
     logger.info(`Batch written to ${file}`);
 
     if (!submit) {
@@ -417,10 +477,17 @@ task(
     .addOptionalParam("multisig", "Multisig address (defaults to the MultiSigWallet deployment)")
     .addOptionalParam(
         "out",
-        "File the whole batch is written to (defaults to perimeter-lending-routes.<network>.json)"
+        "New file the whole batch is written to; an existing file is never replaced " +
+            "(defaults to out/perimeter-lending-routes.<network>.block-<block>.json)"
     )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addFlag("submit", "Send the batch through the multisig — a local QA fork only")
     .setAction(runLendingRoutes);
 
-module.exports = { runLendingRoutes, prepareLendingRoutes, submitLendingRoutes, readLendingPools };
+module.exports = {
+    runLendingRoutes,
+    prepareLendingRoutes,
+    submitLendingRoutes,
+    readLendingPools,
+    defaultBatchFile,
+};

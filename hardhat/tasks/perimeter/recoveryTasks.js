@@ -113,9 +113,9 @@ const queueAt = async (hre, address) => hre.ethers.getContractAt(QUEUE_ABI, addr
 /** The queue's WRBTC address, or undefined when the read did not answer — the
  *  destination guard then skips its WRBTC arm rather than passing it on a
  *  value it does not have. The queue enforces it on chain regardless. */
-const readWrbtc = async (queue) => {
+const readWrbtc = async (queue, overrides = {}) => {
     try {
-        return await queue.wrbtc();
+        return await queue.wrbtc(overrides);
     } catch (error) {
         logger.warn(
             "the queue's own WRBTC address could not be read, so this task cannot check the " +
@@ -131,9 +131,9 @@ const readWrbtc = async (queue) => {
  *  "already feasible" — that would suppress the `--set-feasible` step and
  *  risk a genuine on-chain `TopUpInfeasibleSurface` revert the task could
  *  have avoided. */
-const readTopUpFeasible = async (queue, surfaceId) => {
+const readTopUpFeasible = async (queue, surfaceId, overrides = {}) => {
     try {
-        return await queue.topUpFeasible(surfaceId);
+        return await queue.topUpFeasible(surfaceId, overrides);
     } catch (error) {
         logger.warn(
             "the queue's own top-up feasibility flag could not be read for this surface — " +
@@ -694,11 +694,11 @@ const BLOCK_NAMES = ["not blocked", "frozen", "blacklisted"];
  * order — which moves when an unrelated route is removed. Choosing between
  * them is the caller's business, out loud.
  */
-const activeRoutesFor = async (queue, surfaceId, subProduct, token) => {
+const activeRoutesFor = async (queue, surfaceId, subProduct, token, overrides = {}) => {
     const { getAddress } = require("ethers").utils;
     const found = [];
-    for (const routeId of await queue.recoveryRouteIds()) {
-        const route = await queue.getRecoveryRoute(routeId);
+    for (const routeId of await queue.recoveryRouteIds(overrides)) {
+        const route = await queue.getRecoveryRoute(routeId, overrides);
         if (!route.active) continue;
         if (route.surfaceId !== surfaceId) continue;
         if (getAddress(route.subProduct) !== getAddress(subProduct)) continue;
