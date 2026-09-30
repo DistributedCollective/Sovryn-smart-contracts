@@ -19,6 +19,9 @@ const LENDER = policy.SURFACES.PERIMETER_SURFACE_LENDING_LENDER_WITHDRAW;
  *  back short. */
 const POOL_PAGE = 50;
 
+/** How many numbered names a default batch file tries before giving up. */
+const MAX_NUMBERED_FILES = 1000;
+
 const PROTOCOL_ABI = [
     "function getLoanPoolsList(uint256 start, uint256 count) view returns (bytes32[])",
     "function loanPoolToUnderlying(address) view returns (address)",
@@ -53,12 +56,13 @@ const readSymbol = async (hre, address, abi, at) => {
  * pool the two disagree on is refused, because a route built from either would
  * register cleanly and then refuse every refund it was meant for.
  *
- * Every read is made at the one block `at` names, so the list and each pool's
- * answers describe the same state; a pool listed twice is refused. Sorted by
+ * Every read is made with the call overrides `at` (`{ blockTag }`), so the list
+ * and each pool's answers describe the same state; omitted, they are read at the
+ * head. A pool listed twice is refused. Sorted by
  * address so two operators reading the same block produce the same batch: the
  * protocol's own list order moves when a pool is removed.
  */
-const readLendingPools = async (hre, protocolAddress, at) => {
+const readLendingPools = async (hre, protocolAddress, at = {}) => {
     const { ethers: hreEthers } = hre;
     const protocol = await hreEthers.getContractAt(PROTOCOL_ABI, protocolAddress);
 
@@ -382,19 +386,30 @@ const submitLendingRoutes = async (
 const defaultBatchFile = (network, block) =>
     path.join("out", `perimeter-lending-routes.${network}.block-${block}.json`);
 
-/** Write the batch to a file that does not exist yet; an existing file is
- *  never replaced, since it may be the one co-signers are comparing against. */
-const writeBatchFile = (file, plan) => {
+/** Write the batch to a file that does not exist yet and return the path
+ *  written; an existing file is never replaced, since it may be the one
+ *  co-signers are comparing against. With `numbered`, a name that is taken is
+ *  followed by the next free `.2`, `.3`, … before `.json`; without it, a taken
+ *  name is refused. */
+const writeBatchFile = (file, plan, { numbered }) => {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    try {
-        fs.writeFileSync(file, `${JSON.stringify(plan, null, 2)}\n`, { flag: "wx" });
-    } catch (error) {
-        if (error.code !== "EEXIST") throw error;
-        throw new Error(
-            `${TASK}: ${file} already exists and this task never overwrites a batch file — ` +
-                "remove it or name another with --out"
-        );
+    const body = `${JSON.stringify(plan, null, 2)}\n`;
+    for (let n = 1; n <= MAX_NUMBERED_FILES; n++) {
+        const candidate = n === 1 ? file : file.replace(/\.json$/, `.${n}.json`);
+        try {
+            fs.writeFileSync(candidate, body, { flag: "wx" });
+            return candidate;
+        } catch (error) {
+            if (error.code !== "EEXIST") throw error;
+            if (!numbered) {
+                throw new Error(
+                    `${TASK}: ${file} already exists and this task never overwrites a batch ` +
+                        "file — remove it or name another with --out"
+                );
+            }
+        }
     }
+    throw new Error(`${TASK}: ${MAX_NUMBERED_FILES} batch files named ${file} already exist`);
 };
 
 const resolveProtocolAddress = async (hre, protocolParam) => {
@@ -437,12 +452,13 @@ const runLendingRoutes = async ({ queue, protocol, multisig, signer, out, submit
         multisigAddress,
     });
 
-    const file = path.resolve(
+    const wanted = path.resolve(
         process.cwd(),
         out || defaultBatchFile(plan.network, plan.readAtBlock)
     );
-    writeBatchFile(file, plan);
+    const file = writeBatchFile(wanted, plan, { numbered: !out });
     presentPlan(plan);
+    if (file !== wanted) logger.info(`${wanted} already exists — this batch is a new file`);
     logger.info(`Batch written to ${file}`);
 
     if (!submit) {
@@ -478,7 +494,8 @@ task(
     .addOptionalParam(
         "out",
         "New file the whole batch is written to; an existing file is never replaced " +
-            "(defaults to out/perimeter-lending-routes.<network>.block-<block>.json)"
+            "(defaults to out/perimeter-lending-routes.<network>.block-<block>.json, " +
+            "numbered .2, .3 … when that name is taken)"
     )
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
     .addFlag("submit", "Send the batch through the multisig — a local QA fork only")

@@ -9,9 +9,7 @@
  * stand-in that lists pools, and the wallet is the real multisig. The stand-in
  * queue enforces none of the real queue's own refusals (a surface that does not
  * allow refund-to-pool, a destination that is not the pool), and no committed
- * test runs this task against the real queue. That is covered by running the
- * task with --submit on a local QA fork and reading `perimeter:route:show` back,
- * as recorded in fix-lending-report.md beside the walk's briefs.
+ * test runs this task against the real queue.
  *
  * Run:
  *   __decryptionAlreadyDone__=TRUE npx hardhat test tests/perimeter/LendingRoutesTask.test.js
@@ -580,5 +578,44 @@ describe("perimeter:route:lending-pools", () => {
         expect(error).to.not.equal(null);
         expect(error.message).to.include(pools[0].pool);
         expect(error.message).to.match(/lists .* twice/);
+    });
+
+    it("writes the next free numbered name when the default file already exists, and never touches the earlier ones", async () => {
+        const previous = process.cwd();
+        process.chdir(outDir);
+        try {
+            const first = await hre.run(TASK, params({ out: undefined }));
+            const named = lendingRoutes.defaultBatchFile(first.network, first.readAtBlock);
+            const base = fs.realpathSync(path.join(outDir, named));
+            const firstBody = fs.readFileSync(base, "utf8");
+            await hre.run(TASK, params({ out: undefined }));
+            await hre.run(TASK, params({ out: undefined }));
+            const second = base.replace(/\.json$/, ".2.json");
+            const third = base.replace(/\.json$/, ".3.json");
+            expect(fs.existsSync(second), "second run writes .2").to.equal(true);
+            expect(fs.existsSync(third), "third run writes .3").to.equal(true);
+            expect(fs.readFileSync(base, "utf8")).to.equal(firstBody);
+            expect(fs.readFileSync(second, "utf8")).to.equal(firstBody);
+        } finally {
+            process.chdir(previous);
+        }
+    });
+
+    it("still refuses an explicit --out that exists, without writing a numbered name beside it", async () => {
+        await run();
+        const error = await rejection(run());
+        expect(error).to.not.equal(null);
+        expect(error.message).to.match(/already exists/);
+        expect(fs.existsSync(out.replace(/\.json$/, ".2.json"))).to.equal(false);
+    });
+
+    it("lists the pools without a block argument, at the head", async () => {
+        const listed = await lendingRoutes.readLendingPools(hre, protocol.address);
+        expect(listed.map((entry) => entry.pool)).to.deep.equal(
+            sortedPools().map((entry) => entry.pool)
+        );
+        expect(listed.map((entry) => entry.asset)).to.deep.equal(
+            sortedPools().map((entry) => entry.asset)
+        );
     });
 });
