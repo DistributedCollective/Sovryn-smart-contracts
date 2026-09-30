@@ -37,13 +37,30 @@ const TOKEN_ABI = ["function symbol() view returns (string)"];
 
 const WALLET_ABI = [
     "function isOwner(address) view returns (bool)",
+    "function required() view returns (uint256)",
     "function transactionCount() view returns (uint256)",
+    "function getConfirmationCount(uint256 transactionId) view returns (uint256)",
     "function transactions(uint256) view returns (address destination, uint256 value, bytes data, bool executed)",
 ];
 
 const walletInterface = new ethers.utils.Interface([
     "function submitTransaction(address destination, uint256 value, bytes data) returns (uint256 transactionId)",
 ]);
+
+/** The result of `read()`, tried again after a pause when it throws, and the
+ *  last error once every try has failed. */
+const withRetries = async (read) => {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            return await read();
+        } catch (error) {
+            if (attempt >= WALLET_READ_ATTEMPTS) throw error;
+            await new Promise((resolve) =>
+                setTimeout(resolve, WALLET_READ_RETRY_MS * 2 ** (attempt - 1))
+            );
+        }
+    }
+};
 
 /** A display symbol, or undefined when the contract does not answer for one.
  *  Only ever used to label a line; nothing is built from it. */
@@ -155,6 +172,29 @@ const transactionFor = (built, queueAddress, extra) => {
     };
 };
 
+/** Whether refund-to-pool routes are allowed on lender withdrawals, read with
+ *  the same retries as the multisig. A flag that stays unreadable is an error
+ *  when the run submits or prints transactions, since the allow call would be
+ *  built from a guess; otherwise it is reported and taken as not yet allowed. */
+const readLenderFeasible = async (live, at, required) => {
+    try {
+        return await withRetries(() => live.topUpFeasible(LENDER, at));
+    } catch (error) {
+        const said = `${TASK}: the queue's top-up feasibility flag for lender withdrawals could not be read (${error.message})`;
+        if (required) {
+            const refusal = new Error(
+                `${said}. Nothing was sent: without it the allow call could be built when ` +
+                    "refund-to-pool is already allowed. Run with --dry-run to see the plan " +
+                    "without this check."
+            );
+            refusal.cause = error;
+            throw refusal;
+        }
+        logger.warn(`${said} — the plan below takes it as not yet allowed`);
+        return false;
+    }
+};
+
 /**
  * Read the queue and the protocol and build the calls to submit: one call that
  * allows refund-to-pool routes on lender withdrawals (left out when they already
@@ -171,13 +211,20 @@ const transactionFor = (built, queueAddress, extra) => {
  */
 const prepareLendingRoutes = async (
     hre,
-    { queueAddress, live, protocolAddress, multisigAddress, blockNumber }
+    {
+        queueAddress,
+        live,
+        protocolAddress,
+        multisigAddress,
+        blockNumber,
+        feasibilityRequired = true,
+    }
 ) => {
     const blockTag =
         blockNumber !== undefined ? blockNumber : await hre.ethers.provider.getBlockNumber();
     const at = { blockTag };
     const pools = await readLendingPools(hre, protocolAddress, at);
-    const feasibleNow = await recoveryTasks.readTopUpFeasible(live, LENDER, at);
+    const feasibleNow = await readLenderFeasible(live, at, feasibilityRequired);
     const wrbtc = await recoveryTasks.readWrbtc(live, at);
 
     const transactions = [];
@@ -298,21 +345,6 @@ const prepareLendingRoutes = async (
     };
 };
 
-/** The result of `read()`, tried again after a pause when it throws, and the
- *  last error once every try has failed. */
-const withRetries = async (read) => {
-    for (let attempt = 1; ; attempt++) {
-        try {
-            return await read();
-        } catch (error) {
-            if (attempt >= WALLET_READ_ATTEMPTS) throw error;
-            await new Promise((resolve) =>
-                setTimeout(resolve, WALLET_READ_RETRY_MS * 2 ** (attempt - 1))
-            );
-        }
-    }
-};
-
 /**
  * Every transaction the multisig holds that has not executed, with its
  * destination, value and data, read at the block `at`, in ascending id order.
@@ -362,10 +394,47 @@ const isSameCall = (waiting, tx) =>
     waiting.value.isZero() &&
     waiting.data === tx.calldata.toLowerCase();
 
+/** The confirmations the wallet requires and the confirmations each of `ids`
+ *  holds, read at the block `at`. */
+const readConfirmations = async (hre, multisigAddress, ids, at) => {
+    const wallet = await hre.ethers.getContractAt(WALLET_ABI, multisigAddress);
+    const required = (await withRetries(() => wallet.required(at))).toNumber();
+    const counts = {};
+    for (const id of ids) {
+        counts[id] = (await withRetries(() => wallet.getConfirmationCount(id, at))).toNumber();
+    }
+    return { required, counts };
+};
+
+/** The sentence that names the multisig transactions holding a planned call:
+ *  waiting for confirmations, or holding all of them with the call failed. */
+const describeWaiting = (label, ids, failedIds, required) => {
+    const plural = (list) => (list.length === 1 ? "" : "s");
+    const waitingIds = ids.filter((id) => !failedIds.includes(id));
+    const parts = [];
+    if (waitingIds.length > 0) {
+        parts.push(
+            `already waiting for confirmations as multisig transaction${plural(waitingIds)} ` +
+                waitingIds.join(", ")
+        );
+    }
+    if (failedIds.length > 0) {
+        parts.push(
+            `multisig transaction${plural(failedIds)} ${failedIds.join(", ")} ` +
+                `${failedIds.length === 1 ? "has" : "have"} all ${required} confirmations but ` +
+                "did not execute: the call failed. An owner who confirmed it runs it again with " +
+                "`executeTransaction`, a route transaction once the allow transaction has executed"
+        );
+    }
+    return `${label} — ${parts.join("; ")}`;
+};
+
 /** Move every planned call that is already waiting in the multisig from
  *  `plan.transactions` to `plan.skipped`, each one naming the multisig
- *  transaction that holds it. When the waiting list cannot be read, a run that
- *  sends refuses; any other run says the plan does not account for it. */
+ *  transaction that holds it and saying when that transaction has every
+ *  confirmation it needs and did not execute. When the waiting list cannot be
+ *  read, a run that sends refuses; any other run says the plan does not account
+ *  for it. */
 const leaveOutWaiting = async (hre, plan, { multisigAddress, sends, at }) => {
     let pending;
     try {
@@ -384,15 +453,32 @@ const leaveOutWaiting = async (hre, plan, { multisigAddress, sends, at }) => {
         throw refusal;
     }
 
+    const held = plan.transactions.map((tx) => ({
+        tx,
+        ids: pending.filter((waiting) => isSameCall(waiting, tx)).map((waiting) => waiting.id),
+    }));
+    const matchedIds = [...new Set(held.flatMap((entry) => entry.ids))];
+    let confirmations = { required: undefined, counts: {} };
+    if (matchedIds.length > 0) {
+        try {
+            confirmations = await readConfirmations(hre, multisigAddress, matchedIds, at);
+        } catch (error) {
+            logger.warn(
+                `${TASK}: the confirmations of multisig transaction${matchedIds.length === 1 ? "" : "s"} ` +
+                    `${matchedIds.join(", ")} could not be read (${error.message}) — they are ` +
+                    "listed as waiting for confirmations"
+            );
+        }
+    }
+
     const toSend = [];
-    for (const tx of plan.transactions) {
-        const ids = pending
-            .filter((waiting) => isSameCall(waiting, tx))
-            .map((waiting) => waiting.id);
+    for (const { tx, ids } of held) {
         if (ids.length === 0) {
             toSend.push(tx);
             continue;
         }
+        const { required, counts } = confirmations;
+        const failedIds = ids.filter((id) => required !== undefined && counts[id] >= required);
         plan.skipped.push({
             reason: "alreadyWaiting",
             index: tx.index,
@@ -403,9 +489,8 @@ const leaveOutWaiting = async (hre, plan, { multisigAddress, sends, at }) => {
             routeId: tx.routeId,
             decoded: tx.decoded,
             multisigTransactionIds: ids,
-            detail:
-                `${tx.label} — already waiting for confirmations as multisig ` +
-                `transaction${ids.length === 1 ? "" : "s"} ${ids.join(", ")}`,
+            failedTransactionIds: failedIds,
+            detail: describeWaiting(tx.label, ids, failedIds, required),
         });
     }
     plan.transactions = toSend;
@@ -474,6 +559,98 @@ const presentPlan = (plan) => {
     if (conflicts.length > 0) logger.warn(conflictSummary);
 };
 
+/** What the co-signers do with the allow transaction and the route
+ *  transactions that follow it, and how a transaction is read back. `allow` says
+ *  which transaction the allow call is, or is left out when the plan has none;
+ *  `failedIds` are the multisig transactions that hold every confirmation and
+ *  did not execute. */
+const presentConfirmerNotes = ({ allow, failedIds = [] }) => {
+    if (allow) {
+        logger.warn(
+            `The route transactions revert until the allow transaction (${allow}) has EXECUTED — ` +
+                "co-signers confirm it first and check it executed before confirming the rest."
+        );
+    }
+    if (allow || failedIds.length > 0) {
+        logger.warn(
+            "A route transaction confirmed too early records an execution failure in the multisig " +
+                "instead of running: it stays not executed with its confirmations kept, and an " +
+                "owner who confirmed it can run it again with `executeTransaction` once the allow " +
+                "transaction has executed."
+        );
+    }
+    if (failedIds.length > 0) {
+        logger.warn(
+            `Multisig transaction${failedIds.length === 1 ? "" : "s"} ${failedIds.join(", ")} ` +
+                `${failedIds.length === 1 ? "has" : "have"} every confirmation and did not ` +
+                "execute: the call failed when the last confirmation arrived. An owner who " +
+                "confirmed it runs it with `executeTransaction`, a route transaction once the " +
+                "allow transaction has executed, or one more owner confirms it."
+        );
+    }
+    logger.info(
+        "A transaction still waiting on confirmations reads back with " +
+            "`perimeter:check-block --id <id>`, and the whole route list with " +
+            "`perimeter:route:show` — a multisig receipt does not say the inner call ran."
+    );
+};
+
+/** Every call of the plan that is now in the multisig — submitted by this run or
+ *  already waiting — in the order to confirm it, each beside its multisig
+ *  transaction id and its plain-English line, and what the co-signers do with
+ *  them. With `raw`, the calls still to be sent are printed by the caller: when
+ *  the allow call is one of them it is the first of those. */
+const presentConfirmOrder = (plan, submitted, { raw = false } = {}) => {
+    const rows = [
+        ...submitted.map((sent) => ({
+            index: sent.index,
+            kind: sent.kind,
+            decoded: sent.decoded,
+            ids: [sent.multisigTransactionId],
+            failedIds: [],
+            waiting: false,
+        })),
+        ...plan.skipped
+            .filter((skip) => skip.reason === "alreadyWaiting")
+            .map((skip) => ({
+                index: skip.index,
+                kind: skip.kind,
+                decoded: skip.decoded,
+                ids: skip.multisigTransactionIds,
+                failedIds: skip.failedTransactionIds,
+                waiting: true,
+            })),
+    ].sort((a, b) => a.index - b.index);
+    const allowToSend = raw && plan.transactions.some((tx) => tx.kind === "setTopUpFeasible");
+    if (rows.length === 0 && !(raw && plan.transactions.length > 0)) return;
+
+    if (rows.length > 0) {
+        logger.info(
+            raw
+                ? "Multisig transactions already waiting, in the order to confirm them:"
+                : "Multisig transactions, in the order to confirm them:"
+        );
+        for (const entry of rows) {
+            const marker = !entry.waiting
+                ? ""
+                : entry.failedIds.length > 0
+                  ? " (every confirmation in, call failed)"
+                  : " (already waiting)";
+            logger.info(
+                `  multisig transaction ${entry.ids.join(", ")}${marker} — ${entry.decoded}`
+            );
+        }
+    }
+    const allow = rows.find((entry) => entry.kind === "setTopUpFeasible");
+    let allowPhrase;
+    if (allow) allowPhrase = `multisig transaction ${allow.ids[0]}`;
+    else if (allowToSend) allowPhrase = "the first transaction above";
+    presentConfirmerNotes({
+        allow: allowPhrase,
+        failedIds: rows.flatMap((entry) => entry.failedIds),
+    });
+};
+
 /** Say which calls were submitted before a submission failed and which were
  *  not. The call that failed may have reached the multisig before the failure
  *  was seen, and a later run finds it there if it did. */
@@ -506,6 +683,7 @@ const presentStopped = (plan, submitted, failed) => {
     logger.warn(
         "Running this task again skips the submitted calls: it finds them waiting in the multisig."
     );
+    presentConfirmOrder(plan, submitted);
 };
 
 /** Submit the calls through the multisig, one after another in the plan's own
@@ -541,65 +719,6 @@ const submitLendingRoutes = async (
     return submitted;
 };
 
-/** What the co-signers do with the allow transaction and the route
- *  transactions that follow it, and how a transaction is read back. `allow` says
- *  which transaction the allow call is, or is left out when the plan has none. */
-const presentConfirmerNotes = (allow) => {
-    if (allow) {
-        logger.warn(
-            `The route transactions revert until the allow transaction (${allow}) has EXECUTED — ` +
-                "co-signers confirm it first and check it executed before confirming the rest."
-        );
-        logger.warn(
-            "A route transaction confirmed too early records an execution failure in the multisig " +
-                "instead of running: it stays not executed with its confirmations kept, and an " +
-                "owner who confirmed it can run it again with `executeTransaction` once the allow " +
-                "transaction has executed."
-        );
-    }
-    logger.info(
-        "A transaction still waiting on confirmations reads back with " +
-            "`perimeter:check-block --id <id>`, and the whole route list with " +
-            "`perimeter:route:show` — a multisig receipt does not say the inner call ran."
-    );
-};
-
-/** Every call of the plan that is now in the multisig — submitted by this run or
- *  already waiting — in the order to confirm it, each beside its multisig
- *  transaction id and its plain-English line, and what the co-signers do with
- *  them. */
-const presentConfirmOrder = (plan, submitted) => {
-    const rows = [
-        ...submitted.map((sent) => ({
-            index: sent.index,
-            kind: sent.kind,
-            decoded: sent.decoded,
-            ids: [sent.multisigTransactionId],
-            waiting: false,
-        })),
-        ...plan.skipped
-            .filter((skip) => skip.reason === "alreadyWaiting")
-            .map((skip) => ({
-                index: skip.index,
-                kind: skip.kind,
-                decoded: skip.decoded,
-                ids: skip.multisigTransactionIds,
-                waiting: true,
-            })),
-    ].sort((a, b) => a.index - b.index);
-    if (rows.length === 0) return;
-
-    logger.info("Multisig transactions, in the order to confirm them:");
-    for (const entry of rows) {
-        logger.info(
-            `  multisig transaction ${entry.ids.join(", ")}${entry.waiting ? " (already waiting)" : ""}` +
-                ` — ${entry.decoded}`
-        );
-    }
-    const allow = rows.find((entry) => entry.kind === "setTopUpFeasible");
-    presentConfirmerNotes(allow ? `multisig transaction ${allow.ids[0]}` : undefined);
-};
-
 /** The transaction an owner account sends to the multisig to submit one call:
  *  `submitTransaction(queue, 0, calldata)`, with the chain it is for and the
  *  sentence the calldata says. */
@@ -607,7 +726,7 @@ const rawTransactionFor = (plan, tx) => ({
     description: tx.decoded,
     chainId: plan.chainId,
     to: plan.multisig,
-    value: "0",
+    value: 0,
     data: tx.submitTransaction,
 });
 
@@ -636,25 +755,13 @@ const rawStatement = (ownership, { signerAddress, multisigAddress }) => {
  *  sends to the multisig, one JSON object per line in the order to send them. */
 const presentRawTransactions = (plan, statement) => {
     logger.warn(statement);
-    plan.rawTransactions = [];
-    if (plan.transactions.length === 0) {
-        logger.info("no transaction to send");
-        return;
-    }
     plan.rawTransactions = plan.transactions.map((tx) => rawTransactionFor(plan, tx));
+    if (plan.transactions.length === 0) logger.info("no transaction to send");
     plan.transactions.forEach((tx, i) => {
         logger.info(`Raw transaction ${tx.index} of ${plan.plannedCount} — ${tx.label}`);
         console.log(JSON.stringify(plan.rawTransactions[i]));
     });
-    const waitingAllow = plan.skipped.find(
-        (skip) => skip.reason === "alreadyWaiting" && skip.kind === "setTopUpFeasible"
-    );
-    const allowPlanned = plan.transactions.some((tx) => tx.kind === "setTopUpFeasible");
-    let allow;
-    if (allowPlanned) allow = "the first transaction above";
-    else if (waitingAllow)
-        allow = `multisig transaction ${waitingAllow.multisigTransactionIds[0]}`;
-    presentConfirmerNotes(allow);
+    presentConfirmOrder(plan, [], { raw: true });
 };
 
 const resolveProtocolAddress = async (hre, protocolParam) => {
@@ -747,6 +854,8 @@ const runLendingRoutes = async ({ queue, protocol, multisig, signer, dryRun, raw
         protocolAddress,
         multisigAddress,
         blockNumber,
+        // A run that submits or prints transactions builds them from the flag.
+        feasibilityRequired: rawTx || !dryRun,
     });
     plan.signer = signerAddress;
     await leaveOutWaiting(hre, plan, { multisigAddress, sends, at });

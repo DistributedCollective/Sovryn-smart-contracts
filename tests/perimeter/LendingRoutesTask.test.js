@@ -352,7 +352,7 @@ describe("perimeter:route:lending-pools", () => {
         expect(raw).to.have.length(calls.length);
         raw.forEach((tx, i) => {
             expect(tx.to).to.equal(multisig.address);
-            expect(tx.value).to.equal("0");
+            expect(tx.value).to.equal(0);
             expect(tx.chainId).to.equal(chainId);
             const [destination, value, data] = walletIface.decodeFunctionData(
                 "submitTransaction",
@@ -385,9 +385,11 @@ describe("perimeter:route:lending-pools", () => {
         expect(plan.rawTransactions).to.deep.equal(raw);
     });
 
-    it("says the signer is not an owner above the raw transactions", async () => {
+    it("says nothing was sent and who sends the transactions above the raw transactions", async () => {
         const output = await captureConsole(() => run({ signer: outsider.address }));
-        const statement = output.indexOf("is not an owner of the multisig");
+        const statement = output.indexOf(
+            "nothing was sent; send each transaction below from an owner account, in order"
+        );
         const firstRaw = output.indexOf("\n{");
         expect(statement).to.be.greaterThan(0);
         expect(firstRaw).to.be.greaterThan(statement);
@@ -576,15 +578,42 @@ describe("perimeter:route:lending-pools", () => {
             );
         }
         expect(output).to.include("nothing to submit");
+        expect(output).to.include("in the order to confirm them");
+        expect(output).to.include(
+            "The route transactions revert until the allow transaction (multisig transaction 0) has EXECUTED"
+        );
+        expect(output).to.match(/`executeTransaction`/);
     });
 
-    it("matches on the whole call, so a waiting transaction to the same queue with other data is not a duplicate", async () => {
+    it("does not take a waiting transaction to the same queue with other data for a duplicate", async () => {
         await seatWallet([owner, second], 2);
         const other = queueIface.encodeFunctionData("setTopUpFeasible", [BORROWER, true]);
         await submitByHand(other);
         const before = await count();
         const plan = await run();
         expect(plan.skipped.filter((skip) => skip.reason === "alreadyWaiting")).to.have.length(0);
+        expect(await count()).to.equal(before + 1 + pools.length);
+    });
+
+    it("does not take a waiting transaction with the same data to another address for a duplicate", async () => {
+        await seatWallet([owner, second], 2);
+        const [allow] = await plannedCalldata();
+        await (await multisig.connect(owner).submitTransaction(outsider.address, 0, allow)).wait();
+        const before = await count();
+        const plan = await run();
+        expect(plan.skipped.filter((skip) => skip.reason === "alreadyWaiting")).to.have.length(0);
+        expect(plan.transactions.map((tx) => tx.kind)).to.include("setTopUpFeasible");
+        expect(await count()).to.equal(before + 1 + pools.length);
+    });
+
+    it("does not take a waiting transaction with the same destination and data but a value for a duplicate", async () => {
+        await seatWallet([owner, second], 2);
+        const [allow] = await plannedCalldata();
+        await (await multisig.connect(owner).submitTransaction(stub.address, 1, allow)).wait();
+        const before = await count();
+        const plan = await run();
+        expect(plan.skipped.filter((skip) => skip.reason === "alreadyWaiting")).to.have.length(0);
+        expect(plan.transactions.map((tx) => tx.kind)).to.include("setTopUpFeasible");
         expect(await count()).to.equal(before + 1 + pools.length);
     });
 
@@ -602,7 +631,8 @@ describe("perimeter:route:lending-pools", () => {
             ).wait();
             await (await multisig.connect(second).confirmTransaction(id)).wait();
         }
-        // A transaction to the queue with data it refuses stays waiting for good.
+        // A transaction to the queue with data none of its functions answers to: one
+        // confirmation of two, so the wallet never runs it and it stays waiting.
         await submitByHand("0xdeadbeef");
         const before = await count();
 
@@ -626,6 +656,20 @@ describe("perimeter:route:lending-pools", () => {
                 getContractAt: async (abi, address, signer) => {
                     const contract = await ethers.getContractAt(abi, address, signer);
                     return Array.isArray(abi) && address === multisig.address
+                        ? wrap(contract)
+                        : contract;
+                },
+            }),
+        });
+
+    /** An hre whose queue contract answers through `wrap(contract)`, which
+     *  returns an object standing in for it; every other contract is the real one. */
+    const queueHre = (wrap) =>
+        Object.assign(Object.create(hre), {
+            ethers: Object.assign(Object.create(ethers), {
+                getContractAt: async (abi, address, signer) => {
+                    const contract = await ethers.getContractAt(abi, address, signer);
+                    return Array.isArray(abi) && address === stub.address
                         ? wrap(contract)
                         : contract;
                 },
@@ -806,7 +850,10 @@ describe("perimeter:route:lending-pools", () => {
         const report = output.slice(output.indexOf("Stopped"));
         expect(report).to.match(/Stopped/);
         const submittedPart = report.slice(0, report.indexOf("Not submitted"));
-        const notSubmittedPart = report.slice(report.indexOf("Not submitted"));
+        const notSubmittedPart = report.slice(
+            report.indexOf("Not submitted"),
+            report.indexOf("Running this task again")
+        );
         for (const tx of stored) {
             expect(submittedPart).to.include(
                 `multisig transaction ${tx.id} — ${lineFor(tx.data)}`
@@ -852,6 +899,171 @@ describe("perimeter:route:lending-pools", () => {
         expect(error).to.not.equal(null);
         expect(await count()).to.equal(before);
         expect(output).to.match(/Submitted before the failure: none/);
+    });
+
+    it("prints the confirmation order and the allow-first warning before it rethrows a failed submission", async () => {
+        await seatWallet([owner, second], 2);
+        const before = await count();
+        let error;
+        const output = await captureConsole(async () => {
+            error = await failingSubmit(3);
+        });
+        expect(error).to.not.equal(null);
+        const report = output.slice(output.indexOf("Stopped"));
+        expect(report).to.include("in the order to confirm them");
+        const order = report.slice(report.indexOf("in the order to confirm them"));
+        for (const tx of await storedSince(before)) {
+            expect(order).to.include(`multisig transaction ${tx.id} — ${lineFor(tx.data)}`);
+        }
+        expect(order).to.include(
+            `The route transactions revert until the allow transaction (multisig transaction ${before}) has EXECUTED`
+        );
+        expect(order).to.match(/`executeTransaction`/);
+    });
+
+    for (const [mode, extra] of [
+        ["a signer that does not own the multisig", () => ({ signer: outsider.address })],
+        ["--raw-tx", () => ({ rawTx: true })],
+    ]) {
+        it(`prints the confirmation order and the allow-first warning for ${mode} when every call is already waiting`, async () => {
+            await seatWallet([owner, second], 2);
+            await run();
+            const before = await count();
+            const output = await captureConsole(() => run(extra()));
+            expect(await count()).to.equal(before);
+            expect(rawLines(output)).to.have.length(0);
+            expect(output).to.include("no transaction to send");
+            expect(output).to.include("in the order to confirm them");
+            for (let id = 0; id < before; id++) {
+                expect(output).to.include(`multisig transaction ${id} (already waiting) — `);
+            }
+            expect(output).to.include(
+                "The route transactions revert until the allow transaction (multisig transaction 0) has EXECUTED"
+            );
+            expect(output).to.match(/`executeTransaction`/);
+        });
+    }
+
+    it("names a route transaction that holds every confirmation and did not execute, and says how to run it, without an allow transaction waiting", async () => {
+        await seatWallet([owner, second], 2);
+        await stub.setFeasibilityEnforced(true);
+        const planned = await plannedCalldata();
+        const [allowCall, routeCall] = planned;
+
+        // Confirmed before the allow call has executed: the queue refuses the
+        // route, and the wallet records the failure and keeps the confirmations.
+        const routeId = await submitByHand(routeCall);
+        const confirmed = await (
+            await multisig.connect(second).confirmTransaction(routeId)
+        ).wait();
+        expect(confirmed.events.map((event) => event.event)).to.include("ExecutionFailure");
+        expect((await multisig.transactions(routeId)).executed).to.equal(false);
+
+        const allowId = await submitByHand(allowCall);
+        await (await multisig.connect(second).confirmTransaction(allowId)).wait();
+        expect(await stub.topUpFeasible(LENDER)).to.equal(true);
+
+        let plan;
+        const output = await captureConsole(async () => {
+            plan = await run();
+        });
+
+        const failed = plan.skipped.filter((skip) => skip.reason === "alreadyWaiting");
+        expect(failed).to.have.length(1);
+        expect(failed[0].failedTransactionIds).to.deep.equal([String(routeId)]);
+        expect(output).to.include(
+            `multisig transaction ${routeId} has all 2 confirmations but did not execute: the call failed`
+        );
+        expect(output).to.not.include(
+            `already waiting for confirmations as multisig transaction ${routeId}`
+        );
+        expect(output).to.include(
+            `multisig transaction ${routeId} (every confirmation in, call failed) — `
+        );
+        expect(output).to.include(
+            `Multisig transaction ${routeId} has every confirmation and did not execute`
+        );
+        expect(output).to.match(/`executeTransaction`/);
+        expect(output).to.not.include("The route transactions revert until the allow transaction");
+
+        // An owner who confirmed it runs it now that the allow call has executed.
+        await (await multisig.connect(owner).executeTransaction(routeId)).wait();
+        expect((await multisig.transactions(routeId)).executed).to.equal(true);
+    });
+
+    it("lists a waiting transaction that has fewer confirmations than the wallet requires as waiting for confirmations", async () => {
+        await seatWallet([owner, second], 2);
+        const [allow] = await plannedCalldata();
+        const allowId = await submitByHand(allow);
+        const output = await captureConsole(() => run());
+        expect(output).to.include(
+            `already waiting for confirmations as multisig transaction ${allowId}`
+        );
+        expect(output).to.not.include("call failed");
+        expect(output).to.not.include("every confirmation");
+    });
+
+    it("tries a failed read of the feasibility flag again and builds no allow call when the flag is on", async () => {
+        await stub.setTopUpFeasible(LENDER, true);
+        const tried = new Set();
+        const flaky = queueHre((contract) =>
+            withReads(contract, {
+                topUpFeasible: async (...args) => {
+                    const key = String(args[0]);
+                    if (!tried.has(key)) {
+                        tried.add(key);
+                        throw new Error("504 gateway timeout");
+                    }
+                    return contract.topUpFeasible(...args);
+                },
+            })
+        );
+        const before = await count();
+        await captureConsole(async () => {
+            await lendingRoutes.runLendingRoutes(params(), flaky);
+        });
+        const stored = await storedSince(before);
+        expect(stored).to.have.length(pools.length);
+        for (const tx of stored) {
+            expect(tx.data.startsWith(queueIface.getSighash("setTopUpFeasible"))).to.equal(false);
+        }
+    });
+
+    it("refuses a run that sends when the feasibility flag stays unreadable, and sends nothing", async () => {
+        await stub.setFeasibilityUnreadable(LENDER, true);
+        const before = await count();
+        const error = await rejection(run());
+        expect(error, "an unknown flag must refuse").to.not.equal(null);
+        expect(error.message).to.match(
+            /top-up feasibility flag for lender withdrawals could not be read/
+        );
+        expect(error.message).to.match(/Nothing was sent/);
+        expect(error.message).to.include("--dry-run");
+        expect(await count()).to.equal(before);
+    });
+
+    it("refuses a raw-transaction run when the feasibility flag stays unreadable, and prints no transaction", async () => {
+        await stub.setFeasibilityUnreadable(LENDER, true);
+        let error;
+        const output = await captureConsole(async () => {
+            error = await rejection(run({ signer: outsider.address }));
+        });
+        expect(error).to.not.equal(null);
+        expect(error.message).to.match(
+            /feasibility flag for lender withdrawals could not be read/
+        );
+        expect(rawLines(output)).to.have.length(0);
+    });
+
+    it("warns on a dry run when the feasibility flag stays unreadable and plans the allow call", async () => {
+        await stub.setFeasibilityUnreadable(LENDER, true);
+        let plan;
+        const output = await captureConsole(async () => {
+            plan = await dry();
+        });
+        expect(output).to.match(/feasibility flag for lender withdrawals could not be read/);
+        expect(output).to.include("the plan below takes it as not yet allowed");
+        expect(plan.transactions.map((tx) => tx.kind)).to.include("setTopUpFeasible");
     });
 
     it("tells the co-signers to confirm the allow transaction first and to check it executed, and what a too-early confirmation leaves", async () => {

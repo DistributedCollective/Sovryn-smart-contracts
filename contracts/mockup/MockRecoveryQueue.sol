@@ -6,9 +6,10 @@ pragma experimental ABIEncoderV2;
  * The reads `perimeter:refund` and `perimeter:route:*` make on the queue, plus
  * the five recovery calls they submit, so a task's own read-back of what it
  * submitted can be exercised without a chain. Values are set directly by the
- * test and no predicate is enforced here — the predicates live on the real
- * queue and are exercised on a fork; what this stands in for is the state each
- * call leaves behind.
+ * test and no predicate is enforced here, except the feasibility check on a
+ * top-up route while `setFeasibilityEnforced` is on — the predicates live on
+ * the real queue and are exercised on a fork; what this stands in for is the
+ * state each call leaves behind.
  */
 contract MockRecoveryQueue {
     struct ExitRequest {
@@ -46,6 +47,7 @@ contract MockRecoveryQueue {
     address public owner;
     address public wrbtc;
     bool public securityPerimeterPaused;
+    bool public feasibilityEnforced;
 
     function setRequest(
         uint256 id,
@@ -112,6 +114,10 @@ contract MockRecoveryQueue {
     }
 
     function setRecoveryRoute(RecoveryRoute memory route) public returns (bytes32 id) {
+        require(
+            !feasibilityEnforced || !route.topUpPool || feasible[route.surfaceId],
+            "MockRecoveryQueue: top-up infeasible on this surface"
+        );
         id = keccak256(
             abi.encode(route.surfaceId, route.subProduct, route.token, route.destination)
         );
@@ -194,6 +200,12 @@ contract MockRecoveryQueue {
     function topUpFeasible(bytes32 surfaceId) external view returns (bool) {
         require(!feasibilityUnreadable[surfaceId], "MockRecoveryQueue: feasibility unavailable");
         return feasible[surfaceId];
+    }
+
+    /// @notice Make a top-up route revert while its surface does not allow
+    ///         refund-to-pool, as the real queue does.
+    function setFeasibilityEnforced(bool value) external {
+        feasibilityEnforced = value;
     }
 
     /// @notice Make one surface's feasibility read revert, for a caller that
