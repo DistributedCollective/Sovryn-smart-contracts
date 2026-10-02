@@ -531,15 +531,13 @@ const deployTroveManagerImpl = async (deployerSigner) => {
     return impl;
 };
 
-/** Deploy every lending-side contract the aggregate release registers, and
+/** Deploy the lending implementations used by the delay proposals, and
  *  save the hardhat-deploy records the proposal builders resolve.
  *
- *  Deliberately NOT `deployments.fixture([...tags])`. Those scripts compare
- *  against the PREVIOUS mainnet deployment, which means fetching its deploy
- *  transaction — and no public RSK endpoint serves one that old, so the fixture
- *  dies with "cannot get the transaction for <X>'s previous deployment". A
- *  rehearsal wants fresh deploys anyway, so it builds them straight from local
- *  artifacts and records them itself.
+ *  Deliberately NOT `deployments.fixture([...tags])`. Standalone deployments
+ *  avoid depending on the previous mainnet deploy transaction. The default
+ *  rehearsal builds fresh contracts from local artifacts and saves the records
+ *  explicitly.
  *
  *  The modules that use the swap library are linked against a freshly deployed
  *  copy; the ones that no longer use it are left alone, because linking a
@@ -606,7 +604,7 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
  *  wants; a rehearsal of the activated perimeter passes the multisig that holds
  *  those roles in production, so the deployer keeps none of them.
  *
- *  Saves the "ExitDelayQueue" record the aggregate proposal builders resolve. */
+ *  Saves the "ExitDelayQueue" record the delay proposal builders resolve. */
 const deployExitDelayQueue = async (
     deployerSigner,
     wrbtcAddress,
@@ -652,7 +650,7 @@ const deployExitDelayQueue = async (
 };
 
 /** Deploy Zero's delegatecall settlement companion and save the
- *  "BorrowerOperationsPerimeterOps" record the aggregate Part 2 resolves.
+ *  "BorrowerOperationsPerimeterOps" record the delay Part 2 resolves.
  *
  *  Not to be confused with the LENDING companion `BorrowerExitPerimeterOps`,
  *  which is a deployment of this repo and comes from its own hardhat-deploy
