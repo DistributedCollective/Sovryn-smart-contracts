@@ -2597,7 +2597,7 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-XXXX (Part 1): Sovryn Security Perimeter, withdrawal delay — 1 of 2 executable parts (GovernorOwner). Installs the delay on the lending protocol: re-registers the two hooked iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith, LoanClosingsWithSwap, LoanMaintenance and LoanMaintenanceViews protocol modules (5), replaces the ExitFeeModule admin module so the protocol carries the queue pointer selector (1), then re-pins the borrower settlement companion and pins the exit delay queue (2). Nothing is held until the perimeter is switched on. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-XXXX.md, sha256: ____",
+            "SIP-0096 (Part 1): Sovryn Security Perimeter, withdrawal delay — 1 of 2 executable parts (GovernorOwner). Installs the delay on the lending protocol: re-registers the two hooked iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith, LoanClosingsWithSwap, LoanMaintenance and LoanMaintenanceViews protocol modules (5), replaces the ExitFeeModule admin module so the protocol carries the queue pointer selector (1), then re-pins the borrower settlement companion and pins the exit delay queue (2). Nothing is held until the perimeter is switched on. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
@@ -2917,7 +2917,7 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-XXXX (Part 2): Sovryn Security Perimeter, withdrawal delay — 2 of 2 executable parts (GovernorOwner). Installs the delay on Zero: upgrades the CollSurplusPool implementation where it changes (1), swaps the BorrowerOperations implementation (1), then pins the settlement companion and the exit delay queue on BorrowerOperations (2), and swaps the TroveManager implementation for the one carrying Liquity's Recovery-Mode multi-liquidation correction (1). The controller pointer installed by the preceding release is left untouched and is asserted, not rewritten. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-XXXX.md, sha256: ____",
+            "SIP-0096 (Part 2): Sovryn Security Perimeter, withdrawal delay — 2 of 2 executable parts (GovernorOwner). Installs the delay on Zero: upgrades the CollSurplusPool implementation where it changes (1), swaps the BorrowerOperations implementation (1), then pins the settlement companion and the exit delay queue on BorrowerOperations (2), and swaps the TroveManager implementation for the one carrying Liquity's Recovery-Mode multi-liquidation correction (1). The controller pointer installed by the preceding release is left untouched and is asserted, not rewritten. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
