@@ -41,8 +41,9 @@ contract LoanTokenLogicShared is LoanTokenLogicStorage, IPerimeterEvents {
     }
 
     /// @notice The ExitDelayQueue, read from the protocol singleton via a
-    ///         fail-open staticcall (address(0) until the Owner pins one ⇒ the
-    ///         security-perimeter reroute is unwired ⇒ the burn pays direct).
+    ///         fail-open staticcall (address(0) until the Owner pins one).
+    ///         An unset queue pays direct only when the quoted delay is zero;
+    ///         a positive delay requires escrow and reverts if the queue is unset.
     ///         Mirrors `exitFeeController()`: a single protocol-side pointer that
     ///         every iToken reads through, so rotation is one Owner/SIP action.
     /// @return queue ExitDelayQueue address, or address(0).
