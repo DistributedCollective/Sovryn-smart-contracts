@@ -32,6 +32,8 @@ contract ExitFeeModule is State, ModulesCommonEvents, IPerimeterEvents {
         _setTarget(this.setExitFeeController.selector, target);
         _setTarget(this.borrowerExitPerimeterOps.selector, target);
         _setTarget(this.setBorrowerExitPerimeterOps.selector, target);
+        _setTarget(this.exitDelayQueue.selector, target);
+        _setTarget(this.setExitDelayQueue.selector, target);
         emit ProtocolModuleContractReplaced(prev, target, "ExitFeeModule");
     }
 
@@ -61,5 +63,26 @@ contract ExitFeeModule is State, ModulesCommonEvents, IPerimeterEvents {
         address prev = PerimeterLib.getBorrowerExitOps();
         PerimeterLib.setBorrowerExitOps(ops);
         emit BorrowerExitPerimeterOpsSet(prev, ops);
+    }
+
+    /// @return queue Pinned ExitDelayQueue (address(0) until pinned ⇒ the
+    ///         security-perimeter reroute is unwired ⇒ exits pay direct).
+    ///         Read by the iToken proxies (via `safeQueueLookup`) and the
+    ///         borrower/margin modules to reach the queue when `d > 0`.
+    function exitDelayQueue() public view returns (address queue) {
+        return PerimeterLib.getExitDelayQueue();
+    }
+
+    /// @notice Pin/rotate the ExitDelayQueue pointer. Because the queue
+    ///         pointer redirects ESCROW it is MORE sensitive than the controller
+    ///         pointer — rotation is an Owner/SIP action. Reverts
+    ///         on a non-contract so a typo can't point the reroute at a no-code
+    ///         address. Setting address(0) is NOT reachable here (isContract
+    ///         guard); unwiring is a deliberate governance path if ever needed.
+    function setExitDelayQueue(address queue) external onlyOwner {
+        require(Address.isContract(queue), "EFC:not-contract");
+        address prev = PerimeterLib.getExitDelayQueue();
+        PerimeterLib.setExitDelayQueue(queue);
+        emit ExitDelayQueueSet(prev, queue);
     }
 }

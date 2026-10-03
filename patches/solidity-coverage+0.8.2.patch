@@ -1,0 +1,18 @@
+diff --git a/node_modules/solidity-coverage/plugins/hardhat.plugin.js b/node_modules/solidity-coverage/plugins/hardhat.plugin.js
+index 33fce48..dab8eaf 100644
+--- a/node_modules/solidity-coverage/plugins/hardhat.plugin.js
++++ b/node_modules/solidity-coverage/plugins/hardhat.plugin.js
+@@ -29,8 +29,13 @@ subtask(TASK_COMPILE_SOLIDITY_GET_COMPILER_INPUT).setAction(async (_, { config }
+     for (const [sourceName, source] of Object.entries(solcInput.sources)) {
+       const absolutePath = path.join(config.paths.root, sourceName);
+       // Patch in the instrumented source code.
++      // LOCAL FIX (coverage measurement): with @nomicfoundation/hardhat-foundry,
++      // paths.sources (and hence the instrumentedSources keys) are RELATIVE; without
++      // the second key form NOTHING matches and coverage silently reports 0%.
+       if (absolutePath in instrumentedSources) {
+         source.content = instrumentedSources[absolutePath];
++      } else if (sourceName in instrumentedSources) {
++        source.content = instrumentedSources[sourceName];
+       }
+     }
+   }

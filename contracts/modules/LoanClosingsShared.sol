@@ -68,6 +68,10 @@ contract LoanClosingsShared is
         bool returnTokenIsCollateral;
         bytes loanDataBytes;
         bool allowDonationOnFailure;
+        // Close origin threaded from the public entry point so the caller-
+        // selectable excess-collateral refund leg (fee, then delay)
+        // gates on the same voluntary-only `_exitFeeChargeable` predicate as
+        // the main payout.
         CloseOrigin origin;
     }
 
@@ -98,11 +102,12 @@ contract LoanClosingsShared is
      * @param receiver the address of the receiver (usually the borrower)
      * */
     function _settleInterestToPrincipal(
-        Loan memory loanLocal,
+        Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         uint256 loanCloseAmount,
         address receiver,
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     ) internal returns (uint256) {
         uint256 loanCloseAmountLessInterest = loanCloseAmount;
 
@@ -136,10 +141,21 @@ contract LoanClosingsShared is
             loanCloseAmountLessInterest = 0;
 
             if (interestRefundToBorrower != 0) {
-                // refund overage
-                // allowDonationOnFailure here is following the arguments passed from the caller
-                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                _withdrawAsset(
+                // Refund overage: prepaid interest that exceeds the principal
+                // being closed goes back to the borrower, and it is a borrower
+                // payout like any other on this path -- so it settles through
+                // `_payoutBorrowerExit` rather than transferring directly. Which
+                // behaviour that resolves to is decided by inheritance: modules
+                // that take the fee and the delay override it, forced-close
+                // modules do not, so liquidation and rollover keep paying
+                // straight out.
+                //
+                // allowDonationOnFailure follows the caller: on liquidation and
+                // rollover we do not want the close to revert because the
+                // borrower's contract rejects the transfer.
+                _payoutBorrowerExit(
+                    origin,
+                    loanLocal,
                     loanParamsLocal.loanToken,
                     receiver,
                     interestRefundToBorrower,
@@ -283,19 +299,29 @@ contract LoanClosingsShared is
     }
 
     /**
-     * @notice Borrower-bound payout with the Perimeter gate in front: charges the
-     *         exit fee on a chargeable close, then pays the (net or full-gross)
-     *         residual via `_withdrawAsset`. The policy key (`subProduct`) is
-     *         the iToken pool, `loanLocal.lender`.
+     * @notice Pay a borrower-side close payout to the receiver.
      *
-     * @param origin                 Close origin; `Rollover`/`Liquidation` are exempt.
-     * @param loanLocal              The loan being closed.
-     * @param assetToken             The asset paid to the receiver.
-     * @param receiver               User payout recipient.
-     * @param assetAmount            Pre-fee borrower payout amount.
+     * @dev Overridable settlement point for a close payout. This base
+     *   implementation pays the receiver directly and applies no perimeter
+     *   processing, which is the correct behaviour for a FORCED close
+     *   (rollover, liquidation): those payouts are exempt, and a keeper or
+     *   liquidator must never be escrowed behind a delay.
+     *
+     *   Modules that settle a VOLUNTARY borrower close inherit
+     *   `LoanClosingsCharged`, whose override takes the exit fee and applies
+     *   the security-perimeter delay before paying out. The exemption is
+     *   therefore expressed by which contract a module inherits rather than by
+     *   a runtime check, so a forced-close module has no reachable path to the
+     *   fee or the delay.
+     *
+     * @param origin The close origin, threaded from the public entry point.
+     * @param loanLocal The loan being closed.
+     * @param assetToken The asset to pay out.
+     * @param receiver The payout recipient.
+     * @param assetAmount The gross payout amount.
      * @param allowDonationOnFailure Forwarded to `_withdrawAsset`.
      * */
-    function _withdrawAssetChargingExitFee(
+    function _payoutBorrowerExit(
         CloseOrigin origin,
         Loan storage loanLocal,
         address assetToken,
@@ -303,10 +329,9 @@ contract LoanClosingsShared is
         uint256 assetAmount,
         bool allowDonationOnFailure
     ) internal {
-        uint256 toUser = _exitFeeChargeable(origin, loanLocal)
-            ? _chargeExitFeeReturnNet(receiver, assetToken, loanLocal.lender, assetAmount)
-            : assetAmount;
-        _withdrawAsset(assetToken, receiver, toUser, allowDonationOnFailure);
+        origin;
+        loanLocal;
+        _withdrawAsset(assetToken, receiver, assetAmount, allowDonationOnFailure);
     }
 
     /**
@@ -564,7 +589,8 @@ contract LoanClosingsShared is
                 params.swapAmount,
                 params.returnTokenIsCollateral,
                 params.receiver,
-                params.allowDonationOnFailure
+                params.allowDonationOnFailure,
+                params.origin
             );
 
         return
@@ -623,7 +649,8 @@ contract LoanClosingsShared is
         uint256 swapAmount,
         bool returnTokenIsCollateral,
         address receiver,
-        bool allowDonationOnFailure
+        bool allowDonationOnFailure,
+        CloseOrigin origin
     ) internal returns (uint256 loanCloseAmount, uint256 loanCloseAmountLessInterest) {
         bool isFullCollateralSwap = swapAmount == loanLocal.collateral;
         if (isFullCollateralSwap || returnTokenIsCollateral) {
@@ -641,7 +668,8 @@ contract LoanClosingsShared is
                 loanParamsLocal,
                 loanCloseAmount,
                 receiver,
-                allowDonationOnFailure
+                allowDonationOnFailure,
+                origin
             );
         } else {
             /// loanCloseAmount is calculated after swap; for this case we want to swap the entire source amount
@@ -731,7 +759,8 @@ contract LoanClosingsShared is
                 loanParamsLocal,
                 loanCloseAmount,
                 params.receiver,
-                params.allowDonationOnFailure
+                params.allowDonationOnFailure,
+                params.origin
             );
 
             /// Remaining amount withdrawn to the receiver.
@@ -763,7 +792,7 @@ contract LoanClosingsShared is
         // Withdraw to receiver
         if (withdrawAmount != 0) {
             // Perimeter: charge the borrower-exit fee on the post-swap residual.
-            _withdrawAssetChargingExitFee(
+            _payoutBorrowerExit(
                 params.origin,
                 loanLocal,
                 withdrawToken,
@@ -962,7 +991,7 @@ contract LoanClosingsShared is
     }
 
     function _handleCollateralReturn(
-        Loan memory loanLocal,
+        Loan storage loanLocal,
         LoanParams memory loanParamsLocal,
         CoverPrincipalParams memory params,
         uint256 destTokenAmountReceived,
@@ -976,9 +1005,22 @@ contract LoanClosingsShared is
             /// Send excess to borrower if the amount is big enough to be
             /// worth the gas fees.
             if (_worthTheTransfer(loanParamsLocal.loanToken, excess)) {
-                // allowDonationOnFailure here is following the arguments passed from the caller
-                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                _withdrawAsset(
+                // A better-than-expected fill pays its excess to the borrower,
+                // and that is a borrower payout like any other on this path --
+                // so it settles through `_payoutBorrowerExit` rather than
+                // transferring directly. The counterpart branch
+                // (`_handleLoanTokenReturn`) already did; this one did not, and
+                // `returnTokenIsCollateral` is CALLER-SELECTABLE, so the
+                // borrower chose which branch settled them.
+                //
+                // Which behaviour this resolves to is decided by inheritance:
+                // modules that take the fee and the delay override it, forced-
+                // close modules do not, so liquidation and rollover keep paying
+                // straight out -- which is why allowDonationOnFailure still
+                // follows the caller.
+                _payoutBorrowerExit(
+                    params.origin,
+                    loanLocal,
                     loanParamsLocal.loanToken,
                     loanLocal.borrower,
                     excess,
@@ -1025,10 +1067,17 @@ contract LoanClosingsShared is
 
                 /// Excess collateral refunds to the borrower.
                 uint256 excessCollateral = loanLocal.collateral - sourceTokenAmountUsed;
-                // allowDonationOnFailure here is following the arguments passed from the caller
-                // in case of liquidation/rollover, we want to prevent the revert if the borrower's contract reverts on receive()/fallback() calls
-                // Perimeter: charge the borrower-exit fee on the excess-collateral refund.
-                _withdrawAssetChargingExitFee(
+                // `swapAmount` (hence `sourceTokenAmountUsed`) is
+                // CALLER-selectable, so this refund can carry ~the entire equity
+                // — it must obey the security-perimeter delay, not escape it.
+                // The refund is also a chargeable borrower exit. Composed
+                // semantics: on the voluntary-only gate the
+                // exit fee is charged and the NET is escrowed behind the delay —
+                // the same fee→delay path as the main payout; the swap itself is
+                // never delayed. Rollover/liquidation (non-VoluntaryClose origin)
+                // pay direct and never touch the queue — `allowDonationOnFailure`
+                // still governs the direct-pay native donation fallback there.
+                _payoutBorrowerExit(
                     params.origin,
                     loanLocal,
                     loanParamsLocal.collateralToken,

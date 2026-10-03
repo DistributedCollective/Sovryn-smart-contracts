@@ -24,6 +24,7 @@ const LockedSOVFailedMockup = artifacts.require("LockedSOVFailedMockup");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const {
     getSUSD,
@@ -101,7 +102,7 @@ contract("ProtocolChangeLoanDuration", (accounts) => {
 
         /** Deploy SwapsImplSovrynSwapLib */
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await LoanMaintenance.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

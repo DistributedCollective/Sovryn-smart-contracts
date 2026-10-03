@@ -19,9 +19,10 @@ import "../../contracts/interfaces/perimeter/IExitFeeController.sol";
 ///                         else, for any quote shape.
 ///   #2 conserves value  — what leaves the iToken equals what the receiver and
 ///                         the fee receiver gained.
-///   #3 is total         — the hook never reverts, so a hostile or broken
-///                         controller can never block a burn (a fuzz function
-///                         that reverts is a failing case).
+///   #3 is total         — with a healthy disabled delay quote, a hostile or
+///                         broken fee quote cannot block a burn (a fuzz function
+///                         that reverts is a failing case). Delay-quote failures
+///                         remain fail-closed and are tested separately.
 ///
 /// The contracts are 0.5.17, so the test is too (forge-std is 0.8): properties
 /// are asserted with `require` and cheatcodes come from an inline Vm interface.
@@ -51,6 +52,17 @@ contract MockUncheckedERC20 {
 /// `contracts/mockup/perimeter/MockArbitraryQuoteExitFeeController.sol`.
 contract MockVerbatimQuoteController {
     IExitFeeController.ExitFeeQuote internal q;
+
+    /// @dev Isolate the fee split with a healthy, disabled withdrawal delay.
+    function quoteExitDelayFor(
+        address rawOriginator,
+        address owner,
+        address,
+        bytes32,
+        address
+    ) external pure returns (uint32, address, address) {
+        return (0, rawOriginator, owner);
+    }
 
     function set(IExitFeeController.ExitFeeQuote memory _q) public {
         q = _q;

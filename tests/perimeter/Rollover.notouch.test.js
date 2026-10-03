@@ -1,5 +1,5 @@
 /**
- * Phase 3 — Rollover no-touch coverage.
+ * Rollover no-touch coverage.
  *
  * `LoanClosingsRollover.rollover` closes via
  * `_closeWithSwap(..., CloseOrigin.Rollover)`. Per
@@ -44,12 +44,13 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
 
-contract("Perimeter — Rollover no-touch coverage (Phase 3 / regression)", (accounts) => {
+contract("Perimeter — rollover is not charged", (accounts) => {
     let lender, feeReceiver, rolloverKeeper;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
     let controller;
@@ -86,7 +87,7 @@ contract("Perimeter — Rollover no-touch coverage (Phase 3 / regression)", (acc
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 

@@ -1,5 +1,5 @@
 /**
- * Phase 3 / Task 3.4 — Liquidation no-touch coverage.
+ * Liquidation is not charged the Perimeter fee.
  *
  * `LoanClosingsLiquidation.liquidate(...)` calls `_closeWithSwap(...)` with
  * `allowDonationOnFailure = true` (the liquidator may be a contract whose
@@ -48,11 +48,12 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 
-contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (accounts) => {
+contract("Perimeter — liquidation is not charged", (accounts) => {
     let lender, borrower, liquidator, feeReceiver;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
     let controller;
@@ -89,7 +90,7 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
