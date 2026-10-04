@@ -83,9 +83,8 @@ const getProtocolModules = () => {
         },
         LoanMaintenance: {
             moduleName: "LoanMaintenance",
-            // getActiveLoans now lives in LoanMaintenanceViews; this must name a
-            // selector LoanMaintenance itself still registers, or the
-            // registration check reads the wrong module.
+            // getActiveLoans retains its original Maintenance view route.
+            // Identify the replacement by a stateful selector it registers.
             sampleFunction: "withdrawCollateral(bytes32,address,uint256)",
         },
         LoanMaintenanceViews: {

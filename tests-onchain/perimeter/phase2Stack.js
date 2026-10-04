@@ -14,6 +14,38 @@ const hre = require("hardhat");
 const path = require("path");
 const { ethers, deployments } = hre;
 const { get } = deployments;
+const {
+    assertRetainedProtocolRoutes,
+    SELECTED_PROTOCOL_SIGNATURES,
+} = require("../../deployment/helpers/protocolRetention");
+
+/** Check replaced protocol routes and the explicitly retained original liquidation, rollover and view identities. */
+const assertLendingReleaseInstalled = async (protocolAddress) => {
+    const protocol = new ethers.Contract(
+        protocolAddress,
+        ["function getTarget(string) view returns (address)"],
+        ethers.provider
+    );
+    for (const [name, signatures] of Object.entries(SELECTED_PROTOCOL_SIGNATURES)) {
+        const staged = await get(name);
+        for (const signature of signatures) {
+            const installed = await protocol.getTarget(signature);
+            if (installed.toLowerCase() !== staged.address.toLowerCase())
+                throw new Error(
+                    `the protocol does not route ${name} ${signature} to its staged implementation ${staged.address}`
+                );
+        }
+    }
+    await assertRetainedProtocolRoutes(hre, protocol);
+};
+
+/** Grant both exemption entries in one controller transaction, then read them back. */
+const grantControllerExemptions = async (controller, exemptions, readBothEntries) => {
+    for (const exemption of exemptions) {
+        await (await controller.grantExemption(exemption.surface, exemption.address)).wait();
+        await readBothEntries(exemption, "after the atomic fee and delay exemption");
+    }
+};
 
 const {
     setupGovernanceContext,
@@ -25,6 +57,7 @@ const {
     createAndQueueGovernorOwnerSip,
     executeQueuedGovernorOwnerSip,
     borrowerOperationsFixture,
+    queueFixture,
     troveManagerFixture,
     ERC1967_IMPL_SLOT,
     forkOps,
@@ -36,8 +69,6 @@ const {
     CONTRACT_CALLERS,
     assertContractCallersExempt,
 } = require("../../hardhat/tasks/perimeter/contractCallerExemptions");
-
-const queueFixture = require("./fixtures/ExitDelayQueue.json");
 
 const DELAY_SECONDS = 3600;
 const MIN_DELAY_SECONDS = 60;
@@ -151,6 +182,7 @@ const attachToInstalledPhase2Stack = async (
     protocolAddress,
     boProxyAddress
 ) => {
+    await assertLendingReleaseInstalled(protocolAddress);
     const stack = await deployPerimeterStack(ctx.deployerSigner);
     if (stack.controller.address.toLowerCase() !== installed.controller.toLowerCase()) {
         throw new Error(
@@ -367,17 +399,9 @@ const setupPhase2Stack = async () => {
     for (const exemption of exemptions) {
         await readFeeEntry(exemption, "after the upgrade");
     }
-    // The delay entries exist only on the delay build, so they go in with the
-    // upgrade and are read back together with their fee entries.
-    for (const exemption of exemptions) {
-        await (
-            await controller.setActorBypass(exemption.surface, exemption.address, {
-                active: true,
-                bypass: true,
-            })
-        ).wait();
-        await readBothEntries(exemption, "once its delay entry is written");
-    }
+    // The delay entries exist only on the delay build. Grant both halves
+    // atomically after the upgrade and require their paired readback.
+    await grantControllerExemptions(controller, exemptions, readBothEntries);
 
     // Pin what the proposals are allowed to resolve to. The hash covers the
     // proxy the products call, which is the address the proposals carry; the
@@ -390,6 +414,7 @@ const setupPhase2Stack = async () => {
     await executeQueuedGovernorOwnerSip(ctx, part1.proposalId);
     const part2 = await createAndQueueGovernorOwnerSip(ctx, "getArgsSipPerimeterDelayPart2");
     await executeQueuedGovernorOwnerSip(ctx, part2.proposalId);
+    await assertLendingReleaseInstalled(protocolAddress);
 
     // The TroveManager swap rides this release without belonging to the
     // perimeter, so it is proved on its own terms: the proxy serves the new
@@ -504,6 +529,8 @@ const setupPhase2Stack = async () => {
 };
 
 module.exports = {
+    assertLendingReleaseInstalled,
+    grantControllerExemptions,
     setupPhase2Stack,
     useAttachedStack,
     ATTACHED_STACK,

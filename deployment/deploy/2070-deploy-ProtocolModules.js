@@ -19,22 +19,8 @@ const func = async function (hre) {
             sampleFunction: "setAffiliatesReferrer(address,address)",
             requireSwapsImplSovrynSwapLib: false,
         },*/
-        // Ships this release. The liquidation payout stays direct and uncharged,
-        // but the module now threads a close-origin argument and compiles against
-        // the reshaped shared close base, so its runtime body (metadata trailer
-        // stripped) differs from the registered module — pinned in MUST_SHIP by
-        // tests/perimeter/ReleaseSet.pinned.test.js. Deploy and register it so the
-        // running bytecode matches the audited source.
-        LoanClosingsLiquidation: {
-            moduleName: "LoanClosingsLiquidation",
-            sampleFunction: "liquidate(bytes32,address,uint256)",
-            requireSwapsImplSovrynSwapLib: false,
-        },
-        LoanClosingsRollover: {
-            moduleName: "LoanClosingsRollover",
-            sampleFunction: "rollover(bytes32,bytes)",
-            requireSwapsImplSovrynSwapLib: true,
-        },
+        // Liquidation, rollover and the original maintenance views are retained with original full provenance;
+        // only protocol modules with intended functional changes are staged.
         LoanClosingsWith: {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
@@ -61,12 +47,6 @@ const func = async function (hre) {
             moduleName: "LoanMaintenance",
             sampleFunction: "withdrawCollateral(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
-        },
-        LoanMaintenanceViews: {
-            moduleName: "LoanMaintenanceViews",
-            sampleFunction: "getActiveLoans(uint256,uint256,bool)",
-            // read-only: no swap path, so no library to link.
-            requireSwapsImplSovrynSwapLib: false,
         },
         /*LoanOpenings: {
             moduleName: "LoanOpenings",

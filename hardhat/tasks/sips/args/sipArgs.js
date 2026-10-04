@@ -10,6 +10,9 @@ const {
     CURVE_KEYS: IDOC_CURVE_KEYS,
     SET_DEMAND_CURVE_SIGNATURE,
 } = require("./idocCurveParams");
+const {
+    assertRetainedProtocolRoutes,
+} = require("../../../../deployment/helpers/protocolRetention");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const col = require("cli-color");
@@ -1673,15 +1676,16 @@ const resolveExitFeeControllerAddress = async (hre) => {
  *   10. BorrowerOperations(proxy).setExitFeeController(<ExitFeeController>) —
  *       MUST follow 9: the setter exists only on the implementation 9 installs
  *
- * LoanClosingsLiquidation is NOT replaced. Its source is unchanged in this
+ * SIP-0094 does NOT replace LoanClosingsLiquidation. Its source is unchanged in this
  * release and it calls no changed shared function, so its runtime bytecode
  * (metadata trailer stripped) is byte-identical to the module already
  * registered on mainnet — replacing it would burn a scarce action slot to
  * install the same code at a new address. Only modules whose observable
- * behavior changes are re-registered; inherited-bytecode drift is not a
+ * behavior changes are re-registered in this fee-only proposal; inherited-bytecode drift is not a
  * reason. LoanClosingsShared is an inherited base, not a registered module —
  * its changes ship inside the two closings modules that actually call the
- * changed code. Module deployments come from
+ * changed code. The delay release also explicitly retains the original
+ * liquidation implementation. Module deployments come from
  * deployment/deploy/2070 (protocol modules) and 2061 (BorrowerExitPerimeterOps);
  * beacon module deployments from 2000; the hooked BorrowerOperations and the
  * new CollSurplusPool are built in zero-contracts (branch
@@ -2381,11 +2385,11 @@ const assertDelayVintageImplementation = async (hre, address, sourceName, label,
 };
 
 /**
- * Sequenced delay release — Part 1 (GovernorOwner, 10 actions).
+ * Sequenced delay release — Part 1 (GovernorOwner, 8 actions).
  *
  * The lending half of the delay, laid over a perimeter that is already live.
- * The modules on chain quote a charge but know nothing of a hold, so each one
- * is replaced by its delay-vintage build and the protocol is finally given the
+ * The modules on chain quote a charge but know nothing of a hold, so the changed exit consumers
+ * are replaced by their delay-vintage builds and the protocol is finally given the
  * queue that custodies a held withdrawal.
  *
  * SIP-0094 already installed and activated the fee. This release carries
@@ -2395,17 +2399,15 @@ const assertDelayVintageImplementation = async (hre, address, sourceName, label,
  * ACTION LEDGER:
  *   1.  LoanTokenLogicBeaconLM.registerLoanTokenModule(LoanTokenLogicLM)
  *   2.  LoanTokenLogicBeaconWrbtc.registerLoanTokenModule(LoanTokenLogicWrbtcLM)
- *   3.  sovrynProtocol.replaceContract(LoanClosingsRollover)
- *   4.  sovrynProtocol.replaceContract(LoanClosingsWith)
- *   5.  sovrynProtocol.replaceContract(LoanClosingsWithSwap)
- *   6.  sovrynProtocol.replaceContract(LoanMaintenance)
- *   7.  sovrynProtocol.replaceContract(LoanMaintenanceViews)
- *   8.  sovrynProtocol.replaceContract(ExitFeeModule) — MUST precede 9 and 10.
- *       The module live on chain registers the controller and settlement
- *       pointers but no queue pointer, so the selector action 10 calls exists
- *       only once this replacement has run
- *   9.  sovrynProtocol.setBorrowerExitPerimeterOps(BorrowerExitPerimeterOps)
- *   10. sovrynProtocol.setExitDelayQueue(ExitDelayQueue)
+ *   3.  sovrynProtocol.replaceContract(LoanClosingsWith)
+ *   4.  sovrynProtocol.replaceContract(LoanClosingsWithSwap)
+ *   5.  sovrynProtocol.replaceContract(LoanMaintenance) — five stateful selectors.
+ *   6.  sovrynProtocol.replaceContract(ExitFeeModule) — MUST precede 7 and 8.
+ *   7.  sovrynProtocol.setBorrowerExitPerimeterOps(BorrowerExitPerimeterOps)
+ *   8.  sovrynProtocol.setExitDelayQueue(ExitDelayQueue)
+ *
+ * Original liquidation, rollover and all eight original maintenance view
+ * routes remain registered, with complete original runtime/provenance checks.
  *
  * The queue pinned here is inert on its own, but not because the perimeter is
  * off — the release this one follows already armed the charge. It is inert
@@ -2415,7 +2417,7 @@ const assertDelayVintageImplementation = async (hre, address, sourceName, label,
  * controller's owner arms the delay, which is a Safe transaction after these
  * proposals, not part of them.
  *
- * Ten actions is the governor's cap, so the Zero side is Part 2. There is no
+ * Both proposals remain within the governor's ten-action cap; Zero is Part 2. There is no
  * Part 3 — the subsidy a Part 3 would retire is already retired by the release
  * this one follows.
  */
@@ -2432,6 +2434,7 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
 
     const protocol = await ethers.getContract("ISovryn");
     const protocolOwner = await protocol.owner();
+    await assertRetainedProtocolRoutes(hre, protocol);
 
     /** The controller upgrade is a PRECONDITION of this part, not a follow-up
      *  to it: the modules installed below quote a hold on every hooked exit and
@@ -2507,15 +2510,12 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
         targetOwnerValidationAddresses.push(await beacon.owner());
     }
 
-    /** 3–8. Protocol module replacement, ExitFeeModule LAST so the queue
-     *  pointer selector it registers exists before action 10 uses it. */
+    /** 3–6. Changed protocol modules, ExitFeeModule last before queue pinning. */
     const modulesList = getProtocolModules();
     const replacedModules = [
-        modulesList.LoanClosingsRollover,
         modulesList.LoanClosingsWith,
         modulesList.LoanClosingsWithSwap,
         modulesList.LoanMaintenance,
-        modulesList.LoanMaintenanceViews,
         modulesList.ExitFeeModule,
     ];
     let exitFeeModuleIndex = -1;
@@ -2540,9 +2540,9 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
         }
         if (module.moduleName === "ExitFeeModule") {
             // The admin module is the one protocol input with a vintage marker:
-            // the queue pointer setter action 10 calls is registered by this
+            // the queue pointer setter action 8 calls is registered by this
             // module and exists nowhere in the build that predates the delay.
-            // The other five differ only inside, so a stale record of one of
+            // The other three differ only inside, so a stale record of one of
             // them is caught by the routing check above and by nothing finer.
             await assertDelayVintageImplementation(
                 hre,
@@ -2560,7 +2560,7 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
         targetOwnerValidationAddresses.push(protocolOwner);
     }
 
-    /** 9. Re-pin the borrower settlement companion: the delay-vintage build
+    /** 7. Re-pin the borrower settlement companion: the delay-vintage build
      *  settles a held borrower exit into the queue, which the one on chain
      *  cannot do. */
     targets.push(protocol.address);
@@ -2569,7 +2569,7 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
     datas.push(abiCoder.encode(["address"], [opsDeployment.address]));
     targetOwnerValidationAddresses.push(protocolOwner);
 
-    /** 10. Pin the delay queue. Every iToken reads this one protocol-side
+    /** 8. Pin the delay queue. Every iToken reads this one protocol-side
      *  pointer, so rotation stays a single action. */
     targets.push(protocol.address);
     values.push(0);
@@ -2584,9 +2584,9 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
                 "its initialize() is what registers those selectors on the protocol."
         );
     }
-    if (targets.length !== 10) {
+    if (targets.length !== 8) {
         throw new Error(
-            `Perimeter: delay Part 1 must hold exactly 10 actions, built ${targets.length}`
+            `Perimeter: delay Part 1 must hold exactly 8 actions, built ${targets.length}`
         );
     }
 
@@ -2597,7 +2597,7 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0096 (Part 1): Sovryn Security Perimeter, withdrawal delay — 1 of 2 executable parts (GovernorOwner). Installs the delay on the lending protocol: re-registers the two hooked iToken beacon modules (2), replaces the LoanClosingsRollover, LoanClosingsWith, LoanClosingsWithSwap, LoanMaintenance and LoanMaintenanceViews protocol modules (5), replaces the ExitFeeModule admin module so the protocol carries the queue pointer selector (1), then re-pins the borrower settlement companion and pins the exit delay queue (2). Nothing is held until the perimeter is switched on. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
+            "SIP-0096: Perimeter Withdrawal Delay (Part 1 of 2 — GovernorOwner)\nhttps://forum.sovryn.com/____\nInstalls the lending withdrawal-delay hooks; holding stays disabled until post-deployment verification.\n---\nInstalls the delay on the lending protocol: re-registers the two hooked iToken beacon modules (2), replaces the LoanClosingsWith, LoanClosingsWithSwap and LoanMaintenance stateful protocol modules (3), replaces the ExitFeeModule admin module so the protocol carries the queue pointer selector (1), then re-pins the borrower settlement companion and pins the exit delay queue (2). Original liquidation, rollover and all eight original maintenance view routes are retained. Nothing is held until the perimeter is switched on. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };
@@ -2617,6 +2617,9 @@ const getArgsSipPerimeterDelayPart1 = async (hre) => {
  *   3. BorrowerOperations.setPerimeterOps(BorrowerOperationsPerimeterOps)
  *   4. BorrowerOperations.setExitDelayQueue(ExitDelayQueue)
  *   5. TroveManager_Proxy.setImplementation(TroveManagerLiquidationFix)
+ *
+ * The original lending liquidation remains registered with its complete
+ * artifact/source identity checked. It has no intended fee or delay change.
  *
  * Actions 3 and 4 must immediately follow action 2 in the same transaction:
  * those setters exist only on the implementation action 2 installs, so the
@@ -2818,8 +2821,8 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
 
     /** 5. The TroveManager implementation swap. It carries no perimeter code and
      *  no storage change; it rides this release because it upgrades the same
-     *  product under the same governor, and it is placed last so that nothing
-     *  the perimeter depends on sits behind it.
+     *  product under the same governor, after the atomic BorrowerOperations
+     *  upgrade and pointer setters.
      *
      *  Two things are checked on the resolved address rather than trusted. Its
      *  runtime code must differ from what the proxy serves, or the action is a
@@ -2882,6 +2885,8 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
     datas.push(abiCoder.encode(["address"], [troveManagerImplAddress]));
     targetOwnerValidationAddresses.push(troveManagerProxyOwner);
 
+    await assertRetainedProtocolRoutes(hre, protocol);
+
     const expected = poolChanges ? 5 : 4;
     if (targets.length !== expected) {
         throw new Error(
@@ -2917,7 +2922,7 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
         signatures: signatures,
         data: datas,
         description:
-            "SIP-0096 (Part 2): Sovryn Security Perimeter, withdrawal delay — 2 of 2 executable parts (GovernorOwner). Installs the delay on Zero: upgrades the CollSurplusPool implementation where it changes (1), swaps the BorrowerOperations implementation (1), then pins the settlement companion and the exit delay queue on BorrowerOperations (2), and swaps the TroveManager implementation for the one carrying Liquity's Recovery-Mode multi-liquidation correction (1). The controller pointer installed by the preceding release is left untouched and is asserted, not rewritten. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
+            "SIP-0096: Perimeter Withdrawal Delay (Part 2 of 2 — GovernorOwner)\nhttps://forum.sovryn.com/____\nInstalls the Zero withdrawal-delay hooks and Recovery-Mode liquidation correction; holding stays disabled until post-deployment verification.\n---\nInstalls the delay on Zero: upgrades the CollSurplusPool implementation where it changes (1), swaps the BorrowerOperations implementation (1), then pins the settlement companion and the exit delay queue on BorrowerOperations (2), and swaps the TroveManager implementation for the one carrying Liquity's Recovery-Mode multi-liquidation correction (1). The original lending liquidation implementation is explicitly retained; liquidation payouts remain direct and uncharged. The controller pointer installed by the preceding release is left untouched and is asserted, not rewritten. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
     };
     assertDescriptionFinalized(args.description);
     return { args, governor: "GovernorOwner" };

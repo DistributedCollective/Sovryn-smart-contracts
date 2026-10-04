@@ -17,6 +17,7 @@ const {
     setBalance,
 } = require("@nomicfoundation/hardhat-network-helpers");
 const hre = require("hardhat");
+const { assertRetainedProtocolRoutes } = require("../../deployment/helpers/protocolRetention");
 const { ethers, deployments } = hre;
 
 const ONE_RBTC = ethers.utils.parseEther("1.0");
@@ -43,15 +44,17 @@ const PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes("PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS")
 );
 
-const controllerFixture = require("./fixtures/ExitFeeController.json");
-const vaultFixture = require("./fixtures/ExitFeeVault.json");
-const erc1967ProxyFixture = require("./fixtures/ERC1967Proxy.json");
-const borrowerOperationsFixture = require("./fixtures/BorrowerOperationsPerimeter.json");
-const collSurplusPoolFixture = require("./fixtures/CollSurplusPoolPerimeter.json");
-const queueFixture = require("./fixtures/ExitDelayQueue.json");
-const borrowerOperationsOpsFixture = require("./fixtures/BorrowerOperationsPerimeterOps.json");
-const priceFeedTestnetFixture = require("./fixtures/PriceFeedTestnet.json");
-const troveManagerFixture = require("./fixtures/TroveManagerLiquidationFix.json");
+const { loadFixture } = require("./fixtures/loader");
+
+const controllerFixture = loadFixture("ExitFeeController.json");
+const vaultFixture = loadFixture("ExitFeeVault.json");
+const erc1967ProxyFixture = loadFixture("ERC1967Proxy.json");
+const borrowerOperationsFixture = loadFixture("BorrowerOperationsPerimeter.json");
+const collSurplusPoolFixture = loadFixture("CollSurplusPoolPerimeter.json");
+const queueFixture = loadFixture("ExitDelayQueue.json");
+const borrowerOperationsOpsFixture = loadFixture("BorrowerOperationsPerimeterOps.json");
+const priceFeedTestnetFixture = loadFixture("PriceFeedTestnet.json");
+const troveManagerFixture = loadFixture("TroveManagerLiquidationFix.json");
 
 const perimeterEventsInterface = new ethers.utils.Interface([
     "event ExitFeeApplied(bytes32 indexed surfaceId, address indexed actor, address indexed asset, address subProduct, address recipient, uint256 grossAmount, uint256 feeAmount, uint256 netAmount, address feeReceiver)",
@@ -552,12 +555,9 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
     const names = [
         "LoanTokenLogicLM",
         "LoanTokenLogicWrbtcLM",
-        "LoanClosingsRollover",
         "LoanClosingsWith",
         "LoanClosingsWithSwap",
-        "LoanClosingsLiquidation",
         "LoanMaintenance",
-        "LoanMaintenanceViews",
         "ExitFeeModule",
         "BorrowerExitPerimeterOps",
     ];
@@ -585,6 +585,17 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
         await deployments.save(name, { address: contract.address, abi: artifact.abi });
         deployed[name] = contract;
     }
+    const retained = await assertRetainedProtocolRoutes(hre, await ethers.getContract("ISovryn"));
+    for (const [name, original] of [
+        ["LoanClosingsLiquidation", retained.liquidation],
+        ["LoanClosingsRollover", retained.rollover],
+        ["LoanMaintenanceViews", retained.maintenanceViews],
+    ])
+        deployed[name] = new ethers.Contract(
+            original.address,
+            original.record.abi,
+            deployerSigner
+        );
     return { swapsLib, ...deployed };
 };
 
@@ -1080,6 +1091,7 @@ module.exports = {
     PERIMETER_SURFACE_ZERO_WITHDRAW_COLL,
     PERIMETER_SURFACE_ZERO_CLAIM_SURPLUS,
     borrowerOperationsFixture,
+    queueFixture,
     collSurplusPoolFixture,
     troveManagerFixture,
     deployTroveManagerImpl,

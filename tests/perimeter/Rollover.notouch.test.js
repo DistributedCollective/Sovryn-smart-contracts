@@ -1,29 +1,21 @@
-/**
- * Rollover no-touch coverage.
- *
- * `LoanClosingsRollover.rollover` closes via
- * `_closeWithSwap(..., CloseOrigin.Rollover)`. Per
- * `perimeter/docs/IMPLEMENTATION_DESIGN.md` §rollover, rollover payouts are
- * keeper/maintenance compensation and must not be Perimeter-charged.
- *
- * The gate at `ModuleCommonFunctionalities._exitFeeChargeable` charges only a
- * `CloseOrigin.VoluntaryClose` initiated by the borrower/delegate. Rollover is
- * exempt by origin — for any caller of `rollover()` (keeper or borrower) and
- * any branch — so Perimeter short-circuits: no `ExitFeeApplied`, no
- * `ExitFeeSkipped`. The borrower-self-rollover case covers the keeper-reward
- * branch with the borrower as caller.
- *
- * Run:
- *   npx hardhat test tests/perimeter/Rollover.notouch.test.js
- */
+/** Original rollover and maintenance views remain compatible with current fee/delay exits. */
 
 const { expect } = require("chai");
-const { BN } = require("@openzeppelin/test-helpers");
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const hre = require("hardhat");
+const { loadOriginalLiquidation } = require("../../deployment/helpers/liquidationRetention");
+const {
+    loadOriginalProtocolModule,
+    assertRetainedProtocolRoutes,
+    MAINTENANCE_VIEW_SIGNATURES,
+    SELECTED_PROTOCOL_SIGNATURES,
+} = require("../../deployment/helpers/protocolRetention");
 
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const MockExitFeeController = artifacts.require("MockExitFeeController");
+const MockExitDelayQueue = artifacts.require("MockExitDelayQueue");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
 
 const { increaseTime, blockNumber } = require("../Utils/Ethereum");
@@ -53,7 +45,7 @@ const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
 contract("Perimeter — rollover is not charged", (accounts) => {
     let lender, feeReceiver, rolloverKeeper;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
-    let controller;
+    let controller, queue;
 
     async function deploymentAndInitFixture() {
         await mutexUtils.getOrDeployMutex();
@@ -65,6 +57,33 @@ contract("Perimeter — rollover is not charged", (accounts) => {
         priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+        // Install only in the isolated VM: old Maintenance initializes its views,
+        // then current Maintenance replaces only the five stateful selectors.
+        const currentMaintenance = await sovryn.getTarget(
+            "withdrawCollateral(bytes32,address,uint256)"
+        );
+        const originalViews = loadOriginalProtocolModule("LoanMaintenance");
+        const originalRollover = loadOriginalProtocolModule("LoanClosingsRollover");
+        const originalLibrary = loadOriginalProtocolModule("SwapsImplSovrynSwapLib");
+        const originalLiquidation = loadOriginalLiquidation();
+        for (const original of [originalLibrary, originalViews, originalRollover])
+            await hre.network.provider.send("hardhat_setCode", [
+                original.address,
+                original.runtime,
+            ]);
+        await hre.network.provider.send("hardhat_setCode", [
+            originalLiquidation.address,
+            originalLiquidation.record.deployedBytecode,
+        ]);
+        await sovryn.replaceContract(originalViews.address, { from: lender });
+        await sovryn.replaceContract(currentMaintenance, { from: lender });
+        await sovryn.replaceContract(originalRollover.address, { from: lender });
+        await sovryn.replaceContract(originalLiquidation.address, { from: lender });
+        for (const signature of SELECTED_PROTOCOL_SIGNATURES.LoanMaintenance)
+            expect((await sovryn.getTarget(signature)).toLowerCase()).to.equal(
+                currentMaintenance.toLowerCase()
+            );
+        await assertRetainedProtocolRoutes(hre, sovryn);
         sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
         loanToken = await getLoanToken(lender, sovryn, WRBTC, SUSD);
@@ -80,6 +99,11 @@ contract("Perimeter — rollover is not charged", (accounts) => {
         await controller.setRate(25); // surface default 25 bps
         await controller.setFeeReceiverTest(feeReceiver);
         await sovryn.setExitFeeController(controller.address, { from: lender });
+        queue = await MockExitDelayQueue.new(WRBTC.address, 60);
+        await queue.setAllowedSource(sovryn.address, true);
+        await sovryn.setExitDelayQueue(queue.address, { from: lender });
+        await controller.setGlobalDelaySecondsTest(86400);
+        await controller.setSecurityPerimeterEnabledTest(true);
     }
 
     before(async () => {
@@ -99,6 +123,10 @@ contract("Perimeter — rollover is not charged", (accounts) => {
     // receiver's balances must not move in EITHER asset. An event-only check
     // would miss a transfer that failed to emit.
     async function expectNoFeeSkimmed(rbtcBefore, susdBefore) {
+        expect((await queue.lastRequestId()).toString()).to.equal("0");
+        expect((await queue.totalEscrowed(RBTC.address)).toString()).to.equal("0");
+        expect((await queue.totalEscrowed(SUSD.address)).toString()).to.equal("0");
+        await assertRetainedProtocolRoutes(hre, sovryn);
         expect(
             (await RBTC.balanceOf(feeReceiver)).sub(rbtcBefore).toString(),
             "feeReceiver RBTC delta == 0"
@@ -206,7 +234,109 @@ contract("Perimeter — rollover is not charged", (accounts) => {
                 (await RBTC.balanceOf(feeReceiver)).sub(feeRecvBefore).toString(),
                 "feeReceiver delta == fee (the fee leg really settled)"
             ).to.equal(fee.toString());
+            expect((await queue.lastRequestId()).toString()).to.equal("1");
+            expect((await queue.totalEscrowed(RBTC.address)).toString()).to.equal(
+                withdrawAmount.sub(fee).toString()
+            );
+            // The old view now observes the collateral change made by new Maintenance.
+            const updated = await sovryn.getLoan(loan_id);
+            expect(updated.collateral.toString()).to.equal(
+                new BN(loan.collateral).sub(withdrawAmount).toString()
+            );
+            await assertRetainedProtocolRoutes(hre, sovryn);
         });
+    });
+
+    it("all eight original views match current query results on a renewed real position", async () => {
+        const { borrower, loan_id } = await openMarginTradeAndExpire("normal");
+        await sovryn.rollover(loan_id, "0x", { from: rolloverKeeper });
+        const original = loadOriginalProtocolModule("LoanMaintenance");
+        const artifact = await hre.artifacts.readArtifact("LoanMaintenanceViews");
+        const iface = new hre.ethers.utils.Interface(artifact.abi);
+        const parameters = [
+            [loanToken.address, SUSD.address],
+            [loan_id],
+            [borrower, 0, 10, 0, false, false],
+            [borrower, 0, 10, 0, false, false],
+            [loan_id],
+            [loan_id],
+            [0, 10, false],
+            [0, 10, false],
+        ];
+        const calls = MAINTENANCE_VIEW_SIGNATURES.map((signature, i) =>
+            iface.encodeFunctionData(signature, parameters[i])
+        );
+        const query = () =>
+            Promise.all(
+                calls.map((data) => hre.ethers.provider.call({ to: sovryn.address, data }))
+            );
+        const retainedResults = await query();
+        expect(iface.decodeFunctionResult("getLoan", retainedResults[4])[0].loanId).to.equal(
+            loan_id
+        );
+        expect(
+            iface.decodeFunctionResult("getActiveLoans", retainedResults[6])[0].length
+        ).to.equal(1);
+        for (const [name, index] of [
+            ["getUserLoans", 2],
+            ["getUserLoansV2", 3],
+            ["getActiveLoansV2", 7],
+        ])
+            expect(iface.decodeFunctionResult(name, retainedResults[index])[0].length).to.equal(1);
+        expect(iface.decodeFunctionResult("getLoanV2", retainedResults[5])[0].loanId).to.equal(
+            loan_id
+        );
+        expect(
+            iface
+                .decodeFunctionResult("getLenderInterestData", retainedResults[0])
+                .principalTotal.gt(0)
+        ).to.equal(true);
+        expect(
+            iface
+                .decodeFunctionResult("getLoanInterestData", retainedResults[1])
+                .interestOwedPerDay.gt(0)
+        ).to.equal(true);
+        // Swap only VM code for a same-block query oracle, then restore every byte.
+        await hre.network.provider.send("hardhat_setCode", [
+            original.address,
+            artifact.deployedBytecode,
+        ]);
+        try {
+            expect(await query()).to.deep.equal(retainedResults);
+        } finally {
+            await hre.network.provider.send("hardhat_setCode", [
+                original.address,
+                original.runtime,
+            ]);
+        }
+        expect(await query()).to.deep.equal(retainedResults);
+        await assertRetainedProtocolRoutes(hre, sovryn);
+    });
+
+    it("a disabled retained rollover selector fails and restored original renews", async () => {
+        const { loan_id, loan } = await openMarginTradeAndExpire("normal");
+        const original = loadOriginalProtocolModule("LoanClosingsRollover");
+        const selector = hre.ethers.utils.id("rollover(bytes32,bytes)").slice(2, 10);
+        const mutant = original.runtime.split(selector).join("ffffffff");
+        expect(mutant).to.not.equal(original.runtime);
+        await hre.network.provider.send("hardhat_setCode", [original.address, mutant]);
+        try {
+            await expectRevert(
+                sovryn.rollover(loan_id, "0x", { from: rolloverKeeper }),
+                "fallback not allowed"
+            );
+        } finally {
+            await hre.network.provider.send("hardhat_setCode", [
+                original.address,
+                original.runtime,
+            ]);
+        }
+        await sovryn.rollover(loan_id, "0x", { from: rolloverKeeper });
+        expect(
+            new BN((await sovryn.getLoan(loan_id)).endTimestamp).gt(new BN(loan.endTimestamp))
+        ).to.equal(true);
+        expect((await queue.lastRequestId()).toString()).to.equal("0");
+        await assertRetainedProtocolRoutes(hre, sovryn);
     });
 
     describe("normal rollover (rolloverReward != 0 and <= collateral; loan stays open)", () => {
@@ -220,6 +350,7 @@ contract("Perimeter — rollover is not charged", (accounts) => {
             const feeRecvRbtcBefore = await RBTC.balanceOf(feeReceiver);
             const feeRecvSusdBefore = await SUSD.balanceOf(feeReceiver);
 
+            await controller.setRevertOnDelayQuote(true);
             const tx = await sovryn.rollover(loan_id, "0x", { from: rolloverKeeper });
 
             const applied = tx.logs.filter((l) => l.event === "ExitFeeApplied");
@@ -258,6 +389,7 @@ contract("Perimeter — rollover is not charged", (accounts) => {
             const feeRecvRbtcBefore = await RBTC.balanceOf(feeReceiver);
             const feeRecvSusdBefore = await SUSD.balanceOf(feeReceiver);
 
+            await controller.setRevertOnDelayQuote(true);
             const tx = await sovryn.rollover(loan_id, "0x", { from: rolloverKeeper });
 
             const applied = tx.logs.filter((l) => l.event === "ExitFeeApplied");
@@ -293,6 +425,7 @@ contract("Perimeter — rollover is not charged", (accounts) => {
             const feeRecvRbtcBefore = await RBTC.balanceOf(feeReceiver);
             const feeRecvSusdBefore = await SUSD.balanceOf(feeReceiver);
 
+            await controller.setRevertOnDelayQuote(true);
             const tx = await sovryn.rollover(loan_id, "0x", { from: rolloverKeeper });
 
             // CloseOrigin.Rollover → `_exitFeeChargeable` returns false → Perimeter
@@ -346,6 +479,7 @@ contract("Perimeter — rollover is not charged", (accounts) => {
             // keeper-reward branch sets `receiver = msg.sender = borrower`, yet
             // `CloseOrigin.Rollover` keeps it exempt — rollover compensation is
             // never a borrower exit.
+            await controller.setRevertOnDelayQuote(true);
             const tx = await sovryn.rollover(loan_id, "0x", { from: borrower });
 
             const applied = tx.logs.filter((l) => l.event === "ExitFeeApplied");
