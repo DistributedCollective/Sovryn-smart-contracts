@@ -145,6 +145,12 @@ async function assertRetainedProtocolRoutes(hre, protocol) {
 
 /** Qualify both current split Maintenance implementations, including all runtime metadata. */
 async function assertCurrentMaintenanceImplementations(hre) {
+    const originalLibrary = loadOriginalProtocolModule("SwapsImplSovrynSwapLib");
+    if (
+        (await hre.ethers.provider.getCode(originalLibrary.address)).toLowerCase() !==
+        originalLibrary.runtime.toLowerCase()
+    )
+        throw new Error("retained swap library differs from its pinned original complete runtime");
     const qualified = {};
     for (const name of ["LoanMaintenance", "LoanMaintenanceViews"]) {
         const deployment = await hre.deployments.get(name);
@@ -164,6 +170,19 @@ async function assertCurrentMaintenanceImplementations(hre) {
                     (deployment.libraries || {})[`${source}:${library}`];
                 if (!address || !utils.isAddress(address))
                     throw new Error(`${name} missing declared ${library} binding`);
+                const bindings = [
+                    (deployment.libraries || {})[library],
+                    (deployment.libraries || {})[`${source}:${library}`],
+                ].filter(Boolean);
+                if (
+                    source !== LIBRARY_SOURCE ||
+                    library !== "SwapsImplSovrynSwapLib" ||
+                    bindings.some(
+                        (binding) =>
+                            binding.toLowerCase() !== originalLibrary.address.toLowerCase()
+                    )
+                )
+                    throw new Error(`${name} must bind the pinned original retained swap library`);
                 for (const { start, length } of references) {
                     if (length !== 20 || start < 0 || 2 + (start + length) * 2 > runtime.length)
                         throw new Error(`${name} invalid declared runtime link`);

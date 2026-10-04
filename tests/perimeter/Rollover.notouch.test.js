@@ -75,6 +75,14 @@ contract("Perimeter — rollover is not charged", (accounts) => {
             originalLiquidation.address,
             originalLiquidation.record.deployedBytecode,
         ]);
+        const currentMaintenanceFactory = await hre.ethers.getContractFactory("LoanMaintenance", {
+            libraries: { SwapsImplSovrynSwapLib: originalLibrary.address },
+            signer: await hre.ethers.getSigner(lender),
+        });
+        const currentMaintenanceInstance = await currentMaintenanceFactory.deploy();
+        await currentMaintenanceInstance.deployed();
+        currentMaintenance = currentMaintenanceInstance.address;
+
         await sovryn.replaceContract(originalViews.address, { from: lender });
         await sovryn.replaceContract(originalRollover.address, { from: lender });
         await sovryn.replaceContract(originalLiquidation.address, { from: lender });

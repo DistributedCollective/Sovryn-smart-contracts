@@ -31,6 +31,92 @@ function helperFunctions(hre) {
 
 describeCase("Current Maintenance split staging provenance", () => {
     testCase(
+        "release staging attaches the retained library and binds linked candidates to it",
+        async () => {
+            const source = fs.readFileSync(
+                path.resolve(
+                    __dirname,
+                    "../../tests-onchain/perimeter/perimeterSipTestHelpers.js"
+                ),
+                "utf8"
+            );
+            const start = source.indexOf("const deployLendingReleaseContracts = async"),
+                end = source.indexOf("\n};", start) + 3;
+            const library = loadOriginalProtocolModule("SwapsImplSovrynSwapLib");
+            const fakeOriginal = {
+                address: "0x0000000000000000000000000000000000000044",
+                record: { abi: [] },
+            };
+            const calls = [],
+                saved = [];
+            const fakeEthers = {
+                ...ethers,
+                Contract: class {
+                    constructor(address) {
+                        this.address = address;
+                    }
+                },
+                getContract: async () => ({}),
+                getContractFactory: async (name, options) => {
+                    assert.notEqual(
+                        name,
+                        "SwapsImplSovrynSwapLib",
+                        "no fresh library deployment is authorized"
+                    );
+                    calls.push({ name, options });
+                    return {
+                        deploy: async () => ({
+                            address: "0x0000000000000000000000000000000000000055",
+                            deployed: async () => {},
+                        }),
+                    };
+                },
+            };
+            const deployments = { save: async (name, record) => saved.push({ name, record }) };
+            const module = { exports: {} };
+            vm.runInNewContext(
+                source.slice(start, end) + "\nmodule.exports={deployLendingReleaseContracts};",
+                {
+                    module,
+                    hre: {
+                        artifacts: {
+                            readArtifact: async (name) => ({
+                                abi: [],
+                                linkReferences: [
+                                    "LoanMaintenance",
+                                    "LoanClosingsWithSwap",
+                                ].includes(name)
+                                    ? { source: { SwapsImplSovrynSwapLib: [{}] } }
+                                    : {},
+                            }),
+                        },
+                    },
+                    ethers: fakeEthers,
+                    deployments,
+                    deployedAddressOverrides: () => ({}),
+                    assertRetainedProtocolRoutes: async () => ({
+                        swapsLibrary: library,
+                        liquidation: fakeOriginal,
+                        rollover: fakeOriginal,
+                    }),
+                }
+            );
+            const result = await module.exports.deployLendingReleaseContracts({});
+            assert.equal(result.swapsLib.address, library.address);
+            for (const name of ["LoanMaintenance", "LoanClosingsWithSwap"]) {
+                assert.equal(
+                    calls.find((c) => c.name === name).options.libraries.SwapsImplSovrynSwapLib,
+                    library.address
+                );
+                assert.equal(
+                    saved.find((c) => c.name === name).record.libraries.SwapsImplSovrynSwapLib,
+                    library.address
+                );
+            }
+        }
+    );
+
+    testCase(
         "rollback evidence survives an overwritten mutable Maintenance deployment record",
         () => {
             let mutableReads = 0;

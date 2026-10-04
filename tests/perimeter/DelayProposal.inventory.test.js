@@ -15,6 +15,7 @@ const {
     loadOriginalProtocolModule,
     MAINTENANCE_VIEW_SIGNATURES,
     SELECTED_PROTOCOL_SIGNATURES,
+    assertCurrentMaintenanceImplementations,
 } = require("../../deployment/helpers/protocolRetention");
 const originalRollover = loadOriginalProtocolModule("LoanClosingsRollover");
 const originalViews = loadOriginalProtocolModule("LoanMaintenance");
@@ -486,6 +487,52 @@ describeCase("Perimeter delay proposal installation inventory", () => {
                 SwapsImplSovrynSwapLib: originalLibrary.address,
             };
             await stack.assertLendingReleaseInstalled(f.protocol);
+        }
+    );
+    testCase(
+        "coherent substituted library binding and original-library runtime changes refuse",
+        async () => {
+            const f = fixture(),
+                record = f.records.LoanMaintenance;
+            const healthy = f.codes.get(record.address.toLowerCase());
+            const replacement = address(77);
+            record.libraries = { SwapsImplSovrynSwapLib: replacement };
+            f.codes.set(
+                record.address.toLowerCase(),
+                healthy
+                    .toLowerCase()
+                    .replace(
+                        originalLibrary.address.slice(2).toLowerCase(),
+                        replacement.slice(2).toLowerCase()
+                    )
+            );
+            f.codes.set(
+                replacement.toLowerCase(),
+                "0x73" + replacement.slice(2) + originalLibrary.runtime.slice(44)
+            );
+            await assert.rejects(
+                assertCurrentMaintenanceImplementations(f.hre),
+                /pinned original|retained swap library/
+            );
+            record.libraries = { SwapsImplSovrynSwapLib: originalLibrary.address };
+            f.codes.set(record.address.toLowerCase(), healthy);
+            for (const code of [
+                "0x",
+                originalLibrary.runtime.slice(0, -2) +
+                    (originalLibrary.runtime.endsWith("00") ? "01" : "00"),
+            ]) {
+                f.codes.set(originalLibrary.address.toLowerCase(), code);
+                await assert.rejects(
+                    assertCurrentMaintenanceImplementations(f.hre),
+                    /retained swap library|pinned original/
+                );
+            }
+            f.codes.set(originalLibrary.address.toLowerCase(), originalLibrary.runtime);
+            await assertCurrentMaintenanceImplementations(f.hre);
+            assert.equal(
+                (await f.builders.getArgsSipPerimeterDelayPart1(f.hre)).args.targets.length,
+                9
+            );
         }
     );
     testCase("keeps unfinished SIP metadata refused on real mainnet", async () => {

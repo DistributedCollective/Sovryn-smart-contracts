@@ -542,14 +542,16 @@ const deployTroveManagerImpl = async (deployerSigner) => {
  *  rehearsal builds fresh contracts from local artifacts and saves the records
  *  explicitly.
  *
- *  The modules that use the swap library are linked against a freshly deployed
- *  copy; the ones that no longer use it are left alone, because linking a
+ *  Linked modules use the fully qualified retained original swap library;
+ *  modules without library references are left alone, because linking a
  *  library into an artifact that does not reference it throws. */
 const deployLendingReleaseContracts = async (deployerSigner) => {
-    const swapsLib = await (
-        await ethers.getContractFactory("SwapsImplSovrynSwapLib", deployerSigner)
-    ).deploy();
-    await swapsLib.deployed();
+    const retained = await assertRetainedProtocolRoutes(hre, await ethers.getContract("ISovryn"));
+    const swapsLib = new ethers.Contract(
+        retained.swapsLibrary.address,
+        retained.swapsLibrary.record.abi,
+        deployerSigner
+    );
 
     const deployed = {};
     const names = [
@@ -590,7 +592,6 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
         });
         deployed[name] = contract;
     }
-    const retained = await assertRetainedProtocolRoutes(hre, await ethers.getContract("ISovryn"));
     for (const [name, original] of [
         ["LoanClosingsLiquidation", retained.liquidation],
         ["LoanClosingsRollover", retained.rollover],
