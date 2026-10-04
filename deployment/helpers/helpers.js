@@ -83,7 +83,7 @@ const getProtocolModules = () => {
         },
         LoanMaintenance: {
             moduleName: "LoanMaintenance",
-            // getActiveLoans retains its original Maintenance view route.
+            // getActiveLoans routes to the separate current MaintenanceViews host.
             // Identify the replacement by a stateful selector it registers.
             sampleFunction: "withdrawCollateral(bytes32,address,uint256)",
         },

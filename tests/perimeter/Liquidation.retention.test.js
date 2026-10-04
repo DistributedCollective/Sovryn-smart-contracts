@@ -114,11 +114,9 @@ describeCase("Explicit original liquidation retention", () => {
                 getTarget: async (s) =>
                     s === "rollover(bytes32,bytes)"
                         ? loadOriginalProtocolModule("LoanClosingsRollover").address
-                        : MAINTENANCE_VIEW_SIGNATURES.includes(s)
-                          ? loadOriginalProtocolModule("LoanMaintenance").address
-                          : Object.values(SELECTED_PROTOCOL_SIGNATURES).flat().includes(s)
-                            ? stale
-                            : original.address,
+                        : Object.values(SELECTED_PROTOCOL_SIGNATURES).flat().includes(s)
+                          ? stale
+                          : original.address,
                 replaceContract: async () => {
                     replacements++;
                 },
@@ -129,31 +127,34 @@ describeCase("Explicit original liquidation retention", () => {
                 deployments: {
                     log: () => {},
                     get: async (name) => {
-                        if (
-                            [
-                                "LoanClosingsLiquidation",
-                                "LoanClosingsRollover",
-                                "LoanMaintenanceViews",
-                            ].includes(name)
-                        )
+                        if (["LoanClosingsLiquidation", "LoanClosingsRollover"].includes(name))
                             candidateReads++;
                         return { address: stale, abi: [] };
                     },
+                },
+                artifacts: {
+                    readArtifact: async (name) => ({
+                        contractName: name,
+                        deployedBytecode: "0x6000",
+                        deployedLinkReferences: {},
+                    }),
                 },
                 ethers: {
                     ...ethers,
                     provider: {
                         getCode: async (a) =>
-                            a.toLowerCase() === original.address.toLowerCase()
-                                ? code
-                                : [
-                                      "LoanClosingsRollover",
-                                      "LoanMaintenance",
-                                      "SwapsImplSovrynSwapLib",
-                                  ]
-                                      .map((loadName) => loadOriginalProtocolModule(loadName))
-                                      .find((d) => d.address.toLowerCase() === a.toLowerCase())
-                                      .runtime,
+                            a.toLowerCase() === stale.toLowerCase()
+                                ? "0x6000"
+                                : a.toLowerCase() === original.address.toLowerCase()
+                                  ? code
+                                  : [
+                                        "LoanClosingsRollover",
+                                        "LoanMaintenance",
+                                        "SwapsImplSovrynSwapLib",
+                                    ]
+                                        .map((loadName) => loadOriginalProtocolModule(loadName))
+                                        .find((d) => d.address.toLowerCase() === a.toLowerCase())
+                                        .runtime,
                     },
                     getContract: async () => protocol,
                     getSigners: async () => [{}],
@@ -179,7 +180,7 @@ describeCase("Explicit original liquidation retention", () => {
         }
     );
     testCase(
-        "replacement stays within four authorized modules for local and multisig paths",
+        "replacement stays within five authorized modules for local and multisig paths",
         async () => {
             const excluded = [
                 "Affiliates",
@@ -221,8 +222,7 @@ describeCase("Explicit original liquidation retention", () => {
                             if (signature === ORIGINAL.signature) return originals[0].address;
                             if (signature === "rollover(bytes32,bytes)")
                                 return originals[1].address;
-                            if (MAINTENANCE_VIEW_SIGNATURES.includes(signature))
-                                return originals[2].address;
+
                             const name = selected.find((name) =>
                                 SELECTED_PROTOCOL_SIGNATURES[name].includes(signature)
                             );
@@ -246,9 +246,24 @@ describeCase("Explicit original liquidation retention", () => {
                                 return records[name];
                             },
                         },
+                        artifacts: {
+                            readArtifact: async (name) => ({
+                                contractName: name,
+                                deployedBytecode: "0x6000",
+                                deployedLinkReferences: {},
+                            }),
+                        },
                         ethers: {
                             ...ethers,
-                            provider: { getCode: async (a) => code.get(a.toLowerCase()) || "0x" },
+                            provider: {
+                                getCode: async (a) =>
+                                    code.get(a.toLowerCase()) ||
+                                    (Object.values(records).some(
+                                        (r) => r.address.toLowerCase() === a.toLowerCase()
+                                    )
+                                        ? "0x6000"
+                                        : "0x"),
+                            },
                             getContract: async () => protocol,
                             getSigners: async () => [{}],
                             Contract: class {
@@ -274,7 +289,7 @@ describeCase("Explicit original liquidation retention", () => {
                         installed
                             ? []
                             : selected.map((name) => records[name].address.toLowerCase()),
-                        "only the four authorized replacements may execute or be proposed"
+                        "only the five authorized replacements may execute or be proposed"
                     );
                     assert.deepEqual(
                         reads.filter((name) => excluded.includes(name)),
@@ -285,9 +300,10 @@ describeCase("Explicit original liquidation retention", () => {
         }
     );
     testCase(
-        "stages only the four changed modules without retained-module deployments",
+        "stages only the five authorized modules without retained-module deployments",
         async () => {
             const expected = [
+                "LoanMaintenanceViews",
                 "LoanClosingsWith",
                 "LoanClosingsWithSwap",
                 "ExitFeeModule",

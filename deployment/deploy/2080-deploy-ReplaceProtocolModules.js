@@ -3,6 +3,7 @@ const hre = require("hardhat");
 const { getProtocolModules, sendWithMultisig } = require("../helpers/helpers");
 const {
     assertRetainedProtocolRoutes,
+    assertCurrentMaintenanceImplementations,
     SELECTED_PROTOCOL_SIGNATURES,
 } = require("../helpers/protocolRetention");
 const col = require("cli-color");
@@ -20,6 +21,7 @@ const func = async function (hre) {
 
     // Refuse before any replacement if the explicitly retained live module differs.
     await assertRetainedProtocolRoutes(hre, sovrynProtocol);
+    await assertCurrentMaintenanceImplementations(hre);
 
     const modulesList = getProtocolModules();
     // Existing records for other modules do not authorize their replacement.

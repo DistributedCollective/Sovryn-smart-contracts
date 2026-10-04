@@ -7,7 +7,7 @@
  * change, and adds proposal actions against a ten-per-proposal cap.
  *
  * Unchanged-code exclusions and explicit original-runtime retention are
- * different cases. Liquidation, rollover and maintenance views retain exact
+ * different cases. Liquidation and rollover retain exact
  * original provenance and compatibility checks, not relabeled candidate code.
  */
 
@@ -39,12 +39,19 @@ const PRE_PERIMETER = require("./baselines/release-set.pre-perimeter-modules.jso
 
 /// Selected modules implement intended reachable fee/delay settlement or queue
 /// wiring changes. Executable differences support artifact identity; they do
-/// not establish upgrade necessity by themselves.
+/// not establish upgrade necessity by themselves. Views ships as the
+/// explicitly selected current size/architecture split, with unchanged queries.
 // The delay line adds the changed swap split module over the fee line (no
 // pre-perimeter counterparts). Forced liquidation is a separately pinned original
 // retention: an embedded helper/getter bytecode difference alone does not
 // establish an intended functional upgrade.
-const MUST_SHIP = ["LoanClosingsWith", "LoanMaintenance", "ExitFeeModule", "LoanClosingsWithSwap"];
+const MUST_SHIP = [
+    "LoanClosingsWith",
+    "LoanMaintenance",
+    "LoanMaintenanceViews",
+    "ExitFeeModule",
+    "LoanClosingsWithSwap",
+];
 
 /// Shipping modules with nothing on mainnet to differ from. Derived, never
 /// hand-listed: a module that silently loses its baseline entry would otherwise
@@ -52,11 +59,7 @@ const MUST_SHIP = ["LoanClosingsWith", "LoanMaintenance", "ExitFeeModule", "Loan
 const NEW_MODULES = MUST_SHIP.filter((name) => !PRE_PERIMETER[name]);
 
 // Explicit functional-scope retention; the fresh source is NOT claimed byte-identical.
-const MUST_RETAIN_ORIGINAL = [
-    "LoanClosingsLiquidation",
-    "LoanClosingsRollover",
-    "LoanMaintenanceViews",
-];
+const MUST_RETAIN_ORIGINAL = ["LoanClosingsLiquidation", "LoanClosingsRollover"];
 
 /// Protocol modules whose executable code is unchanged; only metadata moved.
 const MUST_NOT_SHIP = [
@@ -152,7 +155,7 @@ contract("Perimeter — pinned release set", () => {
      * what keeps it from growing: a module that quietly lost its baseline entry
      * would fail here rather than exempt itself from the release set.
      */
-    it("the shipping modules with no mainnet counterpart are the admin module and changed swap split", () => {
+    it("the shipping modules with no mainnet counterpart are the admin and two size-split modules", () => {
         // ExitFeeModule is the Phase-1 admin module; the changed swap split is
         // carved out of deployed modules and have no registered predecessor.
         expect(
@@ -161,7 +164,7 @@ contract("Perimeter — pinned release set", () => {
                 `checks that it differs from what mainnet runs. Either it is genuinely ` +
                 `new — add it here — or its baseline entry went missing and must be ` +
                 `restored from the registered target on chain.`
-        ).to.deep.equal(["ExitFeeModule", "LoanClosingsWithSwap"]);
+        ).to.deep.equal(["LoanMaintenanceViews", "ExitFeeModule", "LoanClosingsWithSwap"]);
         expect(deployedRecord("ExitFeeModule").address, "ExitFeeModule is not deployed").to.match(
             /^0x[0-9a-fA-F]{40}$/
         );
@@ -220,7 +223,7 @@ contract("Perimeter — pinned release set", () => {
             MAINTENANCE_VIEW_SIGNATURES.map((s) => s.split("(")[0]),
         ],
     ])
-        it(`${name} retains original interface, source behavior and State layout`, async () => {
+        it(`${name} remains compatible with original interface, source behavior and State layout`, async () => {
             const original = loadOriginalProtocolModule(originalName);
             const current = compiled(name);
             // internalType includes the hosting contract's struct namespace;

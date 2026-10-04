@@ -8,6 +8,8 @@ const { loadOriginalLiquidation } = require("../../deployment/helpers/liquidatio
 const {
     loadOriginalProtocolModule,
     assertRetainedProtocolRoutes,
+    assertCurrentMaintenanceImplementations,
+    captureProtocolRollbackTargets,
     MAINTENANCE_VIEW_SIGNATURES,
     SELECTED_PROTOCOL_SIGNATURES,
 } = require("../../deployment/helpers/protocolRetention");
@@ -45,7 +47,7 @@ const TINY_AMOUNT = new BN(25).mul(new BN(10).pow(new BN(13))); // 25 * 10**13
 contract("Perimeter — rollover is not charged", (accounts) => {
     let lender, feeReceiver, rolloverKeeper;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
-    let controller, queue;
+    let controller, queue, currentMaintenance, currentViews, rollbackTargets, maintenanceHre;
 
     async function deploymentAndInitFixture() {
         await mutexUtils.getOrDeployMutex();
@@ -57,11 +59,9 @@ contract("Perimeter — rollover is not charged", (accounts) => {
         priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
-        // Install only in the isolated VM: old Maintenance initializes its views,
-        // then current Maintenance replaces only the five stateful selectors.
-        const currentMaintenance = await sovryn.getTarget(
-            "withdrawCollateral(bytes32,address,uint256)"
-        );
+        // Capture the original rollback host, then install both current split hosts.
+        currentMaintenance = await sovryn.getTarget("withdrawCollateral(bytes32,address,uint256)");
+        currentViews = await sovryn.getTarget("getLoan(bytes32)");
         const originalViews = loadOriginalProtocolModule("LoanMaintenance");
         const originalRollover = loadOriginalProtocolModule("LoanClosingsRollover");
         const originalLibrary = loadOriginalProtocolModule("SwapsImplSovrynSwapLib");
@@ -76,13 +76,43 @@ contract("Perimeter — rollover is not charged", (accounts) => {
             originalLiquidation.record.deployedBytecode,
         ]);
         await sovryn.replaceContract(originalViews.address, { from: lender });
+        await sovryn.replaceContract(originalRollover.address, { from: lender });
+        await sovryn.replaceContract(originalLiquidation.address, { from: lender });
+        rollbackTargets = await captureProtocolRollbackTargets(hre, sovryn);
+        expect(
+            rollbackTargets.filter(
+                (x) => x.address.toLowerCase() === originalViews.address.toLowerCase()
+            ).length
+        ).to.equal(1);
         await sovryn.replaceContract(currentMaintenance, { from: lender });
+        await sovryn.replaceContract(currentViews, { from: lender });
         await sovryn.replaceContract(originalRollover.address, { from: lender });
         await sovryn.replaceContract(originalLiquidation.address, { from: lender });
         for (const signature of SELECTED_PROTOCOL_SIGNATURES.LoanMaintenance)
             expect((await sovryn.getTarget(signature)).toLowerCase()).to.equal(
                 currentMaintenance.toLowerCase()
             );
+        for (const signature of MAINTENANCE_VIEW_SIGNATURES)
+            expect((await sovryn.getTarget(signature)).toLowerCase()).to.equal(
+                currentViews.toLowerCase()
+            );
+        const maintenanceArtifact = await hre.artifacts.readArtifact("LoanMaintenance");
+        const libraries = {};
+        const actualCode = await hre.ethers.provider.getCode(currentMaintenance);
+        for (const entries of Object.values(maintenanceArtifact.deployedLinkReferences))
+            for (const [name, refs] of Object.entries(entries))
+                libraries[name] =
+                    "0x" + actualCode.slice(2 + refs[0].start * 2, 2 + (refs[0].start + 20) * 2);
+        maintenanceHre = {
+            ...hre,
+            deployments: {
+                get: async (name) => ({
+                    address: name === "LoanMaintenance" ? currentMaintenance : currentViews,
+                    libraries,
+                }),
+            },
+        };
+        await assertCurrentMaintenanceImplementations(maintenanceHre);
         await assertRetainedProtocolRoutes(hre, sovryn);
         sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
@@ -247,7 +277,7 @@ contract("Perimeter — rollover is not charged", (accounts) => {
         });
     });
 
-    it("all eight original views match current query results on a renewed real position", async () => {
+    it("all eight current views match original query results on a renewed real position", async () => {
         const { borrower, loan_id } = await openMarginTradeAndExpire("normal");
         await sovryn.rollover(loan_id, "0x", { from: rolloverKeeper });
         const original = loadOriginalProtocolModule("LoanMaintenance");
@@ -297,19 +327,43 @@ contract("Perimeter — rollover is not charged", (accounts) => {
                 .interestOwedPerDay.gt(0)
         ).to.equal(true);
         // Swap only VM code for a same-block query oracle, then restore every byte.
-        await hre.network.provider.send("hardhat_setCode", [
-            original.address,
-            artifact.deployedBytecode,
-        ]);
+        await hre.network.provider.send("hardhat_setCode", [currentViews, original.runtime]);
         try {
             expect(await query()).to.deep.equal(retainedResults);
         } finally {
             await hre.network.provider.send("hardhat_setCode", [
-                original.address,
-                original.runtime,
+                currentViews,
+                artifact.deployedBytecode,
             ]);
         }
+        await assertCurrentMaintenanceImplementations(maintenanceHre);
         expect(await query()).to.deep.equal(retainedResults);
+        await assertRetainedProtocolRoutes(hre, sovryn);
+    });
+
+    it("one original Maintenance rollback restores both stateful and query selector groups", async () => {
+        const original = loadOriginalProtocolModule("LoanMaintenance");
+        const targets = rollbackTargets.filter(
+            (x) =>
+                x.modules.includes("LoanMaintenance") || x.modules.includes("LoanMaintenanceViews")
+        );
+        expect(targets.length).to.equal(1);
+        expect(targets[0].modules).to.deep.equal(["LoanMaintenance", "LoanMaintenanceViews"]);
+        for (const signature of [
+            ...SELECTED_PROTOCOL_SIGNATURES.LoanMaintenance,
+            ...MAINTENANCE_VIEW_SIGNATURES,
+        ])
+            expect((await sovryn.getTarget(signature)).toLowerCase()).to.not.equal(
+                original.address.toLowerCase()
+            );
+        await sovryn.replaceContract(targets[0].address, { from: lender });
+        for (const signature of [
+            ...SELECTED_PROTOCOL_SIGNATURES.LoanMaintenance,
+            ...MAINTENANCE_VIEW_SIGNATURES,
+        ])
+            expect((await sovryn.getTarget(signature)).toLowerCase()).to.equal(
+                original.address.toLowerCase()
+            );
         await assertRetainedProtocolRoutes(hre, sovryn);
     });
 

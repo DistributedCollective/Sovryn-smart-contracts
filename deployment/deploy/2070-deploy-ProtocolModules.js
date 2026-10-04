@@ -19,8 +19,8 @@ const func = async function (hre) {
             sampleFunction: "setAffiliatesReferrer(address,address)",
             requireSwapsImplSovrynSwapLib: false,
         },*/
-        // Liquidation, rollover and the original maintenance views are retained with original full provenance;
-        // only protocol modules with intended functional changes are staged.
+        // Forced-close hosts retain original provenance. Both Maintenance hosts
+        // ship as the selected current size/architecture split.
         LoanClosingsWith: {
             moduleName: "LoanClosingsWith",
             sampleFunction: "closeWithDeposit(bytes32,address,uint256)",
@@ -47,6 +47,11 @@ const func = async function (hre) {
             moduleName: "LoanMaintenance",
             sampleFunction: "withdrawCollateral(bytes32,address,uint256)",
             requireSwapsImplSovrynSwapLib: true,
+        },
+        LoanMaintenanceViews: {
+            moduleName: "LoanMaintenanceViews",
+            sampleFunction: "getActiveLoans(uint256,uint256,bool)",
+            requireSwapsImplSovrynSwapLib: false,
         },
         /*LoanOpenings: {
             moduleName: "LoanOpenings",

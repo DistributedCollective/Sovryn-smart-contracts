@@ -53,7 +53,12 @@ const sha256 = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex"
 function loadOriginalProtocolModule(name, read = fs.readFileSync) {
     const pin = ORIGINALS[name];
     if (!pin) throw new Error(`unsupported original protocol module ${name}`);
-    const directory = path.resolve(__dirname, "../deployments/rskSovrynMainnet");
+    const directory = path.resolve(
+        __dirname,
+        name === "LoanMaintenance"
+            ? "../baselines/original-maintenance"
+            : "../deployments/rskSovrynMainnet"
+    );
     const recordBytes = read(path.join(directory, `${name}.json`));
     const inputPin = name === "SwapsImplSovrynSwapLib" ? LIBRARY_INPUT : MODULE_INPUT;
     const inputBytes = read(path.join(directory, "solcInputs", inputPin.file));
@@ -113,16 +118,13 @@ function loadOriginalProtocolModule(name, read = fs.readFileSync) {
     };
 }
 
-/** Require all original routes and their complete linked implementation/dependency bytes. */
+/** Check retained liquidation/rollover and the complete original rollback/dependency bytes. */
 async function assertRetainedProtocolRoutes(hre, protocol) {
     const liquidation = await assertRetainedLiquidation(hre, protocol);
     const rollover = loadOriginalProtocolModule("LoanClosingsRollover");
-    const maintenanceViews = loadOriginalProtocolModule("LoanMaintenance");
+    const maintenanceRollback = loadOriginalProtocolModule("LoanMaintenance");
     const swapsLibrary = loadOriginalProtocolModule("SwapsImplSovrynSwapLib");
-    for (const [original, signatures] of [
-        [rollover, ["rollover(bytes32,bytes)"]],
-        [maintenanceViews, MAINTENANCE_VIEW_SIGNATURES],
-    ]) {
+    for (const [original, signatures] of [[rollover, ["rollover(bytes32,bytes)"]]]) {
         for (const signature of signatures) {
             const target = await protocol.getTarget(signature);
             if (target.toLowerCase() !== original.address.toLowerCase())
@@ -131,14 +133,92 @@ async function assertRetainedProtocolRoutes(hre, protocol) {
                 );
         }
     }
-    for (const original of [rollover, maintenanceViews, swapsLibrary]) {
+    for (const original of [rollover, maintenanceRollback, swapsLibrary]) {
         const code = await hre.ethers.provider.getCode(original.address);
         if (code.toLowerCase() !== original.runtime.toLowerCase())
             throw new Error(
                 `retained ${original.record.address} complete runtime differs from its pinned original artifact`
             );
     }
-    return { liquidation, rollover, maintenanceViews, swapsLibrary };
+    return { liquidation, rollover, maintenanceRollback, swapsLibrary };
+}
+
+/** Qualify both current split Maintenance implementations, including all runtime metadata. */
+async function assertCurrentMaintenanceImplementations(hre) {
+    const qualified = {};
+    for (const name of ["LoanMaintenance", "LoanMaintenanceViews"]) {
+        const deployment = await hre.deployments.get(name);
+        if (deployment.address.toLowerCase() === ORIGINALS.LoanMaintenance.address.toLowerCase())
+            throw new Error(`${name} candidate is the original Maintenance rollback anchor`);
+        const artifact = await hre.artifacts.readArtifact(name);
+        if (
+            artifact.contractName !== name ||
+            Object.keys(artifact.immutableReferences || {}).length
+        )
+            throw new Error(`${name} artifact has an unsupported identity or immutable binding`);
+        let runtime = artifact.deployedBytecode;
+        for (const [source, libraries] of Object.entries(artifact.deployedLinkReferences || {})) {
+            for (const [library, references] of Object.entries(libraries)) {
+                const address =
+                    (deployment.libraries || {})[library] ||
+                    (deployment.libraries || {})[`${source}:${library}`];
+                if (!address || !utils.isAddress(address))
+                    throw new Error(`${name} missing declared ${library} binding`);
+                for (const { start, length } of references) {
+                    if (length !== 20 || start < 0 || 2 + (start + length) * 2 > runtime.length)
+                        throw new Error(`${name} invalid declared runtime link`);
+                    const placeholder =
+                        "__$" + utils.id(`${source}:${library}`).slice(2, 36) + "$__";
+                    const offset = 2 + start * 2;
+                    const value = runtime.slice(offset, offset + 40);
+                    if (
+                        value !== placeholder &&
+                        value.toLowerCase() !== address.slice(2).toLowerCase()
+                    )
+                        throw new Error(`${name} unexpected declared runtime link contents`);
+                    runtime =
+                        runtime.slice(0, offset) + address.slice(2) + runtime.slice(offset + 40);
+                }
+            }
+        }
+        if (
+            !utils.isHexString(runtime) ||
+            runtime === "0x" ||
+            (await hre.ethers.provider.getCode(deployment.address)).toLowerCase() !==
+                runtime.toLowerCase()
+        )
+            throw new Error(`${name} complete current runtime differs from its artifact`);
+        qualified[name] = { ...deployment, artifact, runtime };
+    }
+    return qualified;
+}
+
+/** Capture unique old implementations once; original Maintenance restores both selector groups. */
+async function captureProtocolRollbackTargets(hre, protocol) {
+    const { maintenanceRollback } = await assertRetainedProtocolRoutes(hre, protocol);
+    const unique = new Map();
+    for (const [name, signatures] of Object.entries(SELECTED_PROTOCOL_SIGNATURES)) {
+        const address = await protocol.getTarget(signatures[0]);
+        if (name === "LoanMaintenance" || name === "LoanMaintenanceViews") {
+            for (const signature of signatures)
+                if (
+                    (await protocol.getTarget(signature)).toLowerCase() !==
+                    maintenanceRollback.address.toLowerCase()
+                )
+                    throw new Error(
+                        `rollback capture requires original Maintenance for ${signature}`
+                    );
+        }
+        if (
+            address === utils.getAddress("0x" + "00".repeat(20)) ||
+            (await hre.ethers.provider.getCode(address)) === "0x"
+        )
+            throw new Error(`missing original rollback implementation for ${name}`);
+        const key = address.toLowerCase();
+        if (!unique.has(key)) unique.set(key, { address, modules: [] });
+        unique.get(key).modules.push(name);
+    }
+    return Array.from(unique.values());
 }
 
 const SELECTED_PROTOCOL_SIGNATURES = Object.freeze({
@@ -154,6 +234,7 @@ const SELECTED_PROTOCOL_SIGNATURES = Object.freeze({
         "extendLoanDuration(bytes32,uint256,bool,bytes)",
         "reduceLoanDuration(bytes32,address,uint256)",
     ],
+    LoanMaintenanceViews: MAINTENANCE_VIEW_SIGNATURES,
     ExitFeeModule: [
         "exitFeeController()",
         "setExitFeeController(address)",
@@ -169,4 +250,6 @@ module.exports = {
     SELECTED_PROTOCOL_SIGNATURES,
     loadOriginalProtocolModule,
     assertRetainedProtocolRoutes,
+    assertCurrentMaintenanceImplementations,
+    captureProtocolRollbackTargets,
 };

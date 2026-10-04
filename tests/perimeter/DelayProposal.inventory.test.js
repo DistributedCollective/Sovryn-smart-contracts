@@ -105,6 +105,31 @@ function fixture({
         oldPool.toLowerCase(),
         poolChanges ? "0x6000" : codes.get(records.CollSurplusPoolPerimeter.address.toLowerCase())
     );
+    const librarySource = "contracts/swaps/connectors/SwapsImplSovrynSwapLib.sol";
+    const placeholder =
+        "__$" +
+        realEthers.utils.id(librarySource + ":SwapsImplSovrynSwapLib").slice(2, 36) +
+        "$__";
+    const maintenanceArtifact = {
+        contractName: "LoanMaintenance",
+        deployedBytecode: "0x6001" + placeholder + "6002",
+        deployedLinkReferences: {
+            [librarySource]: { SwapsImplSovrynSwapLib: [{ start: 2, length: 20 }] },
+        },
+        abi: [],
+    };
+    const viewsArtifact = {
+        contractName: "LoanMaintenanceViews",
+        deployedBytecode: "0x60036004",
+        deployedLinkReferences: {},
+        abi: [],
+    };
+    records.LoanMaintenance.libraries = { SwapsImplSovrynSwapLib: originalLibrary.address };
+    codes.set(
+        records.LoanMaintenance.address.toLowerCase(),
+        maintenanceArtifact.deployedBytecode.replace(placeholder, originalLibrary.address.slice(2))
+    );
+    codes.set(records.LoanMaintenanceViews.address.toLowerCase(), viewsArtifact.deployedBytecode);
     const contracts = new Map();
     contracts.set(protocol.toLowerCase(), {
         address: protocol,
@@ -184,12 +209,13 @@ function fixture({
         },
         artifacts: {
             readArtifact: async (name) => {
+                if (name === "LoanMaintenance") return maintenanceArtifact;
+                if (name === "LoanMaintenanceViews") return viewsArtifact;
                 assert.equal(name, "LoanClosingsLiquidation");
                 return {
                     contractName: name,
                     deployedBytecode: runtime,
                     abi: [],
-                    linkReferences: {},
                     deployedLinkReferences: {},
                 };
             },
@@ -263,12 +289,12 @@ function stackFunctions(f) {
 describeCase("Perimeter delay proposal installation inventory", () => {
     for (const poolChanges of [true, false])
         testCase(
-            `installs every audited shipping module once within 8 and ${poolChanges ? 5 : 4} actions`,
+            `installs every audited shipping module once within 9 and ${poolChanges ? 5 : 4} actions`,
             async () => {
                 const f = fixture({ poolChanges });
                 const p1 = (await f.builders.getArgsSipPerimeterDelayPart1(f.hre)).args;
                 const p2 = (await f.builders.getArgsSipPerimeterDelayPart2(f.hre)).args;
-                assert.equal(p1.targets.length, 8);
+                assert.equal(p1.targets.length, 9);
                 assert.equal(p2.targets.length, poolChanges ? 5 : 4);
                 const replacements = [
                     ...p1.signatures.map((signature, i) => ({
@@ -293,6 +319,14 @@ describeCase("Perimeter delay proposal installation inventory", () => {
                     assert.equal(matches.length, 1, name);
                     assert.equal(matches[0].target, f.protocol);
                 }
+                const hosts = replacements.map((a) =>
+                    realEthers.utils.defaultAbiCoder.decode(["address"], a.data)[0].toLowerCase()
+                );
+                assert.equal(
+                    hosts.indexOf(f.records.LoanMaintenanceViews.address.toLowerCase()),
+                    hosts.indexOf(f.records.LoanMaintenance.address.toLowerCase()) + 1,
+                    "Views immediately follows Maintenance"
+                );
                 assert.equal(p2.signatures.includes("replaceContract(address)"), false);
                 assert.equal(
                     p2.targetOwnerValidationAddresses[p2.targets.length - 1],
@@ -332,12 +366,12 @@ describeCase("Perimeter delay proposal installation inventory", () => {
         );
     });
     testCase(
-        "both builders and installed-stack guard refuse every substituted retained view or rollover route",
+        "builders refuse substituted retained rollover routes and original rollback bytes",
         async () => {
             const f = fixture();
             const protocol = f.contracts.get(f.protocol.toLowerCase());
             const healthy = protocol.getTarget;
-            for (const signature of ["rollover(bytes32,bytes)", ...MAINTENANCE_VIEW_SIGNATURES]) {
+            for (const signature of ["rollover(bytes32,bytes)"]) {
                 for (const target of [
                     address(77),
                     f.records.LoanMaintenanceViews.address,
@@ -371,8 +405,87 @@ describeCase("Perimeter delay proposal installation inventory", () => {
             }
             assert.equal(
                 (await f.builders.getArgsSipPerimeterDelayPart1(f.hre)).args.targets.length,
-                8
+                9
             );
+        }
+    );
+    testCase(
+        "current split refuses omitted views, wrong hosts and complete-runtime substitutions",
+        async () => {
+            const f = fixture();
+            const protocol = f.contracts.get(f.protocol.toLowerCase());
+            const preinstall = protocol.getTarget;
+            const installed = async (signature) =>
+                signature === "liquidate(bytes32,address,uint256)"
+                    ? originalLiquidation.address
+                    : signature === "rollover(bytes32,bytes)"
+                      ? originalRollover.address
+                      : f.records[
+                            requiredModules.find((name) =>
+                                SELECTED_PROTOCOL_SIGNATURES[name].includes(signature)
+                            )
+                        ].address;
+            protocol.getTarget = installed;
+            const stack = stackFunctions(f);
+            await stack.assertLendingReleaseInstalled(f.protocol);
+            for (const signature of [
+                ...SELECTED_PROTOCOL_SIGNATURES.LoanMaintenance,
+                ...MAINTENANCE_VIEW_SIGNATURES,
+            ]) {
+                for (const wrong of [
+                    originalViews.address,
+                    f.records.LoanMaintenance.address,
+                    f.records.LoanMaintenanceViews.address,
+                    address(0),
+                ]) {
+                    if (wrong === (await installed(signature))) continue;
+                    protocol.getTarget = async (s) => (s === signature ? wrong : installed(s));
+                    await assert.rejects(
+                        stack.assertLendingReleaseInstalled(f.protocol),
+                        /does not route/
+                    );
+                }
+            }
+            protocol.getTarget = installed;
+            for (const name of ["LoanMaintenance", "LoanMaintenanceViews"]) {
+                const target = f.records[name].address.toLowerCase(),
+                    healthy = f.codes.get(target);
+                for (const code of [
+                    healthy.slice(0, -2) + (healthy.endsWith("00") ? "01" : "00"),
+                    "0x",
+                ]) {
+                    f.codes.set(target, code);
+                    protocol.getTarget = preinstall;
+                    await assert.rejects(
+                        f.builders.getArgsSipPerimeterDelayPart1(f.hre),
+                        /complete current runtime/
+                    );
+                    protocol.getTarget = installed;
+                    await assert.rejects(
+                        stack.assertLendingReleaseInstalled(f.protocol),
+                        /complete current runtime/
+                    );
+                }
+                f.codes.set(target, healthy);
+            }
+            for (const name of ["LoanMaintenance", "LoanMaintenanceViews"]) {
+                const healthyAddress = f.records[name].address;
+                f.records[name].address = originalViews.address;
+                await assert.rejects(
+                    stack.assertLendingReleaseInstalled(f.protocol),
+                    /rollback anchor/
+                );
+                f.records[name].address = healthyAddress;
+            }
+            delete f.records.LoanMaintenance.libraries;
+            await assert.rejects(
+                stack.assertLendingReleaseInstalled(f.protocol),
+                /missing declared/
+            );
+            f.records.LoanMaintenance.libraries = {
+                SwapsImplSovrynSwapLib: originalLibrary.address,
+            };
+            await stack.assertLendingReleaseInstalled(f.protocol);
         }
     );
     testCase("keeps unfinished SIP metadata refused on real mainnet", async () => {
@@ -390,7 +503,7 @@ describeCase("Perimeter delay proposal installation inventory", () => {
             f.contracts.get(f.protocol.toLowerCase()).getTarget = async (signature) => {
                 if (signature === "liquidate(bytes32,address,uint256)")
                     return originalLiquidation.address;
-                if (retainedTarget(signature)) return retainedTarget(signature);
+                if (signature === "rollover(bytes32,bytes)") return originalRollover.address;
                 const name = requiredModules.find((name) =>
                     SELECTED_PROTOCOL_SIGNATURES[name].includes(signature)
                 );

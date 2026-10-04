@@ -558,6 +558,7 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
         "LoanClosingsWith",
         "LoanClosingsWithSwap",
         "LoanMaintenance",
+        "LoanMaintenanceViews",
         "ExitFeeModule",
         "BorrowerExitPerimeterOps",
     ];
@@ -582,14 +583,17 @@ const deployLendingReleaseContracts = async (deployerSigner) => {
             : await ethers.getContractFactory(name, deployerSigner);
         const contract = await factory.deploy();
         await contract.deployed();
-        await deployments.save(name, { address: contract.address, abi: artifact.abi });
+        await deployments.save(name, {
+            address: contract.address,
+            abi: artifact.abi,
+            libraries: needsLib ? { SwapsImplSovrynSwapLib: swapsLib.address } : {},
+        });
         deployed[name] = contract;
     }
     const retained = await assertRetainedProtocolRoutes(hre, await ethers.getContract("ISovryn"));
     for (const [name, original] of [
         ["LoanClosingsLiquidation", retained.liquidation],
         ["LoanClosingsRollover", retained.rollover],
-        ["LoanMaintenanceViews", retained.maintenanceViews],
     ])
         deployed[name] = new ethers.Contract(
             original.address,
@@ -1075,7 +1079,10 @@ const attachDeployed = async (name, address, abi, signer) => {
                 `deployment.`
         );
     }
-    await deployments.save(name, { address: checksummed, abi });
+    const existing = await deployments.getOrNull(name);
+    const originalRecord =
+        existing && existing.address.toLowerCase() === checksummed.toLowerCase() ? existing : {};
+    await deployments.save(name, { ...originalRecord, address: checksummed, abi });
     return new ethers.Contract(checksummed, abi, signer);
 };
 

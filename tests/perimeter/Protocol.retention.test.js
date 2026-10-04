@@ -11,7 +11,7 @@ const {
 const describeCase = typeof describe === "function" ? describe : require("node:test").describe;
 const testCase = typeof it === "function" ? it : require("node:test").it;
 
-describeCase("Original rollover and maintenance-view retention", () => {
+describeCase("Original rollover retention and Maintenance rollback provenance", () => {
     testCase(
         "pins complete original artifact/input, declared links and full runtime metadata",
         () => {
@@ -41,7 +41,7 @@ describeCase("Original rollover and maintenance-view retention", () => {
         }
     );
     testCase(
-        "checks all eight original view targets, rollover, liquidation and their linked library",
+        "checks retained rollover/liquidation and complete rollback/library bytes without retaining query routes",
         async () => {
             const liquidation = loadOriginalLiquidation();
             const originals = Object.fromEntries(
@@ -65,7 +65,7 @@ describeCase("Original rollover and maintenance-view retention", () => {
             };
             const protocol = { getTarget: async (signature) => routes.get(signature) };
             await assertRetainedProtocolRoutes(hre, protocol);
-            for (const signature of ["rollover(bytes32,bytes)", ...MAINTENANCE_VIEW_SIGNATURES]) {
+            for (const signature of ["rollover(bytes32,bytes)"]) {
                 const healthy = routes.get(signature);
                 for (const wrong of [
                     "0x0000000000000000000000000000000000000000",

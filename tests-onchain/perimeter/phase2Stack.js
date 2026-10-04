@@ -16,16 +16,18 @@ const { ethers, deployments } = hre;
 const { get } = deployments;
 const {
     assertRetainedProtocolRoutes,
+    assertCurrentMaintenanceImplementations,
     SELECTED_PROTOCOL_SIGNATURES,
 } = require("../../deployment/helpers/protocolRetention");
 
-/** Check replaced protocol routes and the explicitly retained original liquidation, rollover and view identities. */
+/** Check replaced protocol routes and the explicitly retained original liquidation/rollover and current split maintenance identities. */
 const assertLendingReleaseInstalled = async (protocolAddress) => {
     const protocol = new ethers.Contract(
         protocolAddress,
         ["function getTarget(string) view returns (address)"],
         ethers.provider
     );
+    await assertCurrentMaintenanceImplementations(hre);
     for (const [name, signatures] of Object.entries(SELECTED_PROTOCOL_SIGNATURES)) {
         const staged = await get(name);
         for (const signature of signatures) {
