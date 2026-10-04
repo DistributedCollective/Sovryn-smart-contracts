@@ -792,7 +792,7 @@ contract FeeSharingCollector is
     /**
      * @notice Get the accumulated fee rewards for the message sender for a checkpoints range
      *
-     * @dev This function is required to keep consistent with caching of weighted voting power when claiming fees
+     * @dev Uses the same historical stake snapshots as fee claims.
      *
      * @param _user The address of a user (staker) or contract.
      * @param _token RBTC dummy to fit into existing data structure or SOV. Former address of the pool token.
@@ -886,27 +886,17 @@ contract FeeSharingCollector is
             return (0, endCheckpoint);
         }
 
-        uint256 cachedLockDate = 0;
-        uint96 cachedWeightedStake = 0;
         // @note here processedUserCheckpoints is a number of processed checkpoints and
         // also an index for the next checkpoint because an array index starts wtih 0
         for (uint256 i = startOfRange; i < endCheckpoint; i++) {
             Checkpoint memory checkpoint = tokenCheckpoints[_token][i];
-            uint256 lockDate = staking.timestampToLockDate(checkpoint.timestamp);
-            uint96 weightedStake;
-            if (lockDate == cachedLockDate) {
-                weightedStake = cachedWeightedStake;
-            } else {
-                /// @dev We need to use "checkpoint.blockNumber - 1" here to calculate weighted stake
-                /// For the same block like we did for total voting power in _writeTokenCheckpoint
-                weightedStake = staking.getPriorWeightedStake(
-                    _user,
-                    checkpoint.blockNumber - 1,
-                    checkpoint.timestamp
-                );
-                cachedWeightedStake = weightedStake;
-                cachedLockDate = lockDate;
-            }
+            /// @dev Stake can change within a lock-date bucket; query each checkpoint's snapshot.
+            /// Use the same prior block as total voting power in _writeTokenCheckpoint.
+            uint96 weightedStake = staking.getPriorWeightedStake(
+                _user,
+                checkpoint.blockNumber - 1,
+                checkpoint.timestamp
+            );
             uint256 share = uint256(checkpoint.numTokens).mul(weightedStake).div(
                 uint256(checkpoint.totalWeightedStake)
             );
