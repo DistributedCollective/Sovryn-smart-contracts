@@ -283,6 +283,9 @@ contract LiquidityMining is ILiquidityMining, LiquidityMiningStorage {
         if (endBlock > 0 && _to > endBlock) {
             _to = endBlock;
         }
+        if (_to <= _from) {
+            return 0;
+        }
         if (_to <= bonusEndBlock) {
             return _to.sub(_from).mul(BONUS_BLOCK_MULTIPLIER);
         } else if (_from >= bonusEndBlock) {
