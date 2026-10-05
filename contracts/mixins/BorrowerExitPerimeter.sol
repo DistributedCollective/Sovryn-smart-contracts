@@ -2,7 +2,6 @@ pragma solidity 0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "./ModuleCommonFunctionalities.sol";
-import "./VaultController.sol";
 import "../interfaces/perimeter/IExitFeeController.sol";
 import "../utils/PerimeterLib.sol";
 import "../utils/BorrowerExitPerimeterOps.sol";
@@ -11,13 +10,9 @@ import "../utils/BorrowerExitPerimeterOps.sol";
 /// @notice Protocol-side Perimeter borrower-exit helpers (the close-origin gate,
 ///         the charge-hook stub, and the security-perimeter delay reroute),
 ///         inherited by the modules that charge a borrower exit. Adds no storage.
-/// @dev    Inherits `VaultController` so the delay reroute can PUSH the user leg
-///         into the queue via the same `vaultWithdraw`/`vaultEtherWithdraw`
-///         primitives the direct payout uses. Both consuming modules
-///         (`LoanMaintenance`, `LoanClosingsShared`) already list `VaultController`
-///         BEFORE `BorrowerExitPerimeter`, so C3 linearization is preserved and no
-///         storage layout shifts (both derive from the same shared `State`).
-contract BorrowerExitPerimeter is ModuleCommonFunctionalities, VaultController {
+/// @dev    Vault transfers run in `BorrowerExitPerimeterOps` under delegatecall;
+///         this mixin resolves the delay and dispatches the escrow operation.
+contract BorrowerExitPerimeter is ModuleCommonFunctionalities {
     /// @dev The literal is the surface id: its keccak hash is the key the
     ///      controller resolves a rate policy under. Changing the string
     ///      changes the id, so a policy must be configured against the new
