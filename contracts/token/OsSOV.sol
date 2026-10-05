@@ -29,7 +29,7 @@ contract OsSOV is ERC20Capped, AccessControl, Ownable, Initializable {
     error NonTransferable();
 
     /**
-     * @dev Allowance updates are not allowed.
+     * @dev The token is non transferable via transferForm - approval is not allowed.
      */
     error NonApprovable();
 
@@ -100,7 +100,11 @@ contract OsSOV is ERC20Capped, AccessControl, Ownable, Initializable {
 
     /**
      * @dev Creates a `value` amount of tokens and assigns them to `account`, by transferring it from address(0).
+     * Relies on the `_update` mechanism
+     *
      * Emits a {Transfer} event with `from` set to the zero address.
+     *
+     * NOTE: This function is not override, {_update} should be overridden instead.
      */
     function mint(address _to, uint256 _amount) public onlyMinter(msg.sender) {
         _mint(_to, _amount);
@@ -126,19 +130,6 @@ contract OsSOV is ERC20Capped, AccessControl, Ownable, Initializable {
      */
     function approve(address, uint256) public override returns (bool) {
         revert NonApprovable();
-    }
-
-    /// @dev Blocks inherited allowance updates, including increase/decreaseAllowance.
-    function _approve(address, address, uint256) internal pure override {
-        revert NonApprovable();
-    }
-
-    /// @dev Blocks holder transfers even with an existing infinite allowance; permits mint/burn.
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
-        if (from != address(0) && to != address(0)) {
-            revert NonTransferable();
-        }
-        super._beforeTokenTransfer(from, to, amount);
     }
 
     /**
