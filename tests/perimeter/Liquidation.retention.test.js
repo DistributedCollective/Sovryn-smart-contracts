@@ -159,7 +159,9 @@ describeCase("Explicit original liquidation retention", () => {
                     getContract: async () => protocol,
                     getSigners: async () => [{}],
                     Contract: class {
-                        borrowerExitPerimeterOps = async () => stale;
+                        async borrowerExitPerimeterOps() {
+                            return stale;
+                        }
                     },
                 },
             };
@@ -267,7 +269,9 @@ describeCase("Explicit original liquidation retention", () => {
                             getContract: async () => protocol,
                             getSigners: async () => [{}],
                             Contract: class {
-                                borrowerExitPerimeterOps = async () => address(4);
+                                async borrowerExitPerimeterOps() {
+                                    return address(4);
+                                }
                             },
                         },
                     };
