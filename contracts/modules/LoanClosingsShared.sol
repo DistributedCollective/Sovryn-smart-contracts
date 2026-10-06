@@ -791,7 +791,8 @@ contract LoanClosingsShared is
 
         // Withdraw to receiver
         if (withdrawAmount != 0) {
-            // Perimeter: charge the borrower-exit fee on the post-swap residual.
+            // Route the post-swap residual through the module's payout policy.
+            // Voluntary closes apply fee and delay; forced closes remain exempt.
             _payoutBorrowerExit(
                 params.origin,
                 loanLocal,
