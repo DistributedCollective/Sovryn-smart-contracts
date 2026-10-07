@@ -33,13 +33,14 @@
  */
 
 const { expect } = require("chai");
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { BN, balance } = require("@openzeppelin/test-helpers");
+const { loadFixture, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
+const { BN, expectRevert, balance } = require("@openzeppelin/test-helpers");
 
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
 const MockExitFeeController = artifacts.require("MockExitFeeController");
+const TestPerimeterCallback = artifacts.require("TestPerimeterCallback");
 const MockExitDelayQueue = artifacts.require("MockExitDelayQueue");
 const MaliciousBorrower = artifacts.require("MaliciousBorrower");
 const TestTokenBlockedRecipient = artifacts.require("TestTokenBlockedRecipient");
@@ -278,6 +279,7 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
     });
 
     describe("what the burn reports when the fee leg fails", () => {
+        let nativeFailureReceiver;
         const ROUTES = [
             {
                 label: "ERC20 fee leg returns false, burn(address,uint256,bool)",
@@ -294,8 +296,31 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
                 asset: () => WRBTC,
                 signature: "burnToBTC(address,uint256,bool)",
                 native: true,
-                failFeeLeg: () => controller.setFeeReceiverTest(revertingReceiver.address),
-                feeReceiverAddress: () => revertingReceiver.address,
+                failFeeLeg: async () => {
+                    nativeFailureReceiver = await TestPerimeterCallback.new();
+                    await controller.setFeeReceiverTest(nativeFailureReceiver.address);
+                    const checkpoint = await takeSnapshot();
+                    const amount = (await iWRBTC.balanceOf(user)).divn(4);
+                    const before = new BN(
+                        await web3.eth.getBalance(nativeFailureReceiver.address)
+                    );
+                    const positive = await iWRBTC.burnToBTC(receiver, amount, false, {
+                        from: user,
+                    });
+                    expect(findApplied(positive.logs).length).to.equal(1);
+                    expect(
+                        new BN(await web3.eth.getBalance(nativeFailureReceiver.address)).gt(before)
+                    ).to.equal(true);
+                    await checkpoint.restore();
+                    // The same receiver now rejects payment; it is not an unconditional reverter.
+                    await nativeFailureReceiver.configure(
+                        "0x0000000000000000000000000000000000000000",
+                        "0x0000000000000000000000000000000000000000",
+                        "0x",
+                        true
+                    );
+                },
+                feeReceiverAddress: () => nativeFailureReceiver.address,
             },
         ];
 
@@ -315,6 +340,11 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
             const args = [receiver, await pool.balanceOf(user), false];
 
             const poolBefore = await route.asset().balanceOf(pool.address);
+            const queueBefore = await route.asset().balanceOf(queue.address);
+            const escrowBefore = await queue.totalEscrowed(route.asset().address);
+            const supplyBefore = await pool.totalSupply();
+            const sharesBefore = await pool.balanceOf(user);
+            const queueNativeBefore = await web3.eth.getBalance(queue.address);
             const receiverBefore = await payoutBalance(route, receiver);
             const feeReceiverBefore = await payoutBalance(route, route.feeReceiverAddress());
             const lastIdBefore = await queue.lastRequestId();
@@ -340,6 +370,16 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
                 gross,
                 delivered: new BN(pair.delivered),
                 poolDecrement: poolBefore.sub(await route.asset().balanceOf(pool.address)),
+                queueIncrease: (await route.asset().balanceOf(queue.address)).sub(queueBefore),
+                escrowIncrease: (await queue.totalEscrowed(route.asset().address)).sub(
+                    escrowBefore
+                ),
+                supplyBurned: supplyBefore.sub(await pool.totalSupply()),
+                sharesBurned: sharesBefore.sub(await pool.balanceOf(user)),
+                burnAmount: args[1],
+                queueNativeBefore,
+                queueNativeAfter: await web3.eth.getBalance(queue.address),
+                queueAllowance: await route.asset().allowance(pool.address, queue.address),
                 received: (await payoutBalance(route, receiver)).sub(receiverBefore),
                 feePaid: (await payoutBalance(route, route.feeReceiverAddress())).sub(
                     feeReceiverBefore
@@ -403,9 +443,91 @@ contract("Perimeter — VAULT_REVERT fee-leg failures (iToken tree)", (accounts)
                 expect(req.unwrapOnDelivery, "native route unwraps on delivery").to.equal(
                     route.native
                 );
+                expect(o.queueIncrease.toString(), "actual queue custody is gross").to.equal(
+                    o.gross.toString()
+                );
+                expect(o.escrowIncrease.toString(), "queue backing is gross").to.equal(
+                    o.gross.toString()
+                );
+                expect(o.queueNativeAfter, "lender queue keeps WRBTC wrapped").to.equal(
+                    o.queueNativeBefore
+                );
+                expect(o.queueAllowance.toString(), "pull clears the finite allowance").to.equal(
+                    "0"
+                );
+                expect(o.sharesBurned.toString()).to.equal(o.burnAmount.toString());
+                expect(o.supplyBurned.toString()).to.equal(o.burnAmount.toString());
                 await expectNoNativeResidue(route);
             });
         });
+    });
+
+    it("global mutex rolls back a real cross-pool mint reached from a user payout callback", async () => {
+        const actor = await TestPerimeterCallback.new({ from: user });
+        const mintAmount = wei("1", "ether");
+        await BLK.mint(actor.address, wei("3", "ether"));
+        await actor.execute(
+            BLK.address,
+            BLK.contract.methods.approve(iBLK.address, wei("3", "ether")).encodeABI(),
+            { from: user }
+        );
+        const data = iBLK.contract.methods["mint(address,uint256,bool)"](
+            actor.address,
+            mintAmount,
+            false
+        ).encodeABI();
+        // A funded mint in another real pool succeeds outside the guarded exit.
+        await actor.execute(iBLK.address, data, { from: user });
+        expect((await iBLK.balanceOf(actor.address)).gtn(0)).to.equal(true);
+        expect(actor.address.toLowerCase()).not.to.equal((await sovryn.owner()).toLowerCase());
+        // Only the ordinary user's receiver calls back; the configured fee receiver is unchanged.
+        await actor.configure(iWRBTC.address, iBLK.address, data, false, { from: user });
+        const amount = (await iWRBTC.balanceOf(user)).divn(2);
+        const mutex = "0xba10edD6ABC7696Eae685839217BdcC42139612b";
+        const snapshot = async () => ({
+            shares: (await iWRBTC.balanceOf(user)).toString(),
+            supply: (await iWRBTC.totalSupply()).toString(),
+            pool: (await WRBTC.balanceOf(iWRBTC.address)).toString(),
+            otherSupply: (await iBLK.totalSupply()).toString(),
+            otherShares: (await iBLK.balanceOf(actor.address)).toString(),
+            otherPool: (await BLK.balanceOf(iBLK.address)).toString(),
+            otherActor: (await BLK.balanceOf(actor.address)).toString(),
+            otherAllowance: (await BLK.allowance(actor.address, iBLK.address)).toString(),
+            receiver: await web3.eth.getBalance(actor.address),
+            fee: await web3.eth.getBalance(feeReceiver),
+            queue: (await WRBTC.balanceOf(queue.address)).toString(),
+            escrow: (await queue.totalEscrowed(WRBTC.address)).toString(),
+            allowance: (await WRBTC.allowance(iWRBTC.address, queue.address)).toString(),
+            requests: (await queue.lastRequestId()).toString(),
+            mutex: await web3.eth.call({
+                to: mutex,
+                data: web3.eth.abi.encodeFunctionSignature("value()"),
+            }),
+        });
+        const before = await snapshot();
+        await expectRevert(
+            iWRBTC.burnToBTC(actor.address, amount, false, { from: user, gas: 6000000 }),
+            "reentrancy violation"
+        );
+        expect(await snapshot()).to.deep.equal(before);
+        expect((await actor.callbackCount()).toString()).to.equal("0");
+        expect(await actor.armed()).to.equal(true);
+        // The ordinary receiver still accepts its payout; disable only its callback and retry.
+        await actor.configure(
+            "0x0000000000000000000000000000000000000000",
+            iBLK.address,
+            data,
+            false,
+            { from: user }
+        );
+        await iWRBTC.burnToBTC(actor.address, amount, false, { from: user });
+        expect((await queue.lastRequestId()).toString()).to.equal("0");
+        expect(
+            new BN(await web3.eth.getBalance(actor.address)).gt(new BN(before.receiver))
+        ).to.equal(true);
+        expect(new BN(await web3.eth.getBalance(feeReceiver)).gt(new BN(before.fee))).to.equal(
+            true
+        );
     });
 });
 

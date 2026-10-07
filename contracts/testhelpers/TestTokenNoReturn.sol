@@ -97,4 +97,9 @@ contract TestTokenNoReturn {
     function allowance(address _owner, address _spender) public view returns (uint256) {
         return allowed[_owner][_spender];
     }
+
+    /// @notice Seed an artificial residual allowance for compatibility tests only.
+    function seedAllowance(address _owner, address _spender, uint256 _value) external {
+        allowed[_owner][_spender] = _value;
+    }
 }

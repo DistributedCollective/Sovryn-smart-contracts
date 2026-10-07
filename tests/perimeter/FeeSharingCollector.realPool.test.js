@@ -249,6 +249,19 @@ contract(
                 collectorIwrbtc: (await iWRBTC.balanceOf(collector.address)).toString(),
                 feeReceiver: await web3.eth.getBalance(feeReceiver),
                 poolWrbtc: (await WRBTC.balanceOf(iWRBTC.address)).toString(),
+                poolNative: await web3.eth.getBalance(iWRBTC.address),
+                poolSupply: (await iWRBTC.totalSupply()).toString(),
+                collectorPriceCheckpoint: (
+                    await iWRBTC.checkpointPrice(collector.address)
+                ).toString(),
+                collectorProfit: (await iWRBTC.profitOf(collector.address)).toString(),
+                queueWrbtc: (await WRBTC.balanceOf(queue.address)).toString(),
+                queueNative: await web3.eth.getBalance(queue.address),
+                queueEscrow: (await queue.totalEscrowed(WRBTC.address)).toString(),
+                queueAllowance: (await WRBTC.allowance(iWRBTC.address, queue.address)).toString(),
+                nextRequestAmount: (
+                    await queue.getRequest(new BN(await queue.lastRequestId()).addn(1))
+                ).amount.toString(),
                 checkpointRbtc: (await collector.processedCheckpoints(who, RBTC_DUMMY)).toString(),
                 checkpointWrbtc: (
                     await collector.processedCheckpoints(who, WRBTC.address)

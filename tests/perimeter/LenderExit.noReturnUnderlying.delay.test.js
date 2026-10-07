@@ -26,8 +26,8 @@
  */
 
 const { expect } = require("chai");
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
-const { BN } = require("@openzeppelin/test-helpers");
+const { loadFixture, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 
 const LoanToken = artifacts.require("LoanToken");
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
@@ -206,5 +206,71 @@ contract("Perimeter delay — lender exit over a no-return (USDT-style) underlyi
             expect((await NRT.balanceOf(queue.address)).toString()).to.equal("0");
             expect((await queue.lastRequestId()).toString()).to.equal("0");
         });
+    });
+
+    it("resets a seeded residual allowance, approves exactly each partial exit and clears after pull", async () => {
+        const burnAmount = (await iNRT.balanceOf(user)).divn(4);
+        // Artificial fixture state: normal exact queue pulls leave no residual.
+        await NRT.seedAllowance(iNRT.address, queue.address, 7);
+        expect((await NRT.allowance(iNRT.address, queue.address)).toString()).to.equal("7");
+        for (let i = 0; i < 2; i++) {
+            const tx = await iNRT.burn(user, burnAmount, false, { from: user });
+            const gross = grossFromSkipped(tx.logs);
+            const approvals = await NRT.getPastEvents("Approval", {
+                fromBlock: tx.receipt.blockNumber,
+                toBlock: tx.receipt.blockNumber,
+            });
+            const amounts = approvals
+                .filter(
+                    (e) =>
+                        e.returnValues.owner.toLowerCase() === iNRT.address.toLowerCase() &&
+                        e.returnValues.spender.toLowerCase() === queue.address.toLowerCase()
+                )
+                .map((e) => e.returnValues.value.toString());
+            expect(amounts).to.deep.equal(i === 0 ? ["0", gross.toString()] : [gross.toString()]);
+            expect((await NRT.allowance(iNRT.address, queue.address)).toString()).to.equal("0");
+            expect((await queue.getRequest(i + 1)).amount.toString()).to.equal(gross.toString());
+        }
+        expect((await queue.lastRequestId()).toString()).to.equal("2");
+    });
+
+    it("restores shares, profit, fee balances and residual allowance when fee-paid ingress rejects", async () => {
+        await controller.setExitFeeEnabledTest(true);
+        await NRT.seedAllowance(iNRT.address, queue.address, 7);
+        const burnAmount = (await iNRT.balanceOf(user)).divn(4);
+        const snapshot = async () => ({
+            shares: (await iNRT.balanceOf(user)).toString(),
+            supply: (await iNRT.totalSupply()).toString(),
+            priceCheckpoint: (await iNRT.checkpointPrice(user)).toString(),
+            profit: (await iNRT.profitOf(user)).toString(),
+            pool: (await NRT.balanceOf(iNRT.address)).toString(),
+            user: (await NRT.balanceOf(user)).toString(),
+            fee: (await NRT.balanceOf(feeReceiver)).toString(),
+            queue: (await NRT.balanceOf(queue.address)).toString(),
+            escrow: (await queue.totalEscrowed(NRT.address)).toString(),
+            allowance: (await NRT.allowance(iNRT.address, queue.address)).toString(),
+            requests: (await queue.lastRequestId()).toString(),
+        });
+        const checkpoint = await takeSnapshot();
+        const tx = await iNRT.burn(user, burnAmount, false, { from: user });
+        const applied = tx.logs.find((l) => l.event === "ExitFeeApplied");
+        expect(new BN(applied.args.feeAmount).gtn(0)).to.equal(true);
+        expect((await queue.getRequest(1)).amount.toString()).to.equal(
+            applied.args.netAmount.toString()
+        );
+        await checkpoint.restore();
+
+        await queue.setAllowedSource(iNRT.address, false);
+        const before = await snapshot();
+        await expectRevert(
+            iNRT.burn(user, burnAmount, false, { from: user, gas: 6000000 }),
+            "MockQueue: unregistered source"
+        );
+        expect(await snapshot()).to.deep.equal(before);
+        expect(before.allowance).to.equal("7");
+        await queue.setAllowedSource(iNRT.address, true);
+        await iNRT.burn(user, burnAmount, false, { from: user });
+        expect((await NRT.allowance(iNRT.address, queue.address)).toString()).to.equal("0");
+        expect((await queue.lastRequestId()).toString()).to.equal("1");
     });
 });

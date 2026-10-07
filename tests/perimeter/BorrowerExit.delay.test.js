@@ -42,6 +42,7 @@ const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const MockExitFeeController = artifacts.require("MockExitFeeController");
+const TestPerimeterCallback = artifacts.require("TestPerimeterCallback");
 const MockExitDelayQueue = artifacts.require("MockExitDelayQueue");
 
 const {
@@ -451,5 +452,61 @@ contract("Perimeter delay — borrower/margin exit reroute", (accounts) => {
                 "EFC:not-contract"
             );
         });
+    });
+
+    it("blocks an authorized manager callback from withdrawing collateral twice", async () => {
+        const actor = await TestPerimeterCallback.new({ from: account1 });
+        const [loan_id] = await open_margin_trade_position(
+            loanToken,
+            RBTC,
+            WRBTC,
+            SUSD,
+            account1,
+            "WRBTC"
+        );
+        const amount = new BN(10).pow(new BN(15));
+        await sovryn.depositCollateral(loan_id, amount.muln(3), {
+            from: account1,
+            value: amount.muln(3),
+        });
+        await sovryn.setDelegatedManager(loan_id, actor.address, true, { from: account1 });
+        expect(actor.address.toLowerCase()).not.to.equal((await sovryn.owner()).toLowerCase());
+        const data = sovryn.contract.methods
+            .withdrawCollateral(loan_id, actor.address, amount.toString())
+            .encodeABI();
+        // Ordinary borrower delegation, not protocol administration: the identical call is authorized.
+        const idleCollateral = new BN((await sovryn.getLoan(loan_id)).collateral);
+        const idleReceiverBalance = new BN(await web3.eth.getBalance(actor.address));
+        await actor.execute(sovryn.address, data, { from: account1 });
+        const idleWithdrawal = idleCollateral.sub(
+            new BN((await sovryn.getLoan(loan_id)).collateral)
+        );
+        expect(idleWithdrawal.gtn(0)).to.equal(true);
+        expect(
+            new BN(await web3.eth.getBalance(actor.address)).sub(idleReceiverBalance).toString()
+        ).to.equal(idleWithdrawal.toString());
+        await controller.setExitFeeEnabledTest(true);
+        // A healthy zero-delay payout reaches the user-owned receiver; the fee receiver stays passive.
+        await actor.configure(sovryn.address, sovryn.address, data, false, { from: account1 });
+        const collateralBefore = new BN((await sovryn.getLoan(loan_id)).collateral);
+        const receiverBefore = new BN(await web3.eth.getBalance(actor.address));
+        const feeBefore = new BN(await web3.eth.getBalance(feeReceiver));
+        const gross = await sovryn.withdrawCollateral.call(loan_id, actor.address, amount, {
+            from: account1,
+        });
+        await sovryn.withdrawCollateral(loan_id, actor.address, amount, { from: account1 });
+        expect((await actor.callbackCount()).toString()).to.equal("1");
+        expect(await actor.callbackSucceeded()).to.equal(false);
+        const reason =
+            "0x08c379a0" + web3.eth.abi.encodeParameter("string", "nonReentrant").slice(2);
+        expect(await actor.callbackResult()).to.equal(reason);
+        expect(
+            collateralBefore.sub(new BN((await sovryn.getLoan(loan_id)).collateral)).toString()
+        ).to.equal(gross.toString());
+        const fee = new BN(await web3.eth.getBalance(feeReceiver)).sub(feeBefore);
+        expect(fee.gtn(0)).to.equal(true);
+        const delivered = new BN(await web3.eth.getBalance(actor.address)).sub(receiverBefore);
+        expect(delivered.add(fee).toString()).to.equal(gross.toString());
+        expect((await queue.lastRequestId()).toString()).to.equal("0");
     });
 });
