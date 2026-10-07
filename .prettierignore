@@ -29,3 +29,5 @@ out/
 foundry/
 cache_forge/
 safe/
+# Raw pinned rollback artifact and compiler input: preserve exact bytes.
+deployment/baselines/original-maintenance/

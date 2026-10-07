@@ -1,14 +1,14 @@
 /**
- * Perimeter — the Phase-1 release set is pinned, and the omissions are justified.
+ * Perimeter — functional withdrawal-delay selection and original retention.
  *
  * Modules whose bytecode moved only in the metadata trailer stay OUT of the
  * release: their runtime code is byte-identical to what is already deployed, so
  * redeploying them costs gas and explorer verification for no behavioural
  * change, and adds proposal actions against a ten-per-proposal cap.
  *
- * This file is what makes that safe. If one of the omitted modules ever gains
- * real code, the comparison below fails rather than letting it be left out
- * silently.
+ * Unchanged-code exclusions and explicit original-runtime retention are
+ * different cases. Liquidation and rollover retain exact
+ * original provenance and compatibility checks, not relabeled candidate code.
  */
 
 const { expect } = require("chai");
@@ -16,6 +16,12 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const { runtimeBodyWithoutMetadata } = require("../../deployment/helpers/helpers");
+const { loadOriginalLiquidation } = require("../../deployment/helpers/liquidationRetention");
+const {
+    loadOriginalProtocolModule,
+    MAINTENANCE_VIEW_SIGNATURES,
+} = require("../../deployment/helpers/protocolRetention");
+const { normalizedLayout, normType } = require("./utils/storageLayout");
 
 const DEPLOYMENTS = path.join(__dirname, "../../deployment/deployments/rskSovrynMainnet");
 const ARTIFACTS = path.join(__dirname, "../../artifacts/contracts");
@@ -31,20 +37,33 @@ const ARTIFACTS = path.join(__dirname, "../../artifacts/contracts");
  */
 const PRE_PERIMETER = require("./baselines/release-set.pre-perimeter-modules.json").modules;
 
-/// Perimeter-bearing protocol modules. These carry the renamed slots, surface
-/// ids or selectors, so their executable code really changed.
-const MUST_SHIP = ["LoanClosingsRollover", "LoanClosingsWith", "LoanMaintenance", "ExitFeeModule"];
+/// Selected modules implement intended reachable fee/delay settlement or queue
+/// wiring changes. Executable differences support artifact identity; they do
+/// not establish upgrade necessity by themselves. Views ships as the
+/// explicitly selected current size/architecture split, with unchanged queries.
+// The delay line adds the changed swap split module over the fee line (no
+// pre-perimeter counterparts). Forced liquidation is a separately pinned original
+// retention: an embedded helper/getter bytecode difference alone does not
+// establish an intended functional upgrade.
+const MUST_SHIP = [
+    "LoanClosingsWith",
+    "LoanMaintenance",
+    "LoanMaintenanceViews",
+    "ExitFeeModule",
+    "LoanClosingsWithSwap",
+];
 
 /// Shipping modules with nothing on mainnet to differ from. Derived, never
 /// hand-listed: a module that silently loses its baseline entry would otherwise
 /// move itself out of the comparison and into this exemption.
 const NEW_MODULES = MUST_SHIP.filter((name) => !PRE_PERIMETER[name]);
 
-/// Protocol modules the rename touched only through an imported file. Their
-/// runtime code is unchanged; only the metadata fingerprint moved.
+// Explicit functional-scope retention; the fresh source is NOT claimed byte-identical.
+const MUST_RETAIN_ORIGINAL = ["LoanClosingsLiquidation", "LoanClosingsRollover"];
+
+/// Protocol modules whose executable code is unchanged; only metadata moved.
 const MUST_NOT_SHIP = [
     "Affiliates",
-    "LoanClosingsLiquidation",
     "LoanOpenings",
     "LoanSettings",
     "ProtocolSettings",
@@ -88,6 +107,8 @@ const body = (hex, libraries) => {
     return runtimeBodyWithoutMetadata(s);
 };
 
+const hasRecord = (name) => fs.existsSync(path.join(DEPLOYMENTS, `${name}.json`));
+
 const deployedRecord = (name) => {
     const p = path.join(DEPLOYMENTS, `${name}.json`);
     expect(fs.existsSync(p), `no mainnet record for ${name}`).to.be.true;
@@ -118,7 +139,7 @@ const bodyHash = (hex, libraries) =>
 
 contract("Perimeter — pinned release set", () => {
     MUST_SHIP.filter((name) => PRE_PERIMETER[name]).forEach((name) => {
-        it(`${name} differs from what mainnet runs and must be in the release`, () => {
+        it(`${name} has a distinct artifact for its selected functional upgrade`, () => {
             const current = compiled(name);
             expect(
                 bodyHash(current.deployedBytecode, null),
@@ -134,14 +155,16 @@ contract("Perimeter — pinned release set", () => {
      * what keeps it from growing: a module that quietly lost its baseline entry
      * would fail here rather than exempt itself from the release set.
      */
-    it("the only shipping module with no mainnet counterpart is ExitFeeModule", () => {
+    it("the shipping modules with no mainnet counterpart are the admin and two size-split modules", () => {
+        // ExitFeeModule is the Phase-1 admin module; the changed swap split is
+        // carved out of deployed modules and have no registered predecessor.
         expect(
             NEW_MODULES,
             `a shipping module has no entry in the pre-perimeter baseline, so nothing ` +
                 `checks that it differs from what mainnet runs. Either it is genuinely ` +
                 `new — add it here — or its baseline entry went missing and must be ` +
                 `restored from the registered target on chain.`
-        ).to.deep.equal(["ExitFeeModule"]);
+        ).to.deep.equal(["LoanMaintenanceViews", "ExitFeeModule", "LoanClosingsWithSwap"]);
         expect(deployedRecord("ExitFeeModule").address, "ExitFeeModule is not deployed").to.match(
             /^0x[0-9a-fA-F]{40}$/
         );
@@ -161,18 +184,124 @@ contract("Perimeter — pinned release set", () => {
         });
     });
 
-    MUST_NOT_SHIP.concat(MUST_SHIP).forEach((name) => {
-        it(`${name} links only the expected library`, () => {
-            const record = deployedRecord(name);
-            const linked = Object.keys(record.libraries || {});
-            const unexpected = linked.filter((l) => !EXPECTED_LIBRARIES.includes(l));
-            expect(
-                unexpected,
-                `${name} links a library this comparison does not know about, so ` +
-                    `normalising its address away could hide a real change`
-            ).to.deep.equal([]);
-        });
+    it("retained original liquidation keeps exact provenance, public ABI and protocol layout", async () => {
+        const original = loadOriginalLiquidation();
+        const current = compiled("LoanClosingsLiquidation");
+        const publicLiquidate = (abi) =>
+            abi.filter((x) => x.type === "function" && x.name === "liquidate");
+        expect(publicLiquidate(current.abi)).to.deep.equal(publicLiquidate(original.record.abi));
+        const oldLayout = original.record.storageLayout.storage
+            .map((s) => ({
+                label: s.label,
+                slot: String(s.slot),
+                offset: s.offset,
+                type: normType(s.type),
+            }))
+            .sort(
+                (a, b) =>
+                    Number(a.slot) - Number(b.slot) ||
+                    a.offset - b.offset ||
+                    a.label.localeCompare(b.label)
+            );
+        expect(oldLayout.length).to.equal(63);
+        expect(
+            await normalizedLayout(
+                "contracts/modules/LoanClosingsLiquidation.sol:LoanClosingsLiquidation"
+            )
+        ).to.deep.equal(oldLayout);
+        // Different candidate bytes are explicit; old retention is not candidate installation.
+        expect(current.deployedBytecode.toLowerCase()).to.not.equal(
+            original.record.deployedBytecode.toLowerCase()
+        );
     });
+
+    for (const [name, originalName, functions] of [
+        ["LoanClosingsRollover", "LoanClosingsRollover", ["rollover"]],
+        [
+            "LoanMaintenanceViews",
+            "LoanMaintenance",
+            MAINTENANCE_VIEW_SIGNATURES.map((s) => s.split("(")[0]),
+        ],
+    ])
+        it(`${name} remains compatible with original interface, source behavior and State layout`, async () => {
+            const original = loadOriginalProtocolModule(originalName);
+            const current = compiled(name);
+            // internalType includes the hosting contract's struct namespace;
+            // type/components retain the complete encoded interface shape.
+            const publicEntries = (abi) =>
+                JSON.parse(
+                    JSON.stringify(
+                        abi.filter((e) => e.type === "function" && functions.includes(e.name)),
+                        (key, value) => (key === "internalType" ? undefined : value)
+                    )
+                );
+            expect(publicEntries(current.abi)).to.deep.equal(publicEntries(original.record.abi));
+            const oldLayout = original.record.storageLayout.storage
+                .map((s) => ({
+                    label: s.label,
+                    slot: String(s.slot),
+                    offset: s.offset,
+                    type: normType(s.type),
+                }))
+                .sort(
+                    (a, b) =>
+                        Number(a.slot) - Number(b.slot) ||
+                        a.offset - b.offset ||
+                        a.label.localeCompare(b.label)
+                );
+            expect(oldLayout.length).to.equal(63);
+            expect(await normalizedLayout(`contracts/modules/${name}.sol:${name}`)).to.deep.equal(
+                oldLayout
+            );
+            for (const source of ["contracts/core/State.sol", "contracts/core/Objects.sol"]) {
+                expect(fs.readFileSync(path.resolve(__dirname, "../..", source), "utf8")).to.equal(
+                    original.input.sources[source].content
+                );
+            }
+            const oldSource =
+                original.input.sources[`contracts/modules/${originalName}.sol`].content;
+            const newSource = fs.readFileSync(
+                path.resolve(__dirname, `../../contracts/modules/${name}.sol`),
+                "utf8"
+            );
+            if (name === "LoanClosingsRollover") expect(newSource).to.equal(oldSource);
+            else {
+                const extract = (text, name) => {
+                    const start = text.search(new RegExp("function\\s+" + name + "\\s*\\("));
+                    expect(start, name).to.be.gte(0);
+                    const opening = text.indexOf("{", start);
+                    let depth = 1,
+                        end = opening + 1;
+                    for (; depth > 0 && end < text.length; end++) {
+                        if (text[end] === "{") depth++;
+                        else if (text[end] === "}") depth--;
+                    }
+                    return text
+                        .slice(start, end)
+                        .replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "")
+                        .replace(/\s+/g, "");
+                };
+                for (const fn of [...functions, "_getLoan", "_getLoanV2"])
+                    expect(extract(newSource, fn), fn).to.equal(extract(oldSource, fn));
+            }
+        });
+
+    // A module with no mainnet record yet (the split modules) has no declared
+    // link to check; its linking is proven at deploy time instead.
+    MUST_NOT_SHIP.concat(MUST_SHIP, MUST_RETAIN_ORIGINAL)
+        .filter((name) => hasRecord(name))
+        .forEach((name) => {
+            it(`${name} links only the expected library`, () => {
+                const record = deployedRecord(name);
+                const linked = Object.keys(record.libraries || {});
+                const unexpected = linked.filter((l) => !EXPECTED_LIBRARIES.includes(l));
+                expect(
+                    unexpected,
+                    `${name} links a library this comparison does not know about, so ` +
+                        `normalising its address away could hide a real change`
+                ).to.deep.equal([]);
+            });
+        });
 
     /**
      * The swaps library is linked, not redeployed.
@@ -219,7 +348,7 @@ contract("Perimeter — pinned release set", () => {
         const KNOWN_UNRELINKED = {};
 
         const wrong = [];
-        MUST_SHIP.forEach((name) => {
+        MUST_SHIP.filter((name) => hasRecord(name)).forEach((name) => {
             const linked = (deployedRecord(name).libraries || {}).SwapsImplSovrynSwapLib;
             if (!linked) return;
             const addr = linked.toLowerCase();
@@ -235,9 +364,12 @@ contract("Perimeter — pinned release set", () => {
         ).to.deep.equal([]);
     });
 
-    it("the two lists do not overlap", () => {
-        const overlap = MUST_SHIP.filter((m) => MUST_NOT_SHIP.includes(m));
-        expect(overlap, "a module cannot both ship and stay out").to.deep.equal([]);
+    it("replacement, unchanged-code and original-retention classifications do not overlap", () => {
+        const classified = MUST_SHIP.concat(MUST_NOT_SHIP, MUST_RETAIN_ORIGINAL);
+        expect(
+            new Set(classified).size,
+            "each protocol module has exactly one disposition"
+        ).to.equal(classified.length);
     });
 
     /**
@@ -251,14 +383,14 @@ contract("Perimeter — pinned release set", () => {
     it("every protocol module the deployment knows about is classified here", () => {
         const { getProtocolModules } = require("../../deployment/helpers/helpers");
         const deployed = Object.values(getProtocolModules()).map((m) => m.moduleName);
-        const classified = MUST_SHIP.concat(MUST_NOT_SHIP);
+        const classified = MUST_SHIP.concat(MUST_NOT_SHIP, MUST_RETAIN_ORIGINAL);
 
         const unclassified = deployed.filter((m) => !classified.includes(m));
         expect(
             unclassified,
             `these modules are deployed by 2070 and proposed by 2080 but this test ` +
                 `says nothing about whether they belong in the release. Add each to ` +
-                `MUST_SHIP or MUST_NOT_SHIP after checking its body against mainnet.`
+                `MUST_SHIP, MUST_NOT_SHIP or MUST_RETAIN_ORIGINAL after verifying its intended behavior and identity.`
         ).to.deep.equal([]);
 
         const phantom = classified.filter((m) => !deployed.includes(m));

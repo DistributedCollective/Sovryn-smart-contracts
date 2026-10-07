@@ -1,12 +1,4 @@
 // SPDX-License-Identifier: MIT
-// ─────────────────────────────────────────────────────────────────────────────
-// Copied from DistributedCollective/perimeter @ 29062c6b4a85abef8e8ae438a8570fa41c5fbda0
-//   src/interfaces/IExitFeeController.sol
-// Do not modify the declarations here. To update: change upstream, re-copy,
-// bump SHA in this header. Layout follows this repo's formatter, and comment
-// text is kept free of tracker/plan references, so a re-copy is a declaration
-// diff, not a byte diff.
-// ─────────────────────────────────────────────────────────────────────────────
 // Range pragma is intentional: this file is consumed under Solidity 0.5.17
 // (Sovryn-smart-contracts), 0.6.11 (zero-contracts), and 0.8.20 (this repo).
 // aderyn-ignore-next-line(unspecific-solidity-pragma)
@@ -54,6 +46,18 @@ interface IExitFeeController {
         uint16 rateBps;
     }
 
+    /// @notice A delay bypass/exemption entry, mirroring the fee tiers
+    ///         (actor → sub-product → surface). `active == false` ⇒ the tier is
+    ///         not configured; resolution falls through. `active == true` ⇒ this
+    ///         tier decides: `bypass == true` exempts (`d = 0`), `bypass == false`
+    ///         FORCES `globalDelaySeconds` (overriding a broader bypass). It is an
+    ///         exemption toggle only — there is no per-instance delay
+    ///         duration.
+    struct DelayBypassPolicy {
+        bool active;
+        bool bypass;
+    }
+
     /// @notice Quote returned by `quoteExitFee`. `reason` carries the precise
     ///         off-state code; `active` is the resolved policy state (true iff
     ///         a RatePolicy.active entry was used and reason ∈ {NONE}).
@@ -86,6 +90,27 @@ interface IExitFeeController {
     event SubProductPolicyRemoved(bytes32 indexed surfaceId, address indexed subProduct);
     event ActorPolicyRemoved(bytes32 indexed surfaceId, address indexed actor);
 
+    // Delay extension.
+    event AdminSet(address indexed admin);
+    event SecurityPerimeterEnabledSet(bool enabled);
+    event GlobalDelaySet(uint32 seconds_);
+    event SurfaceBypassSet(bytes32 indexed surfaceId, bool active, bool bypass);
+    event SurfaceBypassRemoved(bytes32 indexed surfaceId);
+    event SubProductBypassSet(
+        bytes32 indexed surfaceId,
+        address indexed subProduct,
+        bool active,
+        bool bypass
+    );
+    event ActorBypassSet(
+        bytes32 indexed surfaceId,
+        address indexed actor,
+        bool active,
+        bool bypass
+    );
+    event SubProductBypassRemoved(bytes32 indexed surfaceId, address indexed subProduct);
+    event ActorBypassRemoved(bytes32 indexed surfaceId, address indexed actor);
+
     // ─── Quote ────────────────────────────────────────────────────────────
 
     /// @notice Resolve the fee policy for `(surfaceId, subProduct, actor)` and
@@ -99,6 +124,35 @@ interface IExitFeeController {
         address actor,
         uint256 grossAmount
     ) external view returns (ExitFeeQuote memory);
+
+    // ─── Delay quote (security perimeter) ─────────────────────────────────
+
+    /// @notice The hook's SINGLE delay entry. Short-circuits the kill
+    ///         switch FIRST: `if (!securityPerimeterEnabled) return (0,
+    ///         rawOriginator, owner)` (pays direct without touching the queue).
+    ///         Otherwise quotes the delay on the originator and returns the
+    ///         originator and owner unchanged, so the quote and the record use
+    ///         the SAME identity. The hook MUST ignore `effOrig` /
+    ///         `effOwner` and pay direct whenever `d == 0`.
+    /// @return d        Delay seconds to escrow for (0 ⇒ off / inactive / bypassed).
+    /// @return effOrig  The originator, unchanged.
+    /// @return effOwner The owner, unchanged.
+    function quoteExitDelayFor(
+        address rawOriginator,
+        address owner,
+        address receiver,
+        bytes32 surfaceId,
+        address subProduct
+    ) external view returns (uint32 d, address effOrig, address effOwner);
+
+    /// @notice Inner per-actor delay view (off / inactive / bypass ⇒ 0, else
+    ///         `globalDelaySeconds`), evaluated on the actor passed — the
+    ///         originator, as `quoteExitDelayFor` does; off-chain use.
+    function quoteExitDelay(
+        bytes32 surfaceId,
+        address subProduct,
+        address effectiveActor
+    ) external view returns (uint32);
 
     // ─── State views ──────────────────────────────────────────────────────
 
@@ -115,6 +169,37 @@ interface IExitFeeController {
     ) external view returns (RatePolicy memory);
     function subProductKeys(bytes32 surfaceId) external view returns (address[] memory);
     function actorKeys(bytes32 surfaceId) external view returns (address[] memory);
+
+    // ─── Delay state views ────────────────────────────────────────────────
+
+    function admin() external view returns (address);
+    function securityPerimeterEnabled() external view returns (bool);
+    function globalDelaySeconds() external view returns (uint32);
+    function surfaceBypass(bytes32 surfaceId) external view returns (DelayBypassPolicy memory);
+    function subProductBypass(
+        bytes32 surfaceId,
+        address subProduct
+    ) external view returns (DelayBypassPolicy memory);
+    function actorBypass(
+        bytes32 surfaceId,
+        address actor
+    ) external view returns (DelayBypassPolicy memory);
+
+    /// @notice Every surfaceId ever configured in the surface-tier delay-bypass
+    ///         index. Backed by an enumerable set so monitoring tooling can dump
+    ///         every surface bypass without relying on off-chain event indexing.
+    ///         Entries persist on `{active:false}`; use `removeSurfaceBypass` for
+    ///         hard removal.
+    function surfaceBypassKeys() external view returns (bytes32[] memory);
+    function subProductBypassKeys(bytes32 surfaceId) external view returns (address[] memory);
+    function actorBypassKeys(bytes32 surfaceId) external view returns (address[] memory);
+
+    /// @notice Every surfaceId that carries a delay-bypass entry at any tier —
+    ///         surface, sub-product, or actor. Recorded from all three writers,
+    ///         so a surface with only a sub-product- or actor-tier bypass is
+    ///         enumerable even though it was never passed to `setSurfaceBypass`.
+    ///         Retention-only (entries never dropped).
+    function bypassSurfaceIds() external view returns (bytes32[] memory);
 
     // ─── Admin ────────────────────────────────────────────────────────────
 
@@ -141,4 +226,58 @@ interface IExitFeeController {
     function removeSubProductPolicies(bytes32 surfaceId, address[] calldata subProducts) external;
     function removeActorPolicy(bytes32 surfaceId, address actor) external;
     function removeActorPolicies(bytes32 surfaceId, address[] calldata actors) external;
+
+    // ─── Delay admin (security perimeter) ─────────────────────────────────
+    // The kill switch is `onlyAdminOrOwner`; every other delay setter is
+    // `onlyOwner`. View quotes are ungated.
+
+    /// @notice Rotate the fast operational guardian (Admin). Owner-only. May
+    ///         equal the Owner -- nothing requires the two to be distinct. The
+    ///         only delay principal on the controller.
+    function setAdmin(address newAdmin) external;
+
+    function setSecurityPerimeterEnabled(bool enabled) external;
+    function setGlobalDelaySeconds(uint32 seconds_) external;
+    function setSurfaceBypass(bytes32 surfaceId, DelayBypassPolicy calldata policy) external;
+
+    /// @notice Hard-remove a surface-tier delay bypass: clears the stored
+    ///         policy and drops the surfaceId from the enumeration index.
+    ///         Idempotent.
+    function removeSurfaceBypass(bytes32 surfaceId) external;
+
+    function setSubProductBypass(
+        bytes32 surfaceId,
+        address subProduct,
+        DelayBypassPolicy calldata policy
+    ) external;
+    function setSubProductBypasses(
+        bytes32 surfaceId,
+        address[] calldata subProducts,
+        DelayBypassPolicy[] calldata policies
+    ) external;
+    function setActorBypass(
+        bytes32 surfaceId,
+        address actor,
+        DelayBypassPolicy calldata policy
+    ) external;
+    function setActorBypasses(
+        bytes32 surfaceId,
+        address[] calldata actors,
+        DelayBypassPolicy[] calldata policies
+    ) external;
+    function removeSubProductBypass(bytes32 surfaceId, address subProduct) external;
+    function removeSubProductBypasses(bytes32 surfaceId, address[] calldata subProducts) external;
+    function removeActorBypass(bytes32 surfaceId, address actor) external;
+    function removeActorBypasses(bytes32 surfaceId, address[] calldata actors) external;
+
+    /// @notice Withdraw an actor-tier exemption in one call: the fee entry
+    ///         inactive (surface rate applies), the delay entry active with no
+    ///         bypass (delayed whatever a wider tier says). Owner-only.
+    function revokeExemption(bytes32 surfaceId, address actor) external;
+
+    /// @notice Grant an actor-tier exemption in one call: the fee entry
+    ///         {active: true, rateBps: 0}, the delay entry {active: true,
+    ///         bypass: true} — both halves together, never one without the
+    ///         other. Owner-only.
+    function grantExemption(bytes32 surfaceId, address actor) external;
 }

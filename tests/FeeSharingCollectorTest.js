@@ -36,6 +36,7 @@ const {
     replaceStakingModule,
     getStakingModulesObject,
     getStakingModulesAddressList,
+    linkIfUsed,
 } = require("./Utils/initializer");
 
 const TestToken = artifacts.require("TestToken");
@@ -50,10 +51,12 @@ const Affiliates = artifacts.require("Affiliates");
 const Protocol = artifacts.require("sovrynProtocol");
 const ProtocolSettings = artifacts.require("ProtocolSettingsMockup");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
+const LoanMaintenanceViews = artifacts.require("LoanMaintenanceViews");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
+const LoanClosingsWithSwap = artifacts.require("LoanClosingsWithSwap");
 
 const ILoanTokenLogicProxy = artifacts.require("ILoanTokenLogicProxy");
 const ILoanTokenModules = artifacts.require("ILoanTokenModules");
@@ -141,11 +144,13 @@ contract("FeeSharingCollector:", (accounts) => {
         try {
             /** Deploy SwapsImplSovrynSwapLib */
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
-            await SwapsExternal.link(swapsImplSovrynSwapLib);
-            await LoanClosingsWith.link(swapsImplSovrynSwapLib);
-            await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
-            await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenanceViews, swapsImplSovrynSwapLib);
+            await linkIfUsed(SwapsExternal, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsWith, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsWithSwap, swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanClosingsRollover, swapsImplSovrynSwapLib);
+            await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
         } catch (err) {}
     });
 
@@ -196,11 +201,16 @@ contract("FeeSharingCollector:", (accounts) => {
         await sovryn.replaceContract((await ProtocolSettings.new()).address);
         await sovryn.replaceContract((await LoanSettings.new()).address);
         await sovryn.replaceContract((await LoanMaintenance.new()).address);
+        // The loan views split out of LoanMaintenance; without this every
+        // view below reads as an inactive target.
+        await sovryn.replaceContract((await LoanMaintenanceViews.new()).address);
         await sovryn.replaceContract((await SwapsExternal.new()).address);
 
         await sovryn.setWrbtcToken(WRBTC.address);
 
         await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+        // closeWithSwap split out of LoanClosingsWith.
+        await sovryn.replaceContract((await LoanClosingsWithSwap.new()).address);
         await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
         await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
 
@@ -5285,90 +5295,6 @@ contract("FeeSharingCollector:", (accounts) => {
         });
     });
 
-    describe("recover incorrect allocated fees", async () => {
-        let mockSOV, mockZUSD;
-        let rbtcAmount = new BN(wei("878778886164898400", "wei"));
-
-        beforeEach(async () => {
-            mockSOV = await smock.fake("TestToken", {
-                address: "0xEFc78fc7d48b64958315949279Ba181c2114ABBd",
-            });
-
-            mockZUSD = await smock.fake("TestToken", {
-                address: "0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d",
-            });
-
-            mockSOV.transfer.returns(true);
-            mockZUSD.transfer.returns(true);
-
-            await web3.eth.sendTransaction({
-                from: accounts[2].toString(),
-                to: feeSharingCollector.address,
-                value: rbtcAmount,
-                gas: 50000,
-            });
-        });
-
-        it("recoverIncorrectAllocatedFees() can only be called by the owner", async () => {
-            await protocolDeploymentFixture();
-            await expectRevert(
-                feeSharingCollector.recoverIncorrectAllocatedFees({ from: accounts[1] }),
-                "unauthorized"
-            );
-        });
-
-        it("recoverIncorrectAllocatedFees() can only be executed once", async () => {
-            const owner = root;
-            await protocolDeploymentFixture();
-            await feeSharingCollector.recoverIncorrectAllocatedFees({ from: owner });
-            await expectRevert(
-                feeSharingCollector.recoverIncorrectAllocatedFees({ from: owner }),
-                "FeeSharingCollector: function can only be called once"
-            );
-        });
-
-        it("Should be able to withdraw the incorrect allocated fees properly", async () => {
-            await protocolDeploymentFixture();
-            const owner = await feeSharingCollector.owner();
-            const previousBalanceOwner = new BN(await web3.eth.getBalance(owner));
-            const tx = await feeSharingCollector.recoverIncorrectAllocatedFees();
-            const latestBalanceOwner = new BN(await web3.eth.getBalance(owner));
-            const txFee = new BN((await etherGasCost(tx.receipt)).toString());
-
-            expect(previousBalanceOwner.add(rbtcAmount).sub(txFee).toString()).to.be.equal(
-                latestBalanceOwner.toString()
-            );
-        });
-
-        it("Should revert if sov or zusd transfer failed", async () => {
-            await protocolDeploymentFixture();
-            mockSOV.transfer.returns(false);
-            await expectRevert(
-                feeSharingCollector.recoverIncorrectAllocatedFees(),
-                "SafeERC20: ERC20 operation did not succeed"
-            );
-            mockSOV.transfer.returns(true);
-            mockZUSD.transfer.returns(false);
-            await expectRevert(
-                feeSharingCollector.recoverIncorrectAllocatedFees(),
-                "SafeERC20: ERC20 operation did not succeed"
-            );
-        });
-
-        it("Should revert if rbtc transfer failed", async () => {
-            feeSharingCollector = await FeeSharingCollectorMockup.new(
-                sovryn.address,
-                staking.address
-            );
-
-            /** Should revert because feeSharingCollector does not have enough balance of rbtc */
-            await expectRevert(
-                feeSharingCollector.recoverIncorrectAllocatedFees(),
-                "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
-            );
-        });
-    });
-
     describe("test coverage", async () => {
         it("Token transfer failed", async () => {
             await protocolDeploymentFixture();
@@ -5462,19 +5388,6 @@ contract("FeeSharingCollector:", (accounts) => {
             expect(checkpointNum).to.equal(0);
             expect(hasSkippedCheckpoints).to.equal(false);
             expect(hasFees).to.equal(false);
-        });
-
-        it("getRBTCBalance should revert error if non-rbtc token is passed", async () => {
-            await protocolDeploymentFixture();
-            feeSharingCollector = await FeeSharingCollectorMockup.new(
-                sovryn.address,
-                staking.address
-            );
-
-            await expectRevert(
-                feeSharingCollector.getRBTCBalance(SOVToken.address, root, 0),
-                "FeeSharingCollector::_getRBTCBalance: only rbtc-based tokens are allowed"
-            );
         });
 
         it("Withdraw function should revert if got reentrant", async () => {

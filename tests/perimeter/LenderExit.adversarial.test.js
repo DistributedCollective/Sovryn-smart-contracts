@@ -1,10 +1,10 @@
 /**
- * Phase 2 follow-up — Lender-exit ADVERSARIAL coverage (iToken tree).
+ * Lender-exit adversarial coverage (iToken tree).
  *
  * The protocol (borrower-exit) tree has its containment proven through the
  * BorrowerExitPerimeterOps delegatecall backstop; the iToken tree charges INLINE
  * (LoanTokenLogicShared._chargeExitFeeAndPay) and therefore needs its own
- * adversarial proofs. This suite closes the review gaps:
+ * adversarial proofs, covering:
  *
  *   1. The controller pointer is the PROTOCOL SINGLETON: the iToken keeps no
  *      copy (no setExitFeeController on the beacon), its exitFeeController()
@@ -52,6 +52,7 @@ const MockMalformedExitFeeController = artifacts.require("MockMalformedExitFeeCo
 const MockArbitraryQuoteExitFeeController = artifacts.require(
     "MockArbitraryQuoteExitFeeController"
 );
+const MockShortReturnExitFeeController = artifacts.require("MockShortReturnExitFeeController");
 const LiquidityMiningLogic = artifacts.require("LiquidityMiningMockup");
 const LiquidityMiningProxy = artifacts.require("LiquidityMiningProxy");
 const LockedSOV = artifacts.require("LockedSOV");
@@ -73,6 +74,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -194,7 +196,7 @@ contract("Perimeter — lender-exit adversarial (iToken tree)", (accounts) => {
         [lender, user, feeReceiver, stranger, ...accounts] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {
@@ -301,10 +303,13 @@ contract("Perimeter — lender-exit adversarial (iToken tree)", (accounts) => {
         });
 
         it("controller without the quoteExitFee selector (short return) → same fail-open outcome", async () => {
-            // SUSD is a contract with no quoteExitFee and no data-returning
-            // fallback: the staticcall fails, safeQuote synthesizes the
-            // CONTROLLER_REVERT quote. Mirrors the protocol-side test shape.
-            await sovryn.setExitFeeController(SUSD.address, { from: lender });
+            // A controller whose `quoteExitFee` returns zero-length data
+            // (safeQuote's length-gate branch) synthesizes the CONTROLLER_REVERT
+            // quote and the burn fails open. The double answers the delay quote
+            // cleanly (disabled perimeter) — as any real ExitFeeController does —
+            // so the fail-CLOSED delay leg does not brick this fee-leg test.
+            const shortCtrl = await MockShortReturnExitFeeController.new();
+            await sovryn.setExitFeeController(shortCtrl.address, { from: lender });
 
             const burnAmount = await iSUSD.balanceOf(user);
             const susdBefore = await SUSD.balanceOf(user);
@@ -419,7 +424,7 @@ contract("Perimeter — lender-exit adversarial (iToken tree)", (accounts) => {
         async function probeGross(token, signature, receiver, burnAmount) {
             await arbitrary.setQuote(false, 0, 0, 0, ZERO, REASON.INACTIVE);
             await sovryn.setExitFeeController(arbitrary.address, { from: lender });
-            const gross = await token.contract.methods[signature](
+            const { gross } = await token.contract.methods[signature](
                 receiver,
                 burnAmount.toString(),
                 false

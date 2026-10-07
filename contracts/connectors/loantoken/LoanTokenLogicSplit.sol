@@ -65,20 +65,24 @@ contract LoanTokenLogicSplit is LoanTokenLogicShared {
      * @param receiver The account getting the minted tokens.
      * @param burnAmount The amount of loan tokens to redeem.
      *
-     * @return The GROSS amount of underlying tokens redeemed. When a Perimeter
-     *         exit-fee policy is active the receiver is paid this amount minus
-     *         the fee (the split is published in `ExitFeeApplied`) — do not
-     *         treat the return value as the amount received.
+     * @return gross The underlying that left the pool for this burn; a charged
+     *         Perimeter fee is paid out of it.
+     * @return delivered The part of `gross` that reached `receiver` in this
+     *         call: all of it when no fee is charged and nothing is held, `gross`
+     *         minus the fee when a fee is charged, and 0 when the withdrawal delay
+     *         escrows the payout in the delay queue (the queue's record carries
+     *         the escrowed amount) or when `gross` is 0. A caller that forwards
+     *         the proceeds forwards `delivered`.
      * */
     function burn(
         address receiver,
         uint256 burnAmount
-    ) external nonReentrant globallyNonReentrant returns (uint256 loanAmountPaid) {
-        loanAmountPaid = _burnToken(burnAmount);
+    ) external nonReentrant globallyNonReentrant returns (uint256 gross, uint256 delivered) {
+        gross = _burnToken(burnAmount);
 
         // Perimeter: charge the fee and pay the user the underlying ERC20.
         // "5" is the user-leg revert reason.
-        _chargeExitFeeAndPay(receiver, loanAmountPaid, "5");
+        delivered = _chargeExitFeeAndPay(receiver, gross, "5");
     }
 
     /**

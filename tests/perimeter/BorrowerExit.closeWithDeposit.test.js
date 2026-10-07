@@ -1,8 +1,8 @@
 /**
- * Phase 3 / Task 3.2 — Borrower-exit (`LoanClosingsWith.closeWithDeposit`)
+ * Borrower-exit (`LoanClosingsWith.closeWithDeposit`)
  * Perimeter coverage.
  *
- * Surface: `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` (same as Task 3.1).
+ * Surface: `PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW` (same as `withdrawCollateral`).
  *
  * Scenarios:
  *
@@ -10,7 +10,8 @@
  *                                   ExitFeeSkipped(INACTIVE).
  *   2. Surface default 25 bps    → fee receiver gets 25 bps of the residual;
  *                                   borrower gets net; gross == net + fee.
- *   3. Sub-product override key  → REGRESSION for review Finding 1. With
+ *   3. Sub-product override key  → the policy key is the pool (loanLocal.lender),
+ *                                   not the loan token. With
  *                                   policy keyed by `loanLocal.lender`
  *                                   (the iToken proxy = `loanToken.address`)
  *                                   at 50 bps AND policy keyed by the
@@ -29,12 +30,13 @@
  */
 
 const { expect } = require("chai");
-const { BN, constants } = require("@openzeppelin/test-helpers");
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const { BN, constants, expectRevert } = require("@openzeppelin/test-helpers");
+const { loadFixture, takeSnapshot } = require("@nomicfoundation/hardhat-network-helpers");
 
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const MockExitFeeController = artifacts.require("MockExitFeeController");
+const MockExitDelayQueue = artifacts.require("MockExitDelayQueue");
 
 const {
     getSUSD,
@@ -53,6 +55,7 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -62,7 +65,7 @@ const PERIMETER_SURFACE_LENDING_BORROWER_WITHDRAW = web3.utils.keccak256(
 
 const REASON = { NONE: 0, INACTIVE: 1, DISABLED: 2, INVALID_QUOTE: 3 };
 
-contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (accounts) => {
+contract("Perimeter — borrower-exit closeWithDeposit", (accounts) => {
     let owner, account1, feeReceiver;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
     let controller;
@@ -100,7 +103,7 @@ contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (a
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
@@ -209,7 +212,7 @@ contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (a
         });
     });
 
-    describe("Sub-product override REGRESSION (Finding 1: subProduct == loanLocal.lender)", () => {
+    describe("the sub-product key is the pool, not the loan token", () => {
         it("policy keyed by iToken pool (loanLocal.lender) is honored; underlying-token key is NOT", async () => {
             await controller.setExitFeeEnabledTest(true);
             // 50 bps on the iToken (correct key); 999 bps on the underlying
@@ -306,5 +309,64 @@ contract("Perimeter — borrower-exit closeWithDeposit (Phase 3 / Task 3.2)", (a
             expect(rbtcAfter.sub(rbtcBefore).toString()).to.equal(gross.toString());
             expect(feeRecvAfter.sub(feeRecvBefore).toString()).to.equal("0");
         });
+    });
+
+    it("restores principal, interest, collateral, deposit approval and fee after close ingress rejection", async () => {
+        const { loan_id, borrower, receiver, principal } = await openLoanAndPrepareForFullClose();
+        await controller.setExitFeeEnabledTest(true);
+        await controller.setSecurityPerimeterEnabledTest(true);
+        await controller.setGlobalDelaySecondsTest(3600);
+        const queue = await MockExitDelayQueue.new(WRBTC.address, 60);
+        await queue.setAllowedSource(sovryn.address, true);
+        await sovryn.setExitDelayQueue(queue.address, { from: owner });
+        const raw = (signature, types, args) =>
+            web3.eth.call({
+                to: sovryn.address,
+                data:
+                    web3.eth.abi.encodeFunctionSignature(signature) +
+                    web3.eth.abi.encodeParameters(types, args).slice(2),
+            });
+        const snapshot = async () => ({
+            loan: await raw("loans(bytes32)", ["bytes32"], [loan_id]),
+            loanInterest: await raw("loanInterest(bytes32)", ["bytes32"], [loan_id]),
+            lenderInterest: await raw(
+                "lenderInterest(address,address)",
+                ["address", "address"],
+                [loanToken.address, SUSD.address]
+            ),
+            borrower: (await SUSD.balanceOf(borrower)).toString(),
+            depositAllowance: (await SUSD.allowance(borrower, sovryn.address)).toString(),
+            lender: (await SUSD.balanceOf(loanToken.address)).toString(),
+            protocolLoanToken: (await SUSD.balanceOf(sovryn.address)).toString(),
+            protocolCollateral: (await RBTC.balanceOf(sovryn.address)).toString(),
+            receiver: (await RBTC.balanceOf(receiver)).toString(),
+            fee: (await RBTC.balanceOf(feeReceiver)).toString(),
+            queue: (await RBTC.balanceOf(queue.address)).toString(),
+            escrow: (await queue.totalEscrowed(RBTC.address)).toString(),
+            requests: (await queue.lastRequestId()).toString(),
+        });
+        const checkpoint = await takeSnapshot();
+        const positive = await sovryn.closeWithDeposit(loan_id, receiver, principal, {
+            from: borrower,
+        });
+        const applied = findApplied(positive.logs)[0];
+        expect(new BN(applied.args.feeAmount).gtn(0)).to.equal(true);
+        expect((await queue.getRequest(1)).amount.toString()).to.equal(
+            applied.args.netAmount.toString()
+        );
+        await checkpoint.restore();
+        await queue.setAllowedSource(sovryn.address, false);
+        const before = await snapshot();
+        await expectRevert(
+            sovryn.closeWithDeposit(loan_id, receiver, principal, {
+                from: borrower,
+                gas: 6000000,
+            }),
+            "MockQueue: unregistered source"
+        );
+        expect(await snapshot()).to.deep.equal(before);
+        await queue.setAllowedSource(sovryn.address, true);
+        await sovryn.closeWithDeposit(loan_id, receiver, principal, { from: borrower });
+        expect((await queue.lastRequestId()).toString()).to.equal("1");
     });
 });
