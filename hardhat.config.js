@@ -144,7 +144,7 @@ module.exports = {
     namedAccounts: {
         deployer: {
             default: 0,
-            rskSovrynMainnet: 3, //deployer is the 4th account in the mainnetAccounts array, which is the 3rd index
+            // rskSovrynMainnet: 3, //deployer is the 4th account in the mainnetAccounts array, which is the 3rd index
             rskMainnetTenderly: 3,
         },
         signer: {
