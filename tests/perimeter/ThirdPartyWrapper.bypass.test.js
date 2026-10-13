@@ -1,5 +1,5 @@
 /**
- * Phase 2 / Task 2.3 — 3rd-party wrapper actor-attribution coverage.
+ * 3rd-party wrapper actor-attribution coverage.
  *
  * SCOPE: defensive coverage for the legacy / 3rd-party integration pattern
  * where some contract wraps `iToken.burn(...)` on behalf of a user — the
@@ -57,6 +57,7 @@ const {
     getSOV,
 } = require("../Utils/initializer.js");
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 
@@ -68,7 +69,7 @@ const APPLIED_TOPIC = web3.utils.keccak256(
     "ExitFeeApplied(bytes32,address,address,address,address,uint256,uint256,uint256,address)"
 );
 
-contract("Perimeter — 3rd-party wrapper actor-attribution (Phase 2 / Task 2.3)", (accounts) => {
+contract("Perimeter — 3rd-party wrapper actor-attribution", (accounts) => {
     let lender, user, feeReceiver;
     let SUSD, WRBTC, RBTC, BZRX, priceFeeds, sovryn;
     let loanToken; // iSUSD analog
@@ -152,7 +153,7 @@ contract("Perimeter — 3rd-party wrapper actor-attribution (Phase 2 / Task 2.3)
         [lender, user, feeReceiver, ...accounts] = accounts;
 
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsImplSovrynSwap.link(swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwap, swapsImplSovrynSwapLib);
     });
 
     beforeEach(async () => {

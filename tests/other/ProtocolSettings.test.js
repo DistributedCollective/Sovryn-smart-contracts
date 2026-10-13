@@ -26,8 +26,10 @@ const sovrynProtocol = artifacts.require("sovrynProtocol");
 const ISovryn = artifacts.require("ISovryn");
 const LoanSettings = artifacts.require("LoanSettings");
 const LoanMaintenance = artifacts.require("LoanMaintenance");
+const LoanMaintenanceViews = artifacts.require("LoanMaintenanceViews");
 const SwapsExternal = artifacts.require("SwapsExternal");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const {
     getSUSD,
@@ -915,13 +917,16 @@ contract("ProtocolSettings", (accounts) => {
             try {
                 /** Deploy SwapsImplSovrynSwapLib */
                 const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-                await LoanMaintenance.link(swapsImplSovrynSwapLib);
-                await SwapsExternal.link(swapsImplSovrynSwapLib);
+                await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
+                await linkIfUsed(SwapsExternal, swapsImplSovrynSwapLib);
             } catch (err) {}
 
             await sovryn.replaceContract((await ProtocolSettings.new()).address);
             await sovryn.replaceContract((await LoanSettings.new()).address);
             await sovryn.replaceContract((await LoanMaintenance.new()).address);
+            // The loan views split out of LoanMaintenance; without this every
+            // view below reads as an inactive target.
+            await sovryn.replaceContract((await LoanMaintenanceViews.new()).address);
             await sovryn.replaceContract((await SwapsExternal.new()).address);
 
             await expectRevert(

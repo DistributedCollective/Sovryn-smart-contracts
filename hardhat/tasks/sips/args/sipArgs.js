@@ -10,6 +10,10 @@ const {
     CURVE_KEYS: IDOC_CURVE_KEYS,
     SET_DEMAND_CURVE_SIGNATURE,
 } = require("./idocCurveParams");
+const {
+    assertRetainedProtocolRoutes,
+    assertCurrentMaintenanceImplementations,
+} = require("../../../../deployment/helpers/protocolRetention");
 const Logs = require("node-logs");
 const logger = new Logs().showInConsole(true);
 const col = require("cli-color");
@@ -1673,15 +1677,16 @@ const resolveExitFeeControllerAddress = async (hre) => {
  *   10. BorrowerOperations(proxy).setExitFeeController(<ExitFeeController>) —
  *       MUST follow 9: the setter exists only on the implementation 9 installs
  *
- * LoanClosingsLiquidation is NOT replaced. Its source is unchanged in this
+ * SIP-0094 does NOT replace LoanClosingsLiquidation. Its source is unchanged in this
  * release and it calls no changed shared function, so its runtime bytecode
  * (metadata trailer stripped) is byte-identical to the module already
  * registered on mainnet — replacing it would burn a scarce action slot to
  * install the same code at a new address. Only modules whose observable
- * behavior changes are re-registered; inherited-bytecode drift is not a
+ * behavior changes are re-registered in this fee-only proposal; inherited-bytecode drift is not a
  * reason. LoanClosingsShared is an inherited base, not a registered module —
  * its changes ship inside the two closings modules that actually call the
- * changed code. Module deployments come from
+ * changed code. The delay release also explicitly retains the original
+ * liquidation implementation. Module deployments come from
  * deployment/deploy/2070 (protocol modules) and 2061 (BorrowerExitPerimeterOps);
  * beacon module deployments from 2000; the hooked BorrowerOperations and the
  * new CollSurplusPool are built in zero-contracts (branch
@@ -1821,7 +1826,7 @@ const getArgsSip0094Part1 = async (hre) => {
         poolImplRecord.address.toLowerCase() !== poolImplEnv.toLowerCase()
     ) {
         throw new Error(
-            `Perimeter Fee: CollSurplusPoolPerimeter record (${poolImplRecord.address}) and ` +
+            `Perimeter Fee: CollSurplusPool_Implementation record (${poolImplRecord.address}) and ` +
                 `PERIMETER_ZERO_COLL_SURPLUS_POOL (${poolImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
@@ -1830,7 +1835,7 @@ const getArgsSip0094Part1 = async (hre) => {
     if (!poolImplAddress || !ethers.utils.isAddress(poolImplAddress)) {
         throw new Error(
             "Perimeter Fee: new CollSurplusPool implementation unresolved. Save a " +
-                "'CollSurplusPoolPerimeter' deployment record or set " +
+                "'CollSurplusPool_Implementation' deployment record or set " +
                 "PERIMETER_ZERO_COLL_SURPLUS_POOL=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
@@ -1874,7 +1879,7 @@ const getArgsSip0094Part1 = async (hre) => {
         newImplRecord.address.toLowerCase() !== newImplEnv.toLowerCase()
     ) {
         throw new Error(
-            `Perimeter Fee: BorrowerOperationsPerimeter record (${newImplRecord.address}) and ` +
+            `Perimeter Fee: BorrowerOperations_Implementation record (${newImplRecord.address}) and ` +
                 `PERIMETER_ZERO_BORROWER_OPERATIONS (${newImplEnv}) disagree. Remove one — a stale ` +
                 "record must not override the exported implementation address."
         );
@@ -1883,7 +1888,7 @@ const getArgsSip0094Part1 = async (hre) => {
     if (!newImplAddress || !ethers.utils.isAddress(newImplAddress)) {
         throw new Error(
             "Perimeter Fee: hooked BorrowerOperations implementation unresolved. Save a " +
-                "'BorrowerOperationsPerimeter' deployment record or set " +
+                "'BorrowerOperations_Implementation' deployment record or set " +
                 "PERIMETER_ZERO_BORROWER_OPERATIONS=<address> (built from zero-contracts " +
                 "branch sovryn-perimeter-fee)."
         );
@@ -2275,6 +2280,658 @@ const getArgsSip0094Part3 = async (hre) => {
     return { args, governor: "GovernorAdmin" };
 };
 
+/**
+ * Resolve a perimeter input address: a hardhat-deploy record of the given
+ * name if one exists, else the given env var — disagreement between the two
+ * is an error. Requires the resolved address to have contract code, and
+ * checks its codehash against `${envVar}_CODEHASH` when that is set.
+ * The delay proposals are SIP-0096, the Phase 2 continuation of SIP-0094.
+ */
+const resolvePerimeterInput = async (hre, recordName, envVar, label) => {
+    const {
+        ethers,
+        deployments: { getOrNull },
+    } = hre;
+    const record = await getOrNull(recordName);
+    const envAddress = process.env[envVar];
+    if (record && envAddress && record.address.toLowerCase() !== envAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter: ${recordName} record (${record.address}) and ${envVar} (${envAddress}) ` +
+                "disagree. Remove one — a stale record must not override the address you exported."
+        );
+    }
+    const address = record ? record.address : envAddress;
+    if (!address || !ethers.utils.isAddress(address)) {
+        throw new Error(
+            `Perimeter: ${label} address unresolved. Save a '${recordName}' deployment record or ` +
+                `set ${envVar}=<address>.`
+        );
+    }
+    if ((await ethers.provider.getCode(address)) === "0x") {
+        throw new Error(`Perimeter: no contract code at ${label} address ${address}`);
+    }
+    await assertPerimeterCodehash(hre, address, envVar, label);
+    return address;
+};
+
+/**
+ * Perimeter delay — refuse to build either delay proposal against a controller
+ * that is not the delay build.
+ *
+ * The lending modules the delay release installs quote a hold on EVERY hooked
+ * exit and fail CLOSED when the controller cannot answer that quote, so a delay
+ * proposal executed while the proxy still serves the build that predates the
+ * delay would revert every hooked withdrawal until the controller caught up.
+ * The upgrade behind that is an Exchequer transaction on an Exchequer-owned
+ * proxy, never a governance action, which is exactly why the ordering has to be
+ * asserted here rather than assumed from the order the parts are proposed in.
+ *
+ * Both delay views are probed: `globalDelaySeconds` is the scalar the hold
+ * itself depends on, and `securityPerimeterEnabled` is read beside it so a
+ * proxy that happens to answer one selector cannot pass for the delay ABI. A
+ * call that reverts or returns nothing to decode is the refusal.
+ */
+const assertControllerIsDelayBuild = async (hre, controllerAddress) => {
+    const { ethers } = hre;
+    const controller = new ethers.Contract(
+        controllerAddress,
+        [
+            "function globalDelaySeconds() view returns (uint32)",
+            "function securityPerimeterEnabled() view returns (bool)",
+        ],
+        ethers.provider
+    );
+    for (const view of ["globalDelaySeconds", "securityPerimeterEnabled"]) {
+        try {
+            await controller[view]();
+        } catch (error) {
+            throw new Error(
+                `Perimeter: the controller at ${controllerAddress} does not answer ${view}() — ` +
+                    "it still serves the build that predates the delay. The Exchequer must run " +
+                    "upgradeTo on the controller proxy before this proposal is created, or every " +
+                    "hooked withdrawal reverts the moment it executes."
+            );
+        }
+    }
+};
+
+/**
+ * Perimeter delay — refuse an implementation that is not the delay vintage.
+ *
+ * The delay inputs are resolved from the same deployment record names and the
+ * same env vars the release that precedes this one reads. A name left over
+ * from that release therefore resolves here to a build that carries the charge
+ * but knows nothing of the hold, and the address alone cannot tell the two
+ * apart: every implementation is deployed fresh per release, so the address is
+ * always new whatever the bytes are.
+ *
+ * The entry point can tell them apart. Each signature passed here exists only
+ * on the build the delay introduces, so its selector is in the runtime code of
+ * a delay-vintage implementation and in no other. A match on the raw four
+ * bytes is what a Solidity dispatcher always carries.
+ */
+const assertDelayVintageImplementation = async (hre, address, sourceName, label, signature) => {
+    const { ethers } = hre;
+    const selector = ethers.utils.id(signature).slice(2, 10);
+    const code = (await ethers.provider.getCode(address)).toLowerCase();
+    if (!code.includes(selector)) {
+        throw new Error(
+            `Perimeter: ${sourceName} resolved the ${label} to ${address}, whose code carries ` +
+                `no ${signature} (0x${selector}). That entry point exists only on the delay ` +
+                "build, so this address is the vintage that predates it. The preceding release " +
+                `reads ${sourceName} too — point it at the delay build, by re-exporting the env ` +
+                "var or by re-saving the deployment record, whichever is stale."
+        );
+    }
+};
+
+/**
+ * Sequenced delay release — Part 1 (GovernorOwner, 9 actions).
+ *
+ * The lending half of the delay, laid over a perimeter that is already live.
+ * The modules on chain quote a charge but know nothing of a hold, so the changed exit consumers
+ * are replaced by their delay-vintage builds and the protocol is finally given the
+ * queue that custodies a held withdrawal.
+ *
+ * SIP-0094 already installed and activated the fee. This release carries
+ * only the delay additions; it does not repeat the one-time treasury transfer
+ * or subsidy retirement, and it preserves the existing controller pointers.
+ *
+ * ACTION LEDGER:
+ *   1.  LoanTokenLogicBeaconLM.registerLoanTokenModule(LoanTokenLogicLM)
+ *   2.  LoanTokenLogicBeaconWrbtc.registerLoanTokenModule(LoanTokenLogicWrbtcLM)
+ *   3.  sovrynProtocol.replaceContract(LoanClosingsWith)
+ *   4.  sovrynProtocol.replaceContract(LoanClosingsWithSwap)
+ *   5.  sovrynProtocol.replaceContract(LoanMaintenance) — five stateful selectors.
+ *   6.  sovrynProtocol.replaceContract(LoanMaintenanceViews) — eight query selectors.
+ *   7.  sovrynProtocol.replaceContract(ExitFeeModule) — MUST precede 8 and 9.
+ *   8.  sovrynProtocol.setBorrowerExitPerimeterOps(BorrowerExitPerimeterOps)
+ *   9.  sovrynProtocol.setExitDelayQueue(ExitDelayQueue)
+ *
+ * Current Maintenance and Views form the reviewed size split. Original
+ * Maintenance is a rollback anchor; liquidation and rollover stay registered.
+ *
+ * The queue pinned here is inert on its own, but not because the perimeter is
+ * off — the release this one follows already armed the charge. It is inert
+ * because a controller that has just been upgraded carries no hold: the delay
+ * switch reads false and `globalDelaySeconds` is zero, so every delay quote
+ * answers zero and the queue is never touched. Nothing is held until the
+ * controller's owner arms the delay, which is a Safe transaction after these
+ * proposals, not part of them.
+ *
+ * Both proposals remain within the governor's ten-action cap; Zero is Part 2. There is no
+ * Part 3 — the subsidy a Part 3 would retire is already retired by the release
+ * this one follows.
+ */
+const getArgsSipPerimeterDelayPart1 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSipPerimeterDelayPart1: run on mainnet or a mainnet fork only");
+    }
+
+    const protocol = await ethers.getContract("ISovryn");
+    const protocolOwner = await protocol.owner();
+    await assertRetainedProtocolRoutes(hre, protocol);
+    await assertCurrentMaintenanceImplementations(hre);
+
+    /** The controller upgrade is a PRECONDITION of this part, not a follow-up
+     *  to it: the modules installed below quote a hold on every hooked exit and
+     *  fail closed when the controller cannot answer. */
+    const controllerAddress = await resolvePerimeterInput(
+        hre,
+        "ExitFeeController",
+        "PERIMETER_EXIT_FEE_CONTROLLER",
+        "ExitFeeController"
+    );
+    await assertControllerIsDelayBuild(hre, controllerAddress);
+
+    const queueAddress = await resolvePerimeterInput(
+        hre,
+        "ExitDelayQueue",
+        "PERIMETER_EXIT_DELAY_QUEUE",
+        "ExitDelayQueue"
+    );
+    const opsDeployment = await get("BorrowerExitPerimeterOps");
+    if ((await ethers.provider.getCode(opsDeployment.address)) === "0x") {
+        throw new Error(
+            `Perimeter: no contract code at BorrowerExitPerimeterOps ${opsDeployment.address}`
+        );
+    }
+    /** The settlement companion is saved under the same record name by the
+     *  release this one follows, and that build charges but never escrows, so
+     *  the record is checked for the entry point only the delay build has. */
+    await assertDelayVintageImplementation(
+        hre,
+        opsDeployment.address,
+        "BorrowerExitPerimeterOps",
+        "borrower settlement companion",
+        "escrowBorrowerExit(address,address,address,uint256,uint32,address,address)"
+    );
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    const targetOwnerValidationAddresses = [];
+
+    /** 1+2. iToken beacon logic re-registration. Only the two LM modules carry
+     *  the mint/burn selectors; the non-LM logic owns no burn routes.
+     *  registerLoanTokenModule() reads the module's getListFunctionSignatures()
+     *  and de-registers dropped selectors itself. */
+    const beaconRegistrations = [
+        { beaconName: "LoanTokenLogicBeaconLM", moduleName: "LoanTokenLogicLM" },
+        { beaconName: "LoanTokenLogicBeaconWrbtc", moduleName: "LoanTokenLogicWrbtcLM" },
+    ];
+    for (const { beaconName, moduleName } of beaconRegistrations) {
+        const beacon = await ethers.getContract(beaconName);
+        const moduleDeployment = await get(moduleName);
+        if ((await ethers.provider.getCode(moduleDeployment.address)) === "0x") {
+            throw new Error(
+                `Perimeter: no contract code at ${moduleName} ${moduleDeployment.address}`
+            );
+        }
+        const moduleNameBytes32 = ethers.utils.formatBytes32String(moduleName);
+        const activeIndex = await beacon.activeModuleIndex(moduleNameBytes32);
+        const activeModule = await beacon.moduleUpgradeLog(moduleNameBytes32, activeIndex);
+        // Registering over the module the fee release installed is the point of
+        // this part; registering over the delay-vintage module is a re-run.
+        if (activeModule.implementation.toLowerCase() === moduleDeployment.address.toLowerCase()) {
+            throw new Error(
+                `Perimeter: ${beaconName} already serves ${moduleName} at ` +
+                    `${moduleDeployment.address} — this release has already been installed`
+            );
+        }
+        targets.push(beacon.address);
+        values.push(0);
+        signatures.push("registerLoanTokenModule(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+        targetOwnerValidationAddresses.push(await beacon.owner());
+    }
+
+    /** 3–7. Selected protocol modules, ExitFeeModule last before queue pinning. */
+    const modulesList = getProtocolModules();
+    const replacedModules = [
+        modulesList.LoanClosingsWith,
+        modulesList.LoanClosingsWithSwap,
+        modulesList.LoanMaintenance,
+        modulesList.LoanMaintenanceViews,
+        modulesList.ExitFeeModule,
+    ];
+    let exitFeeModuleIndex = -1;
+    for (const module of replacedModules) {
+        const moduleDeployment = await get(module.moduleName);
+        // replaceContract is a raw delegatecall, and a delegatecall to a
+        // codeless address SUCCEEDS silently — a stale or mistyped module
+        // record would no-op inside an otherwise successful proposal.
+        if ((await ethers.provider.getCode(moduleDeployment.address)) === "0x") {
+            throw new Error(
+                `Perimeter: no contract code at ${module.moduleName} ${moduleDeployment.address}`
+            );
+        }
+        if (
+            (await protocol.getTarget(module.sampleFunction)).toLowerCase() ===
+            moduleDeployment.address.toLowerCase()
+        ) {
+            throw new Error(
+                `Perimeter: the protocol already routes ${module.moduleName} to ` +
+                    `${moduleDeployment.address} — this release has already been installed`
+            );
+        }
+        if (module.moduleName === "ExitFeeModule") {
+            // The admin module is the one protocol input with a vintage marker:
+            // the queue pointer setter action 9 calls is registered by this
+            // module and exists nowhere in the build that predates the delay.
+            // Both Maintenance hosts are qualified against complete runtime
+            // artifacts above; Views ships as the reviewed size split.
+            await assertDelayVintageImplementation(
+                hre,
+                moduleDeployment.address,
+                "ExitFeeModule",
+                "ExitFeeModule",
+                "setExitDelayQueue(address)"
+            );
+            exitFeeModuleIndex = targets.length;
+        }
+        targets.push(protocol.address);
+        values.push(0);
+        signatures.push("replaceContract(address)");
+        datas.push(abiCoder.encode(["address"], [moduleDeployment.address]));
+        targetOwnerValidationAddresses.push(protocolOwner);
+    }
+
+    /** 8. Re-pin the borrower settlement companion: the delay-vintage build
+     *  settles a held borrower exit into the queue, which the one on chain
+     *  cannot do. */
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setBorrowerExitPerimeterOps(address)");
+    datas.push(abiCoder.encode(["address"], [opsDeployment.address]));
+    targetOwnerValidationAddresses.push(protocolOwner);
+
+    /** 9. Pin the delay queue. Every iToken reads this one protocol-side
+     *  pointer, so rotation stays a single action. */
+    targets.push(protocol.address);
+    values.push(0);
+    signatures.push("setExitDelayQueue(address)");
+    datas.push(abiCoder.encode(["address"], [queueAddress]));
+    targetOwnerValidationAddresses.push(protocolOwner);
+
+    const firstPointerIndex = signatures.findIndex((s) => s.startsWith("set"));
+    if (exitFeeModuleIndex === -1 || exitFeeModuleIndex > firstPointerIndex) {
+        throw new Error(
+            "Perimeter: ExitFeeModule must be registered before any protocol pointer action — " +
+                "its initialize() is what registers those selectors on the protocol."
+        );
+    }
+    if (targets.length !== 9) {
+        throw new Error(
+            `Perimeter: delay Part 1 must hold exactly 9 actions, built ${targets.length}`
+        );
+    }
+
+    const args = {
+        targets: targets,
+        targetOwnerValidationAddresses: targetOwnerValidationAddresses,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0096: Perimeter Withdrawal Delay (Part 1 of 2 — GovernorOwner)\nhttps://forum.sovryn.com/____\nInstalls the lending withdrawal-delay hooks; holding stays disabled until post-deployment verification.\n---\nInstalls the delay on the lending protocol: re-registers the two hooked iToken beacon modules (2), replaces the LoanClosingsWith, LoanClosingsWithSwap and the LoanMaintenance/LoanMaintenanceViews split protocol modules (4), replaces the ExitFeeModule admin module so the protocol carries the queue pointer selector (1), then re-pins the borrower settlement companion and pins the exit delay queue (2). Original liquidation and rollover are retained. Both maintenance selector groups move to the current reviewed split; original Maintenance remains the rollback anchor. Nothing is held until the perimeter is switched on. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorOwner" };
+};
+
+/**
+ * Sequenced delay release — Part 2 (GovernorOwner, the Zero side).
+ *
+ * Five actions, or four where the pool needs no upgrade:
+ *   1. CollSurplusPool_Proxy.setImplementation(new CollSurplusPool) — included
+ *      only when the delay build differs from the implementation the proxy
+ *      serves today. Ordered BEFORE the BorrowerOperations swap and load-
+ *      bearing: the delay-vintage BorrowerOperations settles a surplus claim
+ *      through a pool entry point the fee-vintage pool does not have, and
+ *      there is no in-code fallback around the pool call
+ *   2. BorrowerOperations_Proxy.setImplementation(new BorrowerOperations)
+ *   3. BorrowerOperations.setPerimeterOps(BorrowerOperationsPerimeterOps)
+ *   4. BorrowerOperations.setExitDelayQueue(ExitDelayQueue)
+ *   5. TroveManager_Proxy.setImplementation(TroveManagerLiquidationFix)
+ *
+ * The original lending liquidation remains registered with its complete
+ * artifact/source identity checked. It has no intended fee or delay change.
+ *
+ * Actions 3 and 4 must immediately follow action 2 in the same transaction:
+ * those setters exist only on the implementation action 2 installs, so the
+ * hooked BorrowerOperations is never live with an unset settlement hook or an
+ * unset queue.
+ *
+ * There is no controller pin here and no treasury leg. The controller pointer
+ * on both products is already live from the release this one follows, and it
+ * survives the implementation swap because the pointer lives in a fixed slot,
+ * not in the implementation. This part asserts that pointer rather than
+ * re-writing it, so a chain that never received the earlier release fails here
+ * instead of quietly installing a delay over nothing.
+ */
+const getArgsSipPerimeterDelayPart2 = async (hre) => {
+    const {
+        ethers,
+        deployments: { get },
+    } = hre;
+    const abiCoder = new ethers.utils.AbiCoder();
+
+    if (!network.tags.mainnet) {
+        throw new Error("getArgsSipPerimeterDelayPart2: run on mainnet or a mainnet fork only");
+    }
+
+    const protocol = await ethers.getContract("ISovryn");
+
+    const controllerAddress = await resolvePerimeterInput(
+        hre,
+        "ExitFeeController",
+        "PERIMETER_EXIT_FEE_CONTROLLER",
+        "ExitFeeController"
+    );
+    const queueAddress = await resolvePerimeterInput(
+        hre,
+        "ExitDelayQueue",
+        "PERIMETER_EXIT_DELAY_QUEUE",
+        "ExitDelayQueue"
+    );
+    const poolImplAddress = await resolvePerimeterInput(
+        hre,
+        "CollSurplusPoolPerimeter",
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
+        "CollSurplusPool implementation"
+    );
+    const boImplAddress = await resolvePerimeterInput(
+        hre,
+        "BorrowerOperationsPerimeter",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
+        "BorrowerOperations implementation"
+    );
+    const boOpsAddress = await resolvePerimeterInput(
+        hre,
+        "BorrowerOperationsPerimeterOps",
+        "PERIMETER_ZERO_BORROWER_OPERATIONS_OPS",
+        "BorrowerOperations settlement companion"
+    );
+    const troveManagerImplAddress = await resolvePerimeterInput(
+        hre,
+        "TroveManagerLiquidationFix",
+        "PERIMETER_ZERO_TROVE_MANAGER",
+        "TroveManager implementation"
+    );
+
+    /** Both Zero implementations must be the delay vintage, checked on their
+     *  code rather than trusted from the name that resolved them. The pool is
+     *  the one that fails quietly: its upgrade is built only where the runtime
+     *  code differs from what the proxy already serves, so a stale address that
+     *  happens to match the live implementation makes `poolChanges` false and
+     *  drops the action altogether — a proposal that reads complete and ships
+     *  without the pool the delay-vintage BorrowerOperations settles through. */
+    await assertDelayVintageImplementation(
+        hre,
+        poolImplAddress,
+        "PERIMETER_ZERO_COLL_SURPLUS_POOL",
+        "CollSurplusPool implementation",
+        "claimCollWithFeeTo(address,address,uint256,address)"
+    );
+    await assertDelayVintageImplementation(
+        hre,
+        boImplAddress,
+        "PERIMETER_ZERO_BORROWER_OPERATIONS",
+        "BorrowerOperations implementation",
+        "setExitDelayQueue(address)"
+    );
+
+    /** The earlier release is a precondition, not an assumption: the protocol
+     *  must already route the controller selector and already point at this
+     *  same controller. */
+    if (
+        (await protocol.getTarget("setExitFeeController(address)")) ===
+        ethers.constants.AddressZero
+    ) {
+        throw new Error(
+            "Perimeter: the protocol does not route setExitFeeController — the release that " +
+                "installs the controller must be executed before this one."
+        );
+    }
+    // Read the pointer through a minimal interface: the protocol's deployment
+    // record predates these views, so its recorded ABI does not carry them.
+    const pinnedController = await new ethers.Contract(
+        protocol.address,
+        ["function exitFeeController() view returns (address)"],
+        ethers.provider
+    ).exitFeeController();
+    if (pinnedController.toLowerCase() !== controllerAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter: the protocol points at controller ${pinnedController} but this proposal ` +
+                `resolves ${controllerAddress}. The delay layers on the live controller; ` +
+                "reconcile the record or the pointer before proposing."
+        );
+    }
+    // The same precondition on the Zero side, and this is the proposal that
+    // touches it: the controller pointer lives in a fixed slot and survives the
+    // implementation swap below, so an unset or foreign pointer here would put
+    // a delay-vintage implementation over a controller it cannot reach.
+    const boPinnedController = await new ethers.Contract(
+        (await ethers.getContract("BorrowerOperations_Proxy")).address,
+        ["function exitFeeController() view returns (address)"],
+        ethers.provider
+    ).exitFeeController();
+    if (boPinnedController === ethers.constants.AddressZero) {
+        throw new Error(
+            "Perimeter: BorrowerOperations has no controller pointer — the release that installs " +
+                "it must be executed before this one."
+        );
+    }
+    if (boPinnedController.toLowerCase() !== controllerAddress.toLowerCase()) {
+        throw new Error(
+            `Perimeter: BorrowerOperations points at controller ${boPinnedController} but this ` +
+                `proposal resolves ${controllerAddress}. Both products must sit on the one live ` +
+                "controller before the delay is installed."
+        );
+    }
+    /** Which controller both products point at is settled above; what it is
+     *  serving is the other half of the same precondition. Part 1's modules
+     *  are already quoting a hold against it by the time this part runs. */
+    await assertControllerIsDelayBuild(hre, controllerAddress);
+
+    const targets = [];
+    const values = [];
+    const signatures = [];
+    const datas = [];
+    const targetOwnerValidationAddresses = [];
+
+    /** 1. The pool, only when its bytes actually change. Comparing runtime code
+     *  rather than addresses is what makes that decidable: the implementation
+     *  is freshly deployed for every release, so its address always differs
+     *  while its behaviour may not. */
+    const collSurplusPoolProxy = await ethers.getContract("CollSurplusPool_Proxy");
+    const poolProxyOwner = await collSurplusPoolProxy.getOwner();
+    const currentPoolImpl = await collSurplusPoolProxy.getImplementation();
+    const poolChanges =
+        (await ethers.provider.getCode(currentPoolImpl)) !==
+        (await ethers.provider.getCode(poolImplAddress));
+    if (poolChanges) {
+        targets.push(collSurplusPoolProxy.address);
+        values.push(0);
+        signatures.push("setImplementation(address)");
+        datas.push(abiCoder.encode(["address"], [poolImplAddress]));
+        targetOwnerValidationAddresses.push(poolProxyOwner);
+    }
+
+    /** 2. BorrowerOperations implementation swap, immediately followed by its
+     *  two pointer setters. */
+    const borrowerOperationsProxy = await ethers.getContract("BorrowerOperations_Proxy");
+    const boProxyOwner = await borrowerOperationsProxy.getOwner();
+    if (
+        (await borrowerOperationsProxy.getImplementation()).toLowerCase() ===
+        boImplAddress.toLowerCase()
+    ) {
+        throw new Error(
+            `Perimeter: BorrowerOperations proxy already points at ${boImplAddress} — this ` +
+                "release has already been installed"
+        );
+    }
+    const boSwapIndex = targets.length;
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setImplementation(address)");
+    datas.push(abiCoder.encode(["address"], [boImplAddress]));
+    targetOwnerValidationAddresses.push(boProxyOwner);
+
+    /** 3. The settlement companion the hooked BorrowerOperations delegatecalls.
+     *  Left unset it is not a silent bypass — the call site requires code and
+     *  reverts — but a reverting exit path is not a state to ship, so it is
+     *  pinned in the same transaction as the implementation that reads it. */
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setPerimeterOps(address)");
+    datas.push(abiCoder.encode(["address"], [boOpsAddress]));
+    targetOwnerValidationAddresses.push(boProxyOwner);
+
+    /** 4. The Zero-side queue pointer. */
+    targets.push(borrowerOperationsProxy.address);
+    values.push(0);
+    signatures.push("setExitDelayQueue(address)");
+    datas.push(abiCoder.encode(["address"], [queueAddress]));
+    targetOwnerValidationAddresses.push(boProxyOwner);
+
+    /** 5. The TroveManager implementation swap. It carries no perimeter code and
+     *  no storage change; it rides this release because it upgrades the same
+     *  product under the same governor, after the atomic BorrowerOperations
+     *  upgrade and pointer setters.
+     *
+     *  Two things are checked on the resolved address rather than trusted. Its
+     *  runtime code must differ from what the proxy serves, or the action is a
+     *  no-op and the correction is not in what would ship. And its two
+     *  constructor arguments are `immutable`, so they live in the runtime code:
+     *  an implementation built with a different BOOTSTRAP_PERIOD would move the
+     *  window in which redemptions are refused, which is a live behaviour change
+     *  wearing this upgrade's clothes. Both must equal what the proxy serves
+     *  today. */
+    const troveManagerProxy = await ethers.getContract("TroveManager_Proxy");
+    const troveManagerProxyOwner = await troveManagerProxy.getOwner();
+    const currentTroveManagerImpl = await troveManagerProxy.getImplementation();
+    if (
+        (await ethers.provider.getCode(currentTroveManagerImpl)) ===
+        (await ethers.provider.getCode(troveManagerImplAddress))
+    ) {
+        throw new Error(
+            `Perimeter: the TroveManager implementation at ${troveManagerImplAddress} is ` +
+                `byte-identical to the one the proxy already serves (${currentTroveManagerImpl}). ` +
+                "The Recovery-Mode liquidation correction changes those bytes, so this address " +
+                "predates it — point PERIMETER_ZERO_TROVE_MANAGER at the built implementation."
+        );
+    }
+    const troveManagerImmutables = [
+        "function BOOTSTRAP_PERIOD() view returns (uint256)",
+        "function permit2() view returns (address)",
+    ];
+    const liveTroveManager = new ethers.Contract(
+        troveManagerProxy.address,
+        troveManagerImmutables,
+        ethers.provider
+    );
+    const nextTroveManager = new ethers.Contract(
+        troveManagerImplAddress,
+        troveManagerImmutables,
+        ethers.provider
+    );
+    const liveBootstrap = await liveTroveManager.BOOTSTRAP_PERIOD();
+    const nextBootstrap = await nextTroveManager.BOOTSTRAP_PERIOD();
+    if (!liveBootstrap.eq(nextBootstrap)) {
+        throw new Error(
+            `Perimeter: the TroveManager implementation at ${troveManagerImplAddress} was built ` +
+                `with BOOTSTRAP_PERIOD ${nextBootstrap.toString()}, but the proxy serves ` +
+                `${liveBootstrap.toString()}. That value is immutable, so installing this would ` +
+                "move the redemption bootstrap window as a side effect of the upgrade."
+        );
+    }
+    const livePermit2 = await liveTroveManager.permit2();
+    const nextPermit2 = await nextTroveManager.permit2();
+    if (livePermit2.toLowerCase() !== nextPermit2.toLowerCase()) {
+        throw new Error(
+            `Perimeter: the TroveManager implementation at ${troveManagerImplAddress} was built ` +
+                `against permit2 ${nextPermit2}, but the proxy serves ${livePermit2}. That address ` +
+                "is immutable and must match what is live."
+        );
+    }
+    targets.push(troveManagerProxy.address);
+    values.push(0);
+    signatures.push("setImplementation(address)");
+    datas.push(abiCoder.encode(["address"], [troveManagerImplAddress]));
+    targetOwnerValidationAddresses.push(troveManagerProxyOwner);
+
+    await assertRetainedProtocolRoutes(hre, protocol);
+
+    const expected = poolChanges ? 5 : 4;
+    if (targets.length !== expected) {
+        throw new Error(
+            `Perimeter: delay Part 2 must hold exactly ${expected} actions, built ${targets.length}`
+        );
+    }
+    if (poolChanges && boSwapIndex !== 1) {
+        throw new Error(
+            "Perimeter: the CollSurplusPool upgrade must be the first action and the " +
+                "BorrowerOperations upgrade the second — the delay-vintage BorrowerOperations " +
+                "settles a surplus claim through a pool entry point the live pool does not have, " +
+                "and there is no in-code fallback around the pool call."
+        );
+    }
+    const boSetters = ["setPerimeterOps(address)", "setExitDelayQueue(address)"];
+    for (let i = 0; i < boSetters.length; i++) {
+        if (
+            signatures[boSwapIndex + 1 + i] !== boSetters[i] ||
+            targets[boSwapIndex + 1 + i].toLowerCase() !==
+                borrowerOperationsProxy.address.toLowerCase()
+        ) {
+            throw new Error(
+                "Perimeter: the BorrowerOperations pointer setters must immediately follow its " +
+                    "implementation swap — they exist only on the implementation that swap installs."
+            );
+        }
+    }
+
+    const args = {
+        targets: targets,
+        targetOwnerValidationAddresses: targetOwnerValidationAddresses,
+        values: values,
+        signatures: signatures,
+        data: datas,
+        description:
+            "SIP-0096: Perimeter Withdrawal Delay (Part 2 of 2 — GovernorOwner)\nhttps://forum.sovryn.com/____\nInstalls the Zero withdrawal-delay hooks and Recovery-Mode liquidation correction; holding stays disabled until post-deployment verification.\n---\nInstalls the delay on Zero: upgrades the CollSurplusPool implementation where it changes (1), swaps the BorrowerOperations implementation (1), then pins the settlement companion and the exit delay queue on BorrowerOperations (2), and swaps the TroveManager implementation for the one carrying Liquity's Recovery-Mode multi-liquidation correction (1). The original lending liquidation implementation is explicitly retained; liquidation payouts remain direct and uncharged. The controller pointer installed by the preceding release is left untouched and is asserted, not rewritten. Details: https://github.com/DistributedCollective/SIPS/blob/____/SIP-0096.md, sha256: ____",
+    };
+    assertDescriptionFinalized(args.description);
+    return { args, governor: "GovernorOwner" };
+};
+
 module.exports = {
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
@@ -2304,4 +2961,7 @@ module.exports = {
     getArgsSip0094Part1,
     getArgsSip0094Part2,
     getArgsSip0094Part3,
+    getArgsSipPerimeterDelayPart1,
+    getArgsSipPerimeterDelayPart2,
+    assertControllerIsDelayBuild,
 };

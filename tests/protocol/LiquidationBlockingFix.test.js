@@ -1,6 +1,6 @@
 const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("chai");
-const { decodeLogs } = require("../Utils/initializer");
+const { decodeLogs, linkIfUsed } = require("../Utils/initializer");
 const { increaseTime } = require("../Utils/Ethereum");
 
 const MaliciousBorrower = artifacts.require("MaliciousBorrower");
@@ -32,6 +32,8 @@ const SwapsImplSovrynSwapModule = artifacts.require("SwapsImplSovrynSwapModule")
 const SwapsExternal = artifacts.require("SwapsExternal");
 const LoanClosingsWith = artifacts.require("LoanClosingsWith");
 const LoanClosingsLiquidation = artifacts.require("LoanClosingsLiquidation");
+const LoanClosingsWithSwap = artifacts.require("LoanClosingsWithSwap");
+const LoanMaintenanceViews = artifacts.require("LoanMaintenanceViews");
 const LoanClosingsRollover = artifacts.require("LoanClosingsRollover");
 const Affiliates = artifacts.require("Affiliates");
 const TestSovrynSwap = artifacts.require("TestSovrynSwap");
@@ -1078,18 +1080,27 @@ async function getTestContracts(accounts) {
     // Link libraries for protocol modules (ignore errors if already linked)
     try {
         const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-        await SwapsExternal.link(swapsImplSovrynSwapLib);
-        await LoanClosingsWith.link(swapsImplSovrynSwapLib);
-        await LoanClosingsRollover.link(swapsImplSovrynSwapLib);
-        await SwapsImplSovrynSwapModule.link(swapsImplSovrynSwapLib);
-        await LoanOpenings.link(swapsImplSovrynSwapLib);
-        await LoanMaintenance.link(swapsImplSovrynSwapLib);
+        // Guarded per artifact: a single try/catch around the whole run means the
+        // first artifact that no longer uses the library skips every link after
+        // it, and the failure resurfaces as "unresolved libraries" elsewhere.
+        await linkIfUsed(SwapsExternal, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanClosingsWith, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanClosingsRollover, swapsImplSovrynSwapLib);
+        await linkIfUsed(SwapsImplSovrynSwapModule, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanOpenings, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanClosingsWithSwap, swapsImplSovrynSwapLib);
+        await linkIfUsed(LoanMaintenanceViews, swapsImplSovrynSwapLib);
     } catch (err) {}
 
     // Initialize protocol modules
     await sovryn.replaceContract((await ProtocolSettings.new()).address);
     await sovryn.replaceContract((await LoanSettings.new()).address);
     await sovryn.replaceContract((await LoanMaintenance.new()).address);
+    // The loan VIEWS (getLoan, getLoanV2, getActiveLoans) live in their own
+    // module since the size split; without it every view here reads as an
+    // inactive target.
+    await sovryn.replaceContract((await LoanMaintenanceViews.new()).address);
     await sovryn.replaceContract((await SwapsImplSovrynSwapModule.new()).address);
     await sovryn.replaceContract((await SwapsExternal.new()).address);
 
@@ -1111,6 +1122,8 @@ async function getTestContracts(accounts) {
 
     // Initialize loan closing modules
     await sovryn.replaceContract((await LoanClosingsWith.new()).address);
+    // closeWithSwap moved into its own module in the size split.
+    await sovryn.replaceContract((await LoanClosingsWithSwap.new()).address);
     await sovryn.replaceContract((await LoanClosingsLiquidation.new()).address);
     await sovryn.replaceContract((await LoanClosingsRollover.new()).address);
 
