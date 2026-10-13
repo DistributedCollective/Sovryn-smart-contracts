@@ -69,7 +69,7 @@ contract BorrowerExitPerimeterOps is VaultController, IPerimeterEvents {
         address receiver,
         address payoutAsset,
         uint256 gross
-    ) public returns (uint256 toUser) {
+    ) public payable returns (uint256 toUser) {
         if (gross == 0) return 0;
 
         IExitFeeController.ExitFeeQuote memory q = PerimeterLib.safeQuote(
@@ -149,7 +149,7 @@ contract BorrowerExitPerimeterOps is VaultController, IPerimeterEvents {
         uint32 d,
         address effOrig,
         address effOwner
-    ) public returns (bool escrowed) {
+    ) public payable returns (bool escrowed) {
         DelayLeg memory leg;
         leg.receiver = receiver;
         leg.toUser = toUser;
