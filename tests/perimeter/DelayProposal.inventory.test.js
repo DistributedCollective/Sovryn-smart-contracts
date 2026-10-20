@@ -48,6 +48,7 @@ function fixture({
     registeredAddress = originalLiquidation.address,
     registeredCandidate = false,
     forked = true,
+    sipDescription,
 } = {}) {
     const records = {};
     let next = 100;
@@ -246,7 +247,16 @@ function fixture({
         process: { env: {} },
         console,
     };
-    vm.runInNewContext(fs.readFileSync(file, "utf8"), context, { filename: file });
+    let source = fs.readFileSync(file, "utf8");
+    if (sipDescription !== undefined) {
+        let replaced = 0;
+        source = source.replace(/^(\s*)"SIP-0096:[^\r\n]*"(,?)$/gm, (_, indent, comma) => {
+            replaced++;
+            return indent + JSON.stringify(sipDescription) + comma;
+        });
+        assert.equal(replaced, 2, "both delay descriptions must receive the fixture metadata");
+    }
+    vm.runInNewContext(source, context, { filename: file });
     return {
         hre,
         builders: module.exports,
@@ -535,12 +545,44 @@ describeCase("Perimeter delay proposal installation inventory", () => {
             );
         }
     );
+    const finalDescription =
+        "SIP-0096: Perimeter withdrawal delay fixture\n" +
+        "https://forum.sovryn.com/t/fixture/1\n" +
+        "Details: https://github.com/DistributedCollective/SIPS/blob/" +
+        "a".repeat(40) +
+        "/SIP-0096.md, sha256: " +
+        "b".repeat(64);
+    const delayBuilders = ["getArgsSipPerimeterDelayPart1", "getArgsSipPerimeterDelayPart2"];
+    testCase("accepts finalized SIP metadata for both mainnet proposals", async () => {
+        const f = fixture({ forked: false, sipDescription: finalDescription });
+        for (const name of delayBuilders) {
+            const result = await f.builders[name](f.hre);
+            assert.equal(result.args.description, finalDescription);
+        }
+    });
     testCase("keeps unfinished SIP metadata refused on real mainnet", async () => {
-        const f = fixture({ forked: false });
-        await assert.rejects(
-            f.builders.getArgsSipPerimeterDelayPart2(f.hre),
-            /placeholder metadata/
-        );
+        const unfinished = [
+            finalDescription.replace("SIP-0096:", "SIP-XXXX:"),
+            finalDescription.replace(
+                "https://forum.sovryn.com/t/fixture/1",
+                "https://forum.sovryn.com/____"
+            ),
+            finalDescription.replace("a".repeat(40), "____"),
+            finalDescription.replace("b".repeat(64), "____"),
+        ];
+        for (const sipDescription of unfinished) {
+            const f = fixture({ forked: false, sipDescription });
+            for (const name of delayBuilders) {
+                await assert.rejects(f.builders[name](f.hre), /placeholder metadata/);
+            }
+        }
+    });
+    testCase("permits fixture metadata for both fork proposals", async () => {
+        const sipDescription = finalDescription.replace("b".repeat(64), "____");
+        const f = fixture({ forked: true, sipDescription });
+        for (const name of delayBuilders) {
+            assert.equal((await f.builders[name](f.hre)).args.description, sipDescription);
+        }
     });
     testCase(
         "requires original liquidation retention alongside installed changed modules",
