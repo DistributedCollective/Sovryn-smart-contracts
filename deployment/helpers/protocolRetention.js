@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { isDeepStrictEqual } = require("util");
+const murmur128 = require("murmur-128");
 const { utils } = require("ethers");
 const { assertRetainedLiquidation } = require("./liquidationRetention");
 
@@ -143,6 +145,125 @@ async function assertRetainedProtocolRoutes(hre, protocol) {
     return { liquidation, rollover, maintenanceRollback, swapsLibrary };
 }
 
+/** Check the saved metadata against its standard hardhat-deploy compiler input. */
+function validateDeploymentInput(hre, name, deployment, metadata) {
+    const inputHash = deployment.solcInputHash;
+    if (!/^[a-f0-9]{32}$/.test(inputHash || ""))
+        throw new Error(`${name} invalid deployment artifact compiler-input reference`);
+    const root = hre.config?.paths?.root || path.resolve(__dirname, "../..");
+    const network = hre.network?.name;
+    const folders = [
+        path.join(
+            hre.config?.paths?.deployments || path.join(root, "deployment/deployments"),
+            network || "rskSovrynMainnet"
+        ),
+        ...(hre.config?.external?.deployments?.[network] || []).map((p) => path.resolve(root, p)),
+    ];
+    const file = folders
+        .map((p) => path.join(p, "solcInputs", inputHash + ".json"))
+        .find((p) => fs.existsSync(p));
+    if (!file) throw new Error(`${name} deployment artifact compiler input is missing`);
+    const bytes = fs.readFileSync(file, "utf8");
+    if (Buffer.from(murmur128(bytes)).toString("hex") !== inputHash)
+        throw new Error(`${name} deployment artifact compiler-input hash mismatch`);
+    const input = JSON.parse(bytes);
+    const settings = input.settings || {};
+    const recorded = metadata.settings;
+    const normalizeRemapping = (r) => r.replace(/^:/, "");
+    if (
+        input.language !== "Solidity" ||
+        recorded.evmVersion !== (settings.evmVersion || "istanbul") ||
+        !isDeepStrictEqual(recorded.optimizer, settings.optimizer) ||
+        !isDeepStrictEqual(recorded.metadata || {}, settings.metadata || {}) ||
+        !isDeepStrictEqual(recorded.libraries || {}, settings.libraries || {}) ||
+        !isDeepStrictEqual(
+            (recorded.remappings || []).map(normalizeRemapping),
+            (settings.remappings || []).map(normalizeRemapping)
+        )
+    )
+        throw new Error(`${name} deployment metadata settings differ from compiler input`);
+    for (const [source, detail] of Object.entries(metadata.sources)) {
+        const content = input.sources?.[source]?.content;
+        if (
+            typeof content !== "string" ||
+            utils.keccak256(utils.toUtf8Bytes(content)) !== detail.keccak256 ||
+            (detail.content !== undefined && detail.content !== content)
+        )
+            throw new Error(
+                `${name} deployment metadata source differs from compiler input: ${source}`
+            );
+    }
+}
+
+/** Use the artifact saved by deployment; a later local build may have different metadata. */
+async function maintenanceDeploymentArtifact(hre, name, deployment) {
+    if (!deployment.deployedBytecode && !deployment.metadata) {
+        if (hre.network?.tags?.mainnet && !hre.network.tags.forked)
+            throw new Error(`${name} missing saved deployment artifact`);
+        // Fresh local fixtures may save only an address and ABI after deploying the current build.
+        return hre.artifacts.readArtifact(name);
+    }
+    if (typeof deployment.deployedBytecode !== "string" || !deployment.metadata)
+        throw new Error(`${name} incomplete saved deployment artifact`);
+    let metadata;
+    try {
+        metadata = JSON.parse(deployment.metadata);
+    } catch (_) {
+        throw new Error(`${name} invalid deployment metadata`);
+    }
+    const source = `contracts/modules/${name}.sol`;
+    const target = metadata.settings?.compilationTarget;
+    if (
+        metadata.compiler?.version !== "0.5.17+commit.d19bba13" ||
+        !target ||
+        Object.keys(target).length !== 1 ||
+        target[source] !== name ||
+        !metadata.sources?.[source]?.keccak256 ||
+        !deployment.solcInputHash
+    )
+        throw new Error(`${name} deployment metadata does not identify its compiler/source`);
+    validateDeploymentInput(hre, name, deployment, metadata);
+    const bindings = deployment.libraries || {};
+    for (const [key, address] of Object.entries(bindings)) {
+        if (
+            !["SwapsImplSovrynSwapLib", `${LIBRARY_SOURCE}:SwapsImplSovrynSwapLib`].includes(
+                key
+            ) ||
+            !utils.isAddress(address) ||
+            address.toLowerCase() !== ORIGINALS.SwapsImplSovrynSwapLib.address.toLowerCase()
+        )
+            throw new Error(`${name} must bind the pinned original retained swap library`);
+    }
+    const references = [];
+    const runtime = deployment.deployedBytecode;
+    for (const match of runtime.matchAll(/__\$[a-fA-F0-9]{34}\$__/g)) {
+        if (match[0] !== LIBRARY_PLACEHOLDER || match.index < 2 || (match.index - 2) % 2)
+            throw new Error(`${name} unexpected declared runtime link contents`);
+        references.push({ start: (match.index - 2) / 2, length: 20 });
+    }
+    if (name === "LoanMaintenance") {
+        if (!Object.keys(bindings).length)
+            throw new Error(`${name} missing declared retained-library binding`);
+        if (
+            !references.length &&
+            !runtime
+                .toLowerCase()
+                .includes(ORIGINALS.SwapsImplSovrynSwapLib.address.slice(2).toLowerCase())
+        )
+            throw new Error(`${name} deployment artifact has no retained-library binding`);
+    }
+    if (name === "LoanMaintenanceViews" && (references.length || Object.keys(bindings).length))
+        throw new Error(`${name} deployment artifact has unexpected library bindings`);
+    return {
+        contractName: name,
+        abi: deployment.abi,
+        deployedBytecode: runtime,
+        deployedLinkReferences: references.length
+            ? { [LIBRARY_SOURCE]: { SwapsImplSovrynSwapLib: references } }
+            : {},
+    };
+}
+
 /** Qualify both current split Maintenance implementations, including all runtime metadata. */
 async function assertCurrentMaintenanceImplementations(hre) {
     const originalLibrary = loadOriginalProtocolModule("SwapsImplSovrynSwapLib");
@@ -156,7 +277,7 @@ async function assertCurrentMaintenanceImplementations(hre) {
         const deployment = await hre.deployments.get(name);
         if (deployment.address.toLowerCase() === ORIGINALS.LoanMaintenance.address.toLowerCase())
             throw new Error(`${name} candidate is the original Maintenance rollback anchor`);
-        const artifact = await hre.artifacts.readArtifact(name);
+        const artifact = await maintenanceDeploymentArtifact(hre, name, deployment);
         if (
             artifact.contractName !== name ||
             Object.keys(artifact.immutableReferences || {}).length
