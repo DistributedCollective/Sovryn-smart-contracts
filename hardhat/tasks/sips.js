@@ -109,6 +109,11 @@ task("sips:create", "Create SIP to Sovryn Governance")
         const sovDeployment = await get("SOV");
         const governorDeployment = await get(governorName);
         const signerAddress = (await hre.getNamedAccounts())[signer];
+        if (!ethers.utils.isAddress(signerAddress)) {
+            throw new Error(
+                `sips:create: named signer '${signer}' is not configured for this network; check the named account and loaded account list`
+            );
+        }
         const signerAcc = await ethers.getSigner(signerAddress);
         const governor = await ethers.getContract(governorName, signerAcc);
 
