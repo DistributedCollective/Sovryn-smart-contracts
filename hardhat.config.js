@@ -149,6 +149,7 @@ module.exports = {
         },
         deployer2: {
             rskSovrynMainnet: 3,
+            rskForkedMainnet: 3,
         },
         signer: {
             default: 1,
