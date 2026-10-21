@@ -147,6 +147,9 @@ module.exports = {
             // rskSovrynMainnet: 3, //deployer is the 4th account in the mainnetAccounts array, which is the 3rd index
             rskMainnetTenderly: 3,
         },
+        deployer2: {
+            rskSovrynMainnet: 3,
+        },
         signer: {
             default: 1,
             rskSovrynMainnet: 0,
