@@ -12,7 +12,6 @@ contract LoanClosingsWithoutInvariantCheck is LoanClosingsWithMockup {
     function initialize(address target) external onlyOwner {
         address prevModuleContractAddress = logicTargets[this.closeWithDeposit.selector];
         _setTarget(this.closeWithDeposit.selector, target);
-        _setTarget(this.closeWithSwap.selector, target);
         _setTarget(this.checkCloseWithDepositIsTinyPosition.selector, target);
         emit ProtocolModuleContractReplaced(prevModuleContractAddress, target, "LoanClosingsWith");
     }

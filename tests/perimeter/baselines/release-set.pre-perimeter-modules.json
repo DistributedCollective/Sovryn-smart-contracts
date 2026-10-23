@@ -39,6 +39,11 @@
                 "SwapsImplSovrynSwapLib": "0xf0F97838B2c80be59118e37436eca8F8edc2d08c"
             },
             "bodySha256": "7651d5409d12f25514241e3d1d1c02077eeb5174c801691efdd60c299b1a7a19"
+        },
+        "LoanClosingsLiquidation": {
+            "address": "0xd01B701b7b01541C2683617cA2d5B58bB6896524",
+            "libraries": {},
+            "bodySha256": "37c6fcce14d2f27ddbd521b2120d0d32fbb7cedc9dace7fede4423b4da7963a8"
         }
     }
 }
