@@ -250,7 +250,7 @@ function fixture({
     let source = fs.readFileSync(file, "utf8");
     if (sipDescription !== undefined) {
         let replaced = 0;
-        source = source.replace(/^(\s*)"SIP-0096:[^\r\n]*"(,?)$/gm, (_, indent, comma) => {
+        source = source.replace(/^(\s*)"SIP-0096\b[^\r\n]*"(,?)$/gm, (_, indent, comma) => {
             replaced++;
             return indent + JSON.stringify(sipDescription) + comma;
         });
