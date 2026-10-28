@@ -29,3 +29,9 @@ out/
 foundry/
 cache_forge/
 safe/
+# Raw pinned rollback artifact and compiler input: preserve exact bytes.
+deployment/baselines/original-maintenance/
+# Imported compiler inputs retain their original content-addressed bytes.
+external/deployments/rskMainnet/solcInputs/
+# Exact historical external aliases/artifacts retained for rollback provenance.
+external/baselines/perimeter-delay-rskMainnet/

@@ -316,10 +316,10 @@ contract FeeSharingCollector is
 
         processedCheckpoints[user][_token] = end;
         if (loanTokenWrbtcAddress == _token) {
-            // We will change, so that feeSharingCollector will directly burn then loanToken (IWRBTC) to rbtc and send to the user --- by call burnToBTC function
-            ILoanTokenWRBTC(_token).burnToBTC(_receiver, amount, false);
+            // The pool pays `_receiver` directly; nothing is forwarded from this contract.
+            _burnLoanTokenWrbtcToBtc(_receiver, amount);
         } else {
-            // Previously it directly send the loanToken to the user
+            // Any token other than the WRBTC pool token is sent to the user directly.
             require(
                 IERC20(_token).transfer(_receiver, amount),
                 "FeeSharingCollector::withdraw: withdrawal failed"
@@ -329,6 +329,33 @@ contract FeeSharingCollector is
         emit UserFeeWithdrawn(msg.sender, _receiver, _token, amount);
 
         return (amount, end);
+    }
+
+    /**
+     * @notice Redeem `_amount` iWRBTC held by this contract to RBTC paid to `_receiver`.
+     * @dev The pool reports `gross`, what left the pool, and `delivered`, what reached
+     * `_receiver` in the call. A zero `gross` pays zero. A positive `gross` with nothing
+     * delivered means nothing reached `_receiver`: either the redemption is held in the
+     * withdrawal delay queue under this contract's name, or the whole amount was taken as
+     * the Perimeter fee. Either way the claim is refused, with the same reason string for
+     * both causes: the call reverts, which undoes the burn and the caller's checkpoint
+     * write, so the range stays claimable.
+     * @param _receiver The address the pool pays.
+     * @param _amount The iWRBTC amount to redeem.
+     * @return The RBTC that reached `_receiver` in this call.
+     */
+    function _burnLoanTokenWrbtcToBtc(
+        address _receiver,
+        uint256 _amount
+    ) internal returns (uint256) {
+        (uint256 gross, uint256 delivered) = ILoanTokenWRBTC(loanTokenWrbtcAddress).burnToBTC(
+            _receiver,
+            _amount,
+            false
+        );
+        if (gross == 0) return 0;
+        require(delivered > 0, "FeeSharingCollector: redemption held");
+        return delivered;
     }
 
     /**
@@ -542,9 +569,6 @@ contract FeeSharingCollector is
             (, endTokenCheckpoint) = _withdraw(_nonRbtcTokenAddress, _maxCheckpoints, _receiver);
 
             uint256 _previousUsedCheckpoint = endTokenCheckpoint.sub(startingCheckpoint);
-            if (startingCheckpoint > 0) {
-                _previousUsedCheckpoint.add(1);
-            }
 
             _maxCheckpoints = safe32(
                 _maxCheckpoints - _previousUsedCheckpoint,
@@ -597,13 +621,8 @@ contract FeeSharingCollector is
                 // unwrap the wrbtc
                 wrbtcToken.withdraw(totalAmount);
             } else if (_token == loanTokenWrbtcAddress) {
-                // pull out the iWRBTC to rbtc to this feeSharingCollector contract
-                /** @dev will use the burned result from IWRBTC to RBTC as return total amount */
-                totalAmount = ILoanTokenWRBTC(loanTokenWrbtcAddress).burnToBTC(
-                    address(this),
-                    totalAmount,
-                    false
-                );
+                // Redeem to this contract, which forwards only the RBTC that arrived.
+                totalAmount = _burnLoanTokenWrbtcToBtc(address(this), totalAmount);
             }
         }
     }
@@ -646,10 +665,6 @@ contract FeeSharingCollector is
             rbtcAmountToSend = rbtcAmountToSend.add(totalAmount);
 
             uint256 _previousUsedCheckpoint = endToken.sub(startingCheckpoint);
-            if (startingCheckpoint > 0) {
-                // we only need to add used checkpoint by 1 only if starting checkpoint > 0
-                _previousUsedCheckpoint.add(1);
-            }
             totalProcessedCheckpoints += _previousUsedCheckpoint;
             _maxCheckpoints = safe32(
                 _maxCheckpoints - _previousUsedCheckpoint,
@@ -1195,42 +1210,6 @@ contract FeeSharingCollector is
     }
 
     /**
-     * @dev This function is dedicated to recover the wrong fee allocation for the 4 year vesting contracts.
-     * This function can only be called once
-     * The affected tokens to be withdrawn
-     * 1. RBTC
-     * 2. ZUSD
-     * 3. SOV
-     * The amount for all of the tokens above is hardcoded
-     * The withdrawn tokens will be sent to the owner.
-     */
-    function recoverIncorrectAllocatedFees()
-        external
-        oneTimeExecution(this.recoverIncorrectAllocatedFees.selector)
-        onlyOwner
-    {
-        uint256 rbtcAmount = 878778886164898400;
-        uint256 zusdAmount = 16658600400155126000000;
-        uint256 sovAmount = 6275898259771202000000;
-
-        address zusdToken = 0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d;
-        address sovToken = 0xEFc78fc7d48b64958315949279Ba181c2114ABBd;
-
-        // Withdraw rbtc
-        (bool success, ) = owner().call.value(rbtcAmount)("");
-        require(
-            success,
-            "FeeSharingCollector::recoverIncorrectAllocatedFees: Withdrawal rbtc failed"
-        );
-
-        // Withdraw ZUSD
-        IERC20(zusdToken).safeTransfer(owner(), zusdAmount);
-
-        // Withdraw SOV
-        IERC20(sovToken).safeTransfer(owner(), sovAmount);
-    }
-
-    /**
      * @dev view function that calculate the total RBTC that includes:
      * - RBTC
      * - WRBTC
@@ -1317,20 +1296,12 @@ contract FeeSharingCollector is
         address _user,
         uint32 _maxCheckpoints
     ) internal view returns (uint256 _tokenAmount, uint256 _endToken) {
-        if (
-            _token == RBTC_DUMMY_ADDRESS_FOR_CHECKPOINT ||
-            _token == wrbtcTokenAddress ||
-            _token == loanTokenWrbtcAddress
-        ) {
-            (_tokenAmount, _endToken) = _getAccumulatedFees({
-                _user: _user,
-                _token: _token,
-                _startFrom: 0,
-                _maxCheckpoints: _maxCheckpoints
-            });
-        } else {
-            revert("FeeSharingCollector::_getRBTCBalance: only rbtc-based tokens are allowed");
-        }
+        (_tokenAmount, _endToken) = _getAccumulatedFees({
+            _user: _user,
+            _token: _token,
+            _startFrom: 0,
+            _maxCheckpoints: _maxCheckpoints
+        });
     }
 
     // @todo update dependency `numTokenCheckpoints` -> `totalTokenCheckpoints` and deprecate numTokenCheckpoints function
@@ -1357,7 +1328,7 @@ interface ILoanTokenWRBTC {
         address receiver,
         uint256 burnAmount,
         bool useLM
-    ) external returns (uint256 loanAmountPaid);
+    ) external returns (uint256 gross, uint256 delivered);
 
     function tokenPrice() external view returns (uint256 price);
 }

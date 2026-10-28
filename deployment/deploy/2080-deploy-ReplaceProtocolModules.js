@@ -1,6 +1,11 @@
 const path = require("path");
 const hre = require("hardhat");
 const { getProtocolModules, sendWithMultisig } = require("../helpers/helpers");
+const {
+    assertRetainedProtocolRoutes,
+    assertCurrentMaintenanceImplementations,
+    SELECTED_PROTOCOL_SIGNATURES,
+} = require("../helpers/protocolRetention");
 const col = require("cli-color");
 
 const func = async function (hre) {
@@ -14,10 +19,20 @@ const func = async function (hre) {
     const sovrynProtocol = await ethers.getContract("SovrynProtocol");
     const sovrynProtocolInterface = new ethers.utils.Interface(sovrynProtocolDeployment.abi);
 
+    // Refuse before any replacement if the explicitly retained live module differs.
+    await assertRetainedProtocolRoutes(hre, sovrynProtocol);
+    await assertCurrentMaintenanceImplementations(hre);
+
     const modulesList = getProtocolModules();
+    // Existing records for other modules do not authorize their replacement.
+    const selectedModules = Object.keys(SELECTED_PROTOCOL_SIGNATURES).map((name) => {
+        const module = modulesList[name];
+        if (!module || module.moduleName !== name)
+            throw new Error(`missing authorized protocol module ${name}`);
+        return module;
+    });
     const modulesToReplace = [];
-    for (const moduleProp in modulesList) {
-        const module = modulesList[moduleProp];
+    for (const module of selectedModules) {
         const moduleDeployment = await get(module.moduleName);
         const currentModuleAddress = await sovrynProtocol.getTarget(module.sampleFunction);
 
@@ -95,6 +110,7 @@ const func = async function (hre) {
             log(col.bgYellow(`Pinned BorrowerExitPerimeterOps: ${opsDeployment.address}`));
         }
     }
+    await assertRetainedProtocolRoutes(hre, sovrynProtocol);
 };
 func.tags = ["ReplaceProtocolModules"]; // getContractNameFromScriptFileName(path.basename(__filename))
 func.dependencies = ["ProtocolModules", "BorrowerExitPerimeterOps"];

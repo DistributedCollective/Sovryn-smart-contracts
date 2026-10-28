@@ -1,18 +1,13 @@
 /**
- * Phase 3 / Task 3.4 — Liquidation no-touch coverage.
+ * Liquidation is not charged the Perimeter fee.
  *
- * `LoanClosingsLiquidation.liquidate(...)` calls `_closeWithSwap(...)` with
- * `allowDonationOnFailure = true` (the liquidator may be a contract whose
- * `receive()`/`fallback()` reverts; donate-on-failure protects the
- * liquidation from being bricked by a bad receiver). The two-condition
- * gate at `_finalizeSwapClose` is:
- *
- *   !params.allowDonationOnFailure AND msg.sender ∈ {borrower, delegatedManagers}
- *
- * The first condition alone is enough to exclude liquidation — even if the
- * liquidator happens to be the borrower (which doesn't make economic
- * sense, but isn't blocked by the protocol). The `allowDonationOnFailure`
- * flag captures the "this is a forced close, not an exit" semantic.
+ * `LoanClosingsLiquidation.liquidate(...)` pays seized collateral through
+ * the plain `_withdrawAsset` helper inherited from the uncharged close base.
+ * Interest settlement threads `CloseOrigin.Liquidation` through that same
+ * base. Liquidation does not inherit the charged/delayed payout wrappers:
+ * its exemption is structural even when the borrower is the liquidator.
+ * A refusing liquidator receiver still reverts; donation on failed native
+ * receipt applies only to the borrower's excess refund.
  *
  * This test asserts: when an unhealthy position is liquidated, NO Perimeter
  * event is emitted, regardless of controller state.
@@ -24,10 +19,16 @@
 const { expect } = require("chai");
 const { BN } = require("@openzeppelin/test-helpers");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const hre = require("hardhat");
+const {
+    loadOriginalLiquidation,
+    assertRetainedLiquidation,
+} = require("../../deployment/helpers/liquidationRetention");
 
 const LoanMaintenance = artifacts.require("LoanMaintenance");
 const SwapsImplSovrynSwapLib = artifacts.require("SwapsImplSovrynSwapLib");
 const MockExitFeeController = artifacts.require("MockExitFeeController");
+const MockExitDelayQueue = artifacts.require("MockExitDelayQueue");
 const LoanOpeningsEvents = artifacts.require("LoanOpeningsEvents");
 
 const { increaseTime } = require("../Utils/Ethereum");
@@ -48,14 +49,15 @@ const {
 } = require("../Utils/initializer.js");
 
 const mutexUtils = require("../../deployment/helpers/reentrancy/utils");
+const { linkIfUsed } = require("../Utils/initializer.js");
 
 const wei = web3.utils.toWei;
 const oneEth = new BN(wei("1", "ether"));
 
-contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (accounts) => {
+contract("Perimeter — liquidation is not charged", (accounts) => {
     let lender, borrower, liquidator, feeReceiver;
     let sovryn, SUSD, WRBTC, RBTC, BZRX, loanToken, loanTokenWRBTC, priceFeeds, sov;
-    let controller;
+    let controller, queue;
 
     async function deploymentAndInitFixture() {
         await mutexUtils.getOrDeployMutex();
@@ -67,6 +69,15 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
         priceFeeds = await getPriceFeeds(WRBTC, SUSD, RBTC, BZRX);
 
         sovryn = await getSovryn(WRBTC, SUSD, RBTC, priceFeeds);
+        // Mix current changed modules with the exact original registered liquidation.
+        // This is an isolated in-process VM, never the owner's shared fork.
+        const original = loadOriginalLiquidation();
+        await hre.network.provider.send("hardhat_setCode", [
+            original.address,
+            original.record.deployedBytecode,
+        ]);
+        await sovryn.replaceContract(original.address, { from: lender });
+        await assertRetainedLiquidation(hre, sovryn);
         sov = await getSOV(sovryn, priceFeeds, SUSD, accounts);
 
         loanToken = await getLoanToken(lender, sovryn, WRBTC, SUSD);
@@ -82,6 +93,11 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
         await controller.setRate(25);
         await controller.setFeeReceiverTest(feeReceiver);
         await sovryn.setExitFeeController(controller.address, { from: lender });
+        queue = await MockExitDelayQueue.new(WRBTC.address, 60);
+        await queue.setAllowedSource(sovryn.address, true);
+        await sovryn.setExitDelayQueue(queue.address, { from: lender });
+        await controller.setGlobalDelaySecondsTest(86400);
+        await controller.setSecurityPerimeterEnabledTest(true);
     }
 
     before(async () => {
@@ -89,7 +105,7 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
 
         try {
             const swapsImplSovrynSwapLib = await SwapsImplSovrynSwapLib.new();
-            await LoanMaintenance.link(swapsImplSovrynSwapLib);
+            await linkIfUsed(LoanMaintenance, swapsImplSovrynSwapLib);
         } catch (_) {}
     });
 
@@ -125,14 +141,14 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
         return { loan_id: decoded[0].args["loanId"], loan_token_sent };
     }
 
-    describe("liquidate (allowDonationOnFailure=true gate)", () => {
+    describe("retained liquidation with current fee and delay modules", () => {
         // POSITIVE CONTROL for the no-touch claim below. Without it, "no Perimeter
         // event on liquidation" is indistinguishable from "the Perimeter system is
         // inert in this fixture" — an unwired charge-hook pointer, an unpinned
         // controller, or a burnt-out event ABI would all make the no-touch
         // assertion pass for the wrong reason. This test proves the SAME fixture
-        // charges a real fee on a chargeable borrower exit, so the exemption
-        // below is attributable to the origin gate and nothing else.
+        // charges and escrows a real voluntary exit, so retention does not
+        // pass merely because the current Perimeter is inactive.
         it("CONTROL: the same fixture DOES charge on a chargeable exit (withdrawCollateral, 25 bps)", async () => {
             const { loan_id } = await openMarginTradeForLiquidation();
 
@@ -163,6 +179,10 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
                 (await RBTC.balanceOf(feeReceiver)).sub(feeRecvBefore).toString(),
                 "feeReceiver delta == fee (the fee leg really settled)"
             ).to.equal(fee.toString());
+            expect((await queue.lastRequestId()).toString()).to.equal("1");
+            expect((await queue.totalEscrowed(RBTC.address)).toString()).to.equal(
+                withdrawAmount.sub(fee).toString()
+            );
         });
 
         it("Perimeter does NOT fire when an unhealthy position is liquidated — no ExitFeeApplied, no ExitFeeSkipped", async () => {
@@ -184,6 +204,10 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
             const loanBefore = await sovryn.getLoan(loan_id);
             const feeRecvRbtcBefore = await RBTC.balanceOf(feeReceiver);
             const feeRecvSusdBefore = await SUSD.balanceOf(feeReceiver);
+            const receiverBefore = await RBTC.balanceOf(liquidator);
+            // If a retained path accidentally quotes a hold, the current
+            // delay fail-closed guard would reject this liquidation.
+            await controller.setRevertOnDelayQuote(true);
 
             const tx = await sovryn.liquidate(loan_id, liquidator, loan_token_sent, {
                 from: liquidator,
@@ -215,6 +239,13 @@ contract("Perimeter — Liquidation no-touch coverage (Phase 3 / Task 3.4)", (ac
                 new BN(loanAfter["collateral"]).lt(new BN(loanBefore["collateral"])),
                 "collateral strictly decreased — the liquidation actually executed"
             ).to.equal(true);
+            expect(
+                (await RBTC.balanceOf(liquidator)).gt(receiverBefore),
+                "seized collateral reached the liquidator immediately"
+            ).to.equal(true);
+            expect((await queue.lastRequestId()).toString()).to.equal("0");
+            expect((await queue.totalEscrowed(RBTC.address)).toString()).to.equal("0");
+            expect((await queue.totalEscrowed(SUSD.address)).toString()).to.equal("0");
         });
     });
 
