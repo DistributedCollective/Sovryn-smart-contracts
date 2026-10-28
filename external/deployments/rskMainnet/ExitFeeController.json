@@ -1,6 +1,13 @@
 {
-    "address": "0x99994b4522483de17f31a5bc010c5901add3440e",
-    "implementation": "0x50EC5c1C156cfA7e3007a0b0C97298E4f58a552d",
+    "contractName": "ExitFeeController",
+    "chainId": 30,
+    "proxyAddress": "0x99994b4522483de17f31a5bc010c5901add3440e",
+    "implAddress": "0xe85e7e5c81a4dcafa6976cd57988b81dbfcb18e1",
+    "implBytecodeHash": "0x98d18b9f5a53aa6b2d211241a6e5a1888f00c37be3e9ea9f2c79151eb5a9eaf2",
+    "deploymentBlock": 9321661,
+    "deploymentTx": "0x80ef954d721e8a4273eb1cf35e30c2baa94527fc5032e3a53ffd195acd254dd1",
+    "timestamp": 1791900136000,
+    "gitSha": "ebd7b2fb2c62fe0dd06fcd2043fd2c80fe95416e",
     "abi": [
         {
             "type": "constructor",
@@ -26,6 +33,61 @@
             "inputs": [],
             "outputs": [],
             "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "actorBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actor",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "tuple",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "actorBypassKeys",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address[]",
+                    "internalType": "address[]"
+                }
+            ],
+            "stateMutability": "view"
         },
         {
             "type": "function",
@@ -97,6 +159,19 @@
         },
         {
             "type": "function",
+            "name": "bypassSurfaceIds",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32[]",
+                    "internalType": "bytes32[]"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
             "name": "exitFeeEnabled",
             "inputs": [],
             "outputs": [
@@ -120,6 +195,37 @@
                 }
             ],
             "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "globalDelaySeconds",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint32",
+                    "internalType": "uint32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "grantExemption",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actor",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
         },
         {
             "type": "function",
@@ -169,6 +275,84 @@
                     "name": "",
                     "type": "bytes32",
                     "internalType": "bytes32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "quoteExitDelay",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProduct",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "effectiveActor_",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "uint32",
+                    "internalType": "uint32"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "quoteExitDelayFor",
+            "inputs": [
+                {
+                    "name": "rawOriginator",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "owner_",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProduct",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "d",
+                    "type": "uint32",
+                    "internalType": "uint32"
+                },
+                {
+                    "name": "effOrig",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "effOwner",
+                    "type": "address",
+                    "internalType": "address"
                 }
             ],
             "stateMutability": "view"
@@ -241,6 +425,42 @@
         },
         {
             "type": "function",
+            "name": "removeActorBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actor",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "removeActorBypasses",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actors",
+                    "type": "address[]",
+                    "internalType": "address[]"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
             "name": "removeActorPolicies",
             "inputs": [
                 {
@@ -270,6 +490,42 @@
                     "name": "actor",
                     "type": "address",
                     "internalType": "address"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "removeSubProductBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProduct",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "removeSubProductBypasses",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProducts",
+                    "type": "address[]",
+                    "internalType": "address[]"
                 }
             ],
             "outputs": [],
@@ -313,10 +569,124 @@
         },
         {
             "type": "function",
+            "name": "removeSurfaceBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
             "name": "renounceOwnership",
             "inputs": [],
             "outputs": [],
             "stateMutability": "pure"
+        },
+        {
+            "type": "function",
+            "name": "revokeExemption",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actor",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "securityPerimeterEnabled",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bool",
+                    "internalType": "bool"
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "setActorBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actor",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "policy",
+                    "type": "tuple",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "setActorBypasses",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actors",
+                    "type": "address[]",
+                    "internalType": "address[]"
+                },
+                {
+                    "name": "policies",
+                    "type": "tuple[]",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy[]",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
         },
         {
             "type": "function",
@@ -429,6 +799,102 @@
         },
         {
             "type": "function",
+            "name": "setGlobalDelaySeconds",
+            "inputs": [
+                {
+                    "name": "seconds_",
+                    "type": "uint32",
+                    "internalType": "uint32"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "setSecurityPerimeterEnabled",
+            "inputs": [
+                {
+                    "name": "enabled",
+                    "type": "bool",
+                    "internalType": "bool"
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "setSubProductBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProduct",
+                    "type": "address",
+                    "internalType": "address"
+                },
+                {
+                    "name": "policy",
+                    "type": "tuple",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "setSubProductBypasses",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProducts",
+                    "type": "address[]",
+                    "internalType": "address[]"
+                },
+                {
+                    "name": "policies",
+                    "type": "tuple[]",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy[]",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
             "name": "setSubProductPolicies",
             "inputs": [
                 {
@@ -499,6 +965,36 @@
         },
         {
             "type": "function",
+            "name": "setSurfaceBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "policy",
+                    "type": "tuple",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "outputs": [],
+            "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
             "name": "setSurfacePolicy",
             "inputs": [
                 {
@@ -526,6 +1022,61 @@
             ],
             "outputs": [],
             "stateMutability": "nonpayable"
+        },
+        {
+            "type": "function",
+            "name": "subProductBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProduct",
+                    "type": "address",
+                    "internalType": "address"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "tuple",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "subProductBypassKeys",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "address[]",
+                    "internalType": "address[]"
+                }
+            ],
+            "stateMutability": "view"
         },
         {
             "type": "function",
@@ -578,6 +1129,50 @@
                             "internalType": "uint16"
                         }
                     ]
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "surfaceBypass",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "internalType": "bytes32"
+                }
+            ],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "tuple",
+                    "internalType": "struct IExitFeeController.DelayBypassPolicy",
+                    "components": [
+                        {
+                            "name": "active",
+                            "type": "bool",
+                            "internalType": "bool"
+                        },
+                        {
+                            "name": "bypass",
+                            "type": "bool",
+                            "internalType": "bool"
+                        }
+                    ]
+                }
+            ],
+            "stateMutability": "view"
+        },
+        {
+            "type": "function",
+            "name": "surfaceBypassKeys",
+            "inputs": [],
+            "outputs": [
+                {
+                    "name": "",
+                    "type": "bytes32[]",
+                    "internalType": "bytes32[]"
                 }
             ],
             "stateMutability": "view"
@@ -656,6 +1251,56 @@
             ],
             "outputs": [],
             "stateMutability": "payable"
+        },
+        {
+            "type": "event",
+            "name": "ActorBypassRemoved",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "indexed": true,
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actor",
+                    "type": "address",
+                    "indexed": true,
+                    "internalType": "address"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "ActorBypassSet",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "indexed": true,
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "actor",
+                    "type": "address",
+                    "indexed": true,
+                    "internalType": "address"
+                },
+                {
+                    "name": "active",
+                    "type": "bool",
+                    "indexed": false,
+                    "internalType": "bool"
+                },
+                {
+                    "name": "bypass",
+                    "type": "bool",
+                    "indexed": false,
+                    "internalType": "bool"
+                }
+            ],
+            "anonymous": false
         },
         {
             "type": "event",
@@ -780,6 +1425,19 @@
         },
         {
             "type": "event",
+            "name": "GlobalDelaySet",
+            "inputs": [
+                {
+                    "name": "seconds_",
+                    "type": "uint32",
+                    "indexed": false,
+                    "internalType": "uint32"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
             "name": "Initialized",
             "inputs": [
                 {
@@ -825,6 +1483,69 @@
                     "type": "address",
                     "indexed": true,
                     "internalType": "address"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "SecurityPerimeterEnabledSet",
+            "inputs": [
+                {
+                    "name": "enabled",
+                    "type": "bool",
+                    "indexed": false,
+                    "internalType": "bool"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "SubProductBypassRemoved",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "indexed": true,
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProduct",
+                    "type": "address",
+                    "indexed": true,
+                    "internalType": "address"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "SubProductBypassSet",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "indexed": true,
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "subProduct",
+                    "type": "address",
+                    "indexed": true,
+                    "internalType": "address"
+                },
+                {
+                    "name": "active",
+                    "type": "bool",
+                    "indexed": false,
+                    "internalType": "bool"
+                },
+                {
+                    "name": "bypass",
+                    "type": "bool",
+                    "indexed": false,
+                    "internalType": "bool"
                 }
             ],
             "anonymous": false
@@ -881,6 +1602,44 @@
         },
         {
             "type": "event",
+            "name": "SurfaceBypassRemoved",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "indexed": true,
+                    "internalType": "bytes32"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
+            "name": "SurfaceBypassSet",
+            "inputs": [
+                {
+                    "name": "surfaceId",
+                    "type": "bytes32",
+                    "indexed": true,
+                    "internalType": "bytes32"
+                },
+                {
+                    "name": "active",
+                    "type": "bool",
+                    "indexed": false,
+                    "internalType": "bool"
+                },
+                {
+                    "name": "bypass",
+                    "type": "bool",
+                    "indexed": false,
+                    "internalType": "bool"
+                }
+            ],
+            "anonymous": false
+        },
+        {
+            "type": "event",
             "name": "SurfacePolicySet",
             "inputs": [
                 {
@@ -925,6 +1684,16 @@
         {
             "type": "error",
             "name": "AdminZero",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "DelayUnset",
+            "inputs": []
+        },
+        {
+            "type": "error",
+            "name": "DelayZero",
             "inputs": []
         },
         {
@@ -974,5 +1743,886 @@
             "name": "UpgradeImplZero",
             "inputs": []
         }
-    ]
+    ],
+    "storageLayout": {
+        "storage": [
+            {
+                "astId": 41142,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_initialized",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_uint8"
+            },
+            {
+                "astId": 41145,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_initializing",
+                "offset": 1,
+                "slot": "0",
+                "type": "t_bool"
+            },
+            {
+                "astId": 41124,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "1",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 41440,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "51",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 41906,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "101",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 40648,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_owner",
+                "offset": 0,
+                "slot": "151",
+                "type": "t_address"
+            },
+            {
+                "astId": 40768,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "152",
+                "type": "t_array(t_uint256)49_storage"
+            },
+            {
+                "astId": 40541,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_pendingOwner",
+                "offset": 0,
+                "slot": "201",
+                "type": "t_address"
+            },
+            {
+                "astId": 40635,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "202",
+                "type": "t_array(t_uint256)49_storage"
+            },
+            {
+                "astId": 56026,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "exitFeeEnabled",
+                "offset": 0,
+                "slot": "251",
+                "type": "t_bool"
+            },
+            {
+                "astId": 56029,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "feeReceiver",
+                "offset": 1,
+                "slot": "251",
+                "type": "t_address"
+            },
+            {
+                "astId": 56035,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_surfacePolicy",
+                "offset": 0,
+                "slot": "252",
+                "type": "t_mapping(t_bytes32,t_struct(RatePolicy)59212_storage)"
+            },
+            {
+                "astId": 56043,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_subProductPolicy",
+                "offset": 0,
+                "slot": "253",
+                "type": "t_mapping(t_bytes32,t_mapping(t_address,t_struct(RatePolicy)59212_storage))"
+            },
+            {
+                "astId": 56051,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_actorPolicy",
+                "offset": 0,
+                "slot": "254",
+                "type": "t_mapping(t_bytes32,t_mapping(t_address,t_struct(RatePolicy)59212_storage))"
+            },
+            {
+                "astId": 56057,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_subProductKeys",
+                "offset": 0,
+                "slot": "255",
+                "type": "t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)"
+            },
+            {
+                "astId": 56062,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_actorKeys",
+                "offset": 0,
+                "slot": "256",
+                "type": "t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)"
+            },
+            {
+                "astId": 56065,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "admin",
+                "offset": 0,
+                "slot": "257",
+                "type": "t_address"
+            },
+            {
+                "astId": 56071,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_surfaceBypass",
+                "offset": 0,
+                "slot": "258",
+                "type": "t_mapping(t_bytes32,t_struct(DelayBypassPolicy)59218_storage)"
+            },
+            {
+                "astId": 56079,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_subProductBypass",
+                "offset": 0,
+                "slot": "259",
+                "type": "t_mapping(t_bytes32,t_mapping(t_address,t_struct(DelayBypassPolicy)59218_storage))"
+            },
+            {
+                "astId": 56087,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_actorBypass",
+                "offset": 0,
+                "slot": "260",
+                "type": "t_mapping(t_bytes32,t_mapping(t_address,t_struct(DelayBypassPolicy)59218_storage))"
+            },
+            {
+                "astId": 56091,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_surfaceBypassKeys",
+                "offset": 0,
+                "slot": "261",
+                "type": "t_struct(Bytes32Set)44228_storage"
+            },
+            {
+                "astId": 56097,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_subProductBypassKeys",
+                "offset": 0,
+                "slot": "263",
+                "type": "t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)"
+            },
+            {
+                "astId": 56102,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_actorBypassKeys",
+                "offset": 0,
+                "slot": "264",
+                "type": "t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)"
+            },
+            {
+                "astId": 56106,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "_bypassSurfaceIds",
+                "offset": 0,
+                "slot": "265",
+                "type": "t_struct(Bytes32Set)44228_storage"
+            },
+            {
+                "astId": 56109,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "securityPerimeterEnabled",
+                "offset": 0,
+                "slot": "267",
+                "type": "t_bool"
+            },
+            {
+                "astId": 56112,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "globalDelaySeconds",
+                "offset": 1,
+                "slot": "267",
+                "type": "t_uint32"
+            },
+            {
+                "astId": 56116,
+                "contract": "src/ExitFeeController.sol:ExitFeeController",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "268",
+                "type": "t_array(t_uint256)33_storage"
+            }
+        ],
+        "types": {
+            "t_address": {
+                "encoding": "inplace",
+                "label": "address",
+                "numberOfBytes": "20"
+            },
+            "t_array(t_bytes32)dyn_storage": {
+                "encoding": "dynamic_array",
+                "label": "bytes32[]",
+                "numberOfBytes": "32",
+                "base": "t_bytes32"
+            },
+            "t_array(t_uint256)33_storage": {
+                "encoding": "inplace",
+                "label": "uint256[33]",
+                "numberOfBytes": "1056",
+                "base": "t_uint256"
+            },
+            "t_array(t_uint256)49_storage": {
+                "encoding": "inplace",
+                "label": "uint256[49]",
+                "numberOfBytes": "1568",
+                "base": "t_uint256"
+            },
+            "t_array(t_uint256)50_storage": {
+                "encoding": "inplace",
+                "label": "uint256[50]",
+                "numberOfBytes": "1600",
+                "base": "t_uint256"
+            },
+            "t_bool": {
+                "encoding": "inplace",
+                "label": "bool",
+                "numberOfBytes": "1"
+            },
+            "t_bytes32": {
+                "encoding": "inplace",
+                "label": "bytes32",
+                "numberOfBytes": "32"
+            },
+            "t_mapping(t_address,t_struct(DelayBypassPolicy)59218_storage)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => struct IExitFeeController.DelayBypassPolicy)",
+                "numberOfBytes": "32",
+                "value": "t_struct(DelayBypassPolicy)59218_storage"
+            },
+            "t_mapping(t_address,t_struct(RatePolicy)59212_storage)": {
+                "encoding": "mapping",
+                "key": "t_address",
+                "label": "mapping(address => struct IExitFeeController.RatePolicy)",
+                "numberOfBytes": "32",
+                "value": "t_struct(RatePolicy)59212_storage"
+            },
+            "t_mapping(t_bytes32,t_mapping(t_address,t_struct(DelayBypassPolicy)59218_storage))": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => mapping(address => struct IExitFeeController.DelayBypassPolicy))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_address,t_struct(DelayBypassPolicy)59218_storage)"
+            },
+            "t_mapping(t_bytes32,t_mapping(t_address,t_struct(RatePolicy)59212_storage))": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => mapping(address => struct IExitFeeController.RatePolicy))",
+                "numberOfBytes": "32",
+                "value": "t_mapping(t_address,t_struct(RatePolicy)59212_storage)"
+            },
+            "t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => struct EnumerableSet.AddressSet)",
+                "numberOfBytes": "32",
+                "value": "t_struct(AddressSet)44349_storage"
+            },
+            "t_mapping(t_bytes32,t_struct(DelayBypassPolicy)59218_storage)": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => struct IExitFeeController.DelayBypassPolicy)",
+                "numberOfBytes": "32",
+                "value": "t_struct(DelayBypassPolicy)59218_storage"
+            },
+            "t_mapping(t_bytes32,t_struct(RatePolicy)59212_storage)": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => struct IExitFeeController.RatePolicy)",
+                "numberOfBytes": "32",
+                "value": "t_struct(RatePolicy)59212_storage"
+            },
+            "t_mapping(t_bytes32,t_uint256)": {
+                "encoding": "mapping",
+                "key": "t_bytes32",
+                "label": "mapping(bytes32 => uint256)",
+                "numberOfBytes": "32",
+                "value": "t_uint256"
+            },
+            "t_struct(AddressSet)44349_storage": {
+                "encoding": "inplace",
+                "label": "struct EnumerableSet.AddressSet",
+                "numberOfBytes": "64",
+                "members": [
+                    {
+                        "astId": 44348,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "_inner",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_struct(Set)44034_storage"
+                    }
+                ]
+            },
+            "t_struct(Bytes32Set)44228_storage": {
+                "encoding": "inplace",
+                "label": "struct EnumerableSet.Bytes32Set",
+                "numberOfBytes": "64",
+                "members": [
+                    {
+                        "astId": 44227,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "_inner",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_struct(Set)44034_storage"
+                    }
+                ]
+            },
+            "t_struct(DelayBypassPolicy)59218_storage": {
+                "encoding": "inplace",
+                "label": "struct IExitFeeController.DelayBypassPolicy",
+                "numberOfBytes": "32",
+                "members": [
+                    {
+                        "astId": 59215,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "active",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_bool"
+                    },
+                    {
+                        "astId": 59217,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "bypass",
+                        "offset": 1,
+                        "slot": "0",
+                        "type": "t_bool"
+                    }
+                ]
+            },
+            "t_struct(RatePolicy)59212_storage": {
+                "encoding": "inplace",
+                "label": "struct IExitFeeController.RatePolicy",
+                "numberOfBytes": "32",
+                "members": [
+                    {
+                        "astId": 59209,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "active",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_bool"
+                    },
+                    {
+                        "astId": 59211,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "rateBps",
+                        "offset": 1,
+                        "slot": "0",
+                        "type": "t_uint16"
+                    }
+                ]
+            },
+            "t_struct(Set)44034_storage": {
+                "encoding": "inplace",
+                "label": "struct EnumerableSet.Set",
+                "numberOfBytes": "64",
+                "members": [
+                    {
+                        "astId": 44029,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "_values",
+                        "offset": 0,
+                        "slot": "0",
+                        "type": "t_array(t_bytes32)dyn_storage"
+                    },
+                    {
+                        "astId": 44033,
+                        "contract": "src/ExitFeeController.sol:ExitFeeController",
+                        "label": "_indexes",
+                        "offset": 0,
+                        "slot": "1",
+                        "type": "t_mapping(t_bytes32,t_uint256)"
+                    }
+                ]
+            },
+            "t_uint16": {
+                "encoding": "inplace",
+                "label": "uint16",
+                "numberOfBytes": "2"
+            },
+            "t_uint256": {
+                "encoding": "inplace",
+                "label": "uint256",
+                "numberOfBytes": "32"
+            },
+            "t_uint32": {
+                "encoding": "inplace",
+                "label": "uint32",
+                "numberOfBytes": "4"
+            },
+            "t_uint8": {
+                "encoding": "inplace",
+                "label": "uint8",
+                "numberOfBytes": "1"
+            }
+        }
+    },
+    "implementationDeploymentTx": "0xcc1bcce36c751a1c1749ea25c0679bd9936d37446f2d1f5d8aa41355a3c2ee50",
+    "timestampUnit": "milliseconds",
+    "finalization": {
+        "schemaVersion": 1,
+        "mode": "multisig-upgrade",
+        "manifestSha256": "b157c12719631d7fa715b094de45496ef5303168548162cbf72d47fd44f2a96f",
+        "executedAtUtc": "2026-10-13T14:02:16Z",
+        "validatedAtUtc": "2026-10-13T14:24:10.644717Z",
+        "wallet": {
+            "address": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+            "transactionId": 2218,
+            "owners": [
+                "0x324066770c0b11e0095f44cb0cc9d8f178320eb9",
+                "0xa56941f8283902f84d35d512270dbe082ed6a695",
+                "0xeabb83a1cefc5f50c83bc4252c618d3294152a86",
+                "0xde1690480ef789beaa112157c7d123a5c85f6af2",
+                "0xdfd4da0e0e656af349e192b954baaef0fc1eba62",
+                "0xfee171a152c02f336021fb9e79b4fac2304a9e7e",
+                "0x0c9655a24d148efab8b6585c3df607512116f186"
+            ],
+            "required": 3,
+            "confirmations": [
+                "0x324066770c0b11e0095f44cb0cc9d8f178320eb9",
+                "0xdfd4da0e0e656af349e192b954baaef0fc1eba62",
+                "0xfee171a152c02f336021fb9e79b4fac2304a9e7e"
+            ],
+            "transaction": {
+                "destination": "0x99994b4522483de17f31a5bc010c5901add3440e",
+                "value": 0,
+                "data": "0x3659cfe6000000000000000000000000e85e7e5c81a4dcafa6976cd57988b81dbfcb18e1",
+                "executed": true
+            }
+        },
+        "executionTransaction": {
+            "hash": "0x80ef954d721e8a4273eb1cf35e30c2baa94527fc5032e3a53ffd195acd254dd1",
+            "nonce": "0x41",
+            "blockHash": "0x34598eec96dbdadc7b9b9f081c3cbbd47bc8e9f5cba5f2a4ce6638b009ef45bc",
+            "blockNumber": "0x8e3cbd",
+            "transactionIndex": "0x0",
+            "from": "0xdfd4da0e0e656af349e192b954baaef0fc1eba62",
+            "to": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+            "gas": "0xf4240",
+            "gasPrice": "0x20f37b2",
+            "value": "0x0",
+            "input": "0xc01a8c8400000000000000000000000000000000000000000000000000000000000008aa",
+            "v": "0x60",
+            "r": "0xb72e792163d81e1f361ee828ede161e09c36a31234ab3b7a4f95ba781c6011e0",
+            "s": "0x6ea6204f54959cff694734c4b0631ce2a00bf196dffa32c06d549506080891d7",
+            "type": "0x0"
+        },
+        "executionReceipt": {
+            "transactionHash": "0x80ef954d721e8a4273eb1cf35e30c2baa94527fc5032e3a53ffd195acd254dd1",
+            "transactionIndex": "0x0",
+            "blockHash": "0x34598eec96dbdadc7b9b9f081c3cbbd47bc8e9f5cba5f2a4ce6638b009ef45bc",
+            "blockNumber": "0x8e3cbd",
+            "cumulativeGasUsed": "0x15cb3",
+            "gasUsed": "0x15cb3",
+            "contractAddress": null,
+            "logs": [
+                {
+                    "logIndex": "0x0",
+                    "blockNumber": "0x8e3cbd",
+                    "blockHash": "0x34598eec96dbdadc7b9b9f081c3cbbd47bc8e9f5cba5f2a4ce6638b009ef45bc",
+                    "transactionHash": "0x80ef954d721e8a4273eb1cf35e30c2baa94527fc5032e3a53ffd195acd254dd1",
+                    "transactionIndex": "0x0",
+                    "address": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                    "data": "0x",
+                    "topics": [
+                        "0x4a504a94899432a9846e1aa406dceb1bcfd538bb839071d49d1e5e23f5be30ef",
+                        "0x000000000000000000000000dfd4da0e0e656af349e192b954baaef0fc1eba62",
+                        "0x00000000000000000000000000000000000000000000000000000000000008aa"
+                    ]
+                },
+                {
+                    "logIndex": "0x1",
+                    "blockNumber": "0x8e3cbd",
+                    "blockHash": "0x34598eec96dbdadc7b9b9f081c3cbbd47bc8e9f5cba5f2a4ce6638b009ef45bc",
+                    "transactionHash": "0x80ef954d721e8a4273eb1cf35e30c2baa94527fc5032e3a53ffd195acd254dd1",
+                    "transactionIndex": "0x0",
+                    "address": "0x99994b4522483de17f31a5bc010c5901add3440e",
+                    "data": "0x",
+                    "topics": [
+                        "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b",
+                        "0x000000000000000000000000e85e7e5c81a4dcafa6976cd57988b81dbfcb18e1"
+                    ]
+                },
+                {
+                    "logIndex": "0x2",
+                    "blockNumber": "0x8e3cbd",
+                    "blockHash": "0x34598eec96dbdadc7b9b9f081c3cbbd47bc8e9f5cba5f2a4ce6638b009ef45bc",
+                    "transactionHash": "0x80ef954d721e8a4273eb1cf35e30c2baa94527fc5032e3a53ffd195acd254dd1",
+                    "transactionIndex": "0x0",
+                    "address": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                    "data": "0x",
+                    "topics": [
+                        "0x33e13ecb54c3076d8e8bb8c2881800a4d972b792045ffae98fdf46df365fed75",
+                        "0x00000000000000000000000000000000000000000000000000000000000008aa"
+                    ]
+                }
+            ],
+            "from": "0xdfd4da0e0e656af349e192b954baaef0fc1eba62",
+            "to": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+            "status": "0x1",
+            "logsBloom": "0x08000000000000000000000000000100400000000000000000000000040000000000000020000000000000000000000000000000000000004000000000000000000000000000008000040000000002000000040000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000002000000000000000000000000004000000000000000800000000000000000000000000000000000008000000000000040000000000000000200080000000020000000080002000001000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000080000000",
+            "type": "0x0",
+            "effectiveGasPrice": "0x20f37b2"
+        },
+        "implementationDeploymentTransaction": {
+            "hash": "0xcc1bcce36c751a1c1749ea25c0679bd9936d37446f2d1f5d8aa41355a3c2ee50",
+            "nonce": "0x43",
+            "blockHash": "0x71fd44568c4ca7547bcee0dff54c7b401fcf41e4a80130a476855e4abdc221b6",
+            "blockNumber": "0x8e2b21",
+            "transactionIndex": "0x1",
+            "from": "0x163463b7ddbce853832037a059f5c5e6606bf9c4",
+            "to": null,
+            "gas": "0x3f01d0",
+            "gasPrice": "0x18dbac0",
+            "value": "0x0",
+            "input": "0x60a0604052306080523480156200001557600080fd5b506200002062000026565b620000e7565b600054610100900460ff1615620000935760405162461bcd60e51b815260206004820152602760248201527f496e697469616c697a61626c653a20636f6e747261637420697320696e697469604482015266616c697a696e6760c81b606482015260840160405180910390fd5b60005460ff90811614620000e5576000805460ff191660ff9081179091556040519081527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15b565b6080516138086200011f6000396000818161109c015281816110e501528181611295015281816112d5015261150101526138086000f3fe60806040526004361061036a5760003560e01c80637e219674116101c6578063c925b404116100f7578063efdcd97411610095578063fb7542941161006f578063fb75429414610c0b578063fcea407014610c20578063fd967f4714610c40578063ff78c43614610c6957600080fd5b8063efdcd97414610baa578063f2fde38b14610bca578063f851a44014610bea57600080fd5b8063e30c3978116100d1578063e30c397814610b2a578063ea78aa2014610b48578063eeb57de714610b68578063eee946cb14610b8857600080fd5b8063c925b40414610a32578063d131f85514610aa5578063e14542f514610ac557600080fd5b8063ab8e117e11610164578063baf2785d1161013e578063baf2785d146109b2578063bda0b1bf146109d2578063c4d66de8146109f2578063c5906c6714610a1257600080fd5b8063ab8e117e1461094d578063af65b1791461096d578063b3f006741461098d57600080fd5b80638da5cb5b116101a05780638da5cb5b14610878578063a29e545e146108aa578063a48efa1c146108ca578063a62fc2f21461092d57600080fd5b80637e219674146108185780638056967014610838578063809c30131461085857600080fd5b80634ce88029116102a057806364a972c71161023e57806370db06751161021857806370db067514610755578063715018a6146107ce578063762dc306146107e357806379ba50971461080357600080fd5b806364a972c7146106f557806369af1f2a14610715578063704b6c021461073557600080fd5b806352d1902d1161027a57806352d1902d1461066a57806353b022561461068d578063588d49ff146106a85780636312291c146106c857600080fd5b80634ce88029146105ff5780634f1ef28614610637578063526cd38e1461064a57600080fd5b8063292630781161030d5780633659cfe6116102e75780633659cfe6146105535780633b3b8b2f14610573578063418ecb56146105bf57806344f7f23c146105df57600080fd5b806329263078146104f35780632df7f97b146105135780632ebff0891461053357600080fd5b80630f888695116103495780630f888695146103e0578063134fcb841461042157806316a431aa146104b3578063250028b0146104d357600080fd5b8062ee5a761461036f5780630d92d5e61461039e5780630ec4e451146103c0575b600080fd5b34801561037b57600080fd5b5060fb546103899060ff1681565b60405190151581526020015b60405180910390f35b3480156103aa57600080fd5b506103be6103b9366004613043565b610cda565b005b3480156103cc57600080fd5b506103be6103db3660046130a7565b610d35565b3480156103ec57600080fd5b506104006103fb3660046130f0565b610d4b565b6040805182511515815260209283015161ffff169281019290925201610395565b34801561042d57600080fd5b5061049461043c3660046130f0565b6040805180820182526000808252602091820181905293845261010481528184206001600160a01b039390931684529182529182902082518084019093525460ff808216151584526101009091041615159082015290565b6040805182511515815260209283015115159281019290925201610395565b3480156104bf57600080fd5b506103be6104ce366004613113565b610da1565b3480156104df57600080fd5b506103be6104ee366004613043565b610e28565b3480156104ff57600080fd5b506103be61050e366004613043565b610e7c565b34801561051f57600080fd5b506103be61052e3660046130f0565b610ed0565b34801561053f57600080fd5b506103be61054e366004613139565b61107a565b34801561055f57600080fd5b506103be61056e366004613176565b611092565b34801561057f57600080fd5b5061059361058e366004613191565b61117a565b6040805163ffffffff90941684526001600160a01b039283166020850152911690820152606001610395565b3480156105cb57600080fd5b506103be6105da366004613139565b6111b8565b3480156105eb57600080fd5b506103be6105fa3660046131fd565b6111cb565b34801561060b57600080fd5b5061010b5461062290610100900463ffffffff1681565b60405163ffffffff9091168152602001610395565b6103be610645366004613230565b61128b565b34801561065657600080fd5b506103be6106653660046130f0565b611357565b34801561067657600080fd5b5061067f6114f4565b604051908152602001610395565b34801561069957600080fd5b5061010b546103899060ff1681565b3480156106b457600080fd5b506103be6106c33660046130f0565b6115a7565b3480156106d457600080fd5b506106e86106e33660046132f2565b6115b9565b604051610395919061330b565b34801561070157600080fd5b506103be610710366004613043565b6115d4565b34801561072157600080fd5b506103be610730366004613139565b611628565b34801561074157600080fd5b506103be610750366004613176565b61163b565b34801561076157600080fd5b50610775610770366004613358565b6116b5565b604051610395919081511515815260208083015161ffff169082015260408083015190820152606080830151908201526080808301516001600160a01b03169082015260a09182015160ff169181019190915260c00190565b3480156107da57600080fd5b506103be6117fc565b3480156107ef57600080fd5b506106e86107fe3660046132f2565b611815565b34801561080f57600080fd5b506103be61182f565b34801561082457600080fd5b506103be6108333660046133e1565b6118a6565b34801561084457600080fd5b506103be6108533660046131fd565b61193e565b34801561086457600080fd5b506103be6108733660046133e1565b6119c6565b34801561088457600080fd5b506097546001600160a01b03165b6040516001600160a01b039091168152602001610395565b3480156108b657600080fd5b506103be6108c53660046132f2565b611a55565b3480156108d657600080fd5b506104006108e53660046132f2565b604080518082019091526000808252602082015250600090815260fc602090815260409182902082518084019093525460ff811615158352610100900461ffff169082015290565b34801561093957600080fd5b5061062261094836600461345b565b611ab0565b34801561095957600080fd5b506106e86109683660046132f2565b611adb565b34801561097957600080fd5b506103be6109883660046130f0565b611af6565b34801561099957600080fd5b5060fb546108929061010090046001600160a01b031681565b3480156109be57600080fd5b506106e86109cd3660046132f2565b611b08565b3480156109de57600080fd5b506103be6109ed3660046133e1565b611b23565b3480156109fe57600080fd5b506103be610a0d366004613176565b611bb2565b348015610a1e57600080fd5b506103be610a2d3660046130f0565b611d02565b348015610a3e57600080fd5b50610494610a4d3660046130f0565b6040805180820182526000808252602091820181905293845261010381528184206001600160a01b039390931684529182529182902082518084019093525460ff808216151584526101009091041615159082015290565b348015610ab157600080fd5b506103be610ac03660046130a7565b611d14565b348015610ad157600080fd5b50610494610ae03660046132f2565b6040805180820190915260008082526020820152506000908152610102602090815260409182902082518084019093525460ff808216151584526101009091041615159082015290565b348015610b3657600080fd5b5060c9546001600160a01b0316610892565b348015610b5457600080fd5b506103be610b633660046133e1565b611de7565b348015610b7457600080fd5b506103be610b83366004613139565b611e76565b348015610b9457600080fd5b50610b9d611e89565b604051610395919061348e565b348015610bb657600080fd5b506103be610bc5366004613176565b611e9b565b348015610bd657600080fd5b506103be610be5366004613176565b611f5b565b348015610bf657600080fd5b5061010154610892906001600160a01b031681565b348015610c1757600080fd5b50610b9d611fcc565b348015610c2c57600080fd5b506103be610c3b3660046130f0565b611fd9565b348015610c4c57600080fd5b50610c5661271081565b60405161ffff9091168152602001610395565b348015610c7557600080fd5b50610400610c843660046130f0565b6040805180820182526000808252602091820181905293845260fe81528184206001600160a01b039390931684529182529182902082518084019093525460ff811615158352610100900461ffff169082015290565b610ce2611feb565b8060005b81811015610d2e57610d1e85858584818110610d0457610d046134c6565b9050602002016020810190610d199190613176565b612047565b610d27816134f2565b9050610ce6565b5050505050565b610d3d611feb565b610d4782826120e6565b5050565b6040805180820182526000808252602091820181905284815260fd82528281206001600160a01b0385168252825282902082518084019093525460ff811615158352610100900461ffff16908201525b92915050565b610da9611feb565b8063ffffffff16600003610dd057604051633a38d70f60e11b815260040160405180910390fd5b61010b805464ffffffff00191661010063ffffffff8416908102919091179091556040519081527f636a0bdf5a237de7861b34fad785bb33ee4e1b7630fc4956f478816347fa241a906020015b60405180910390a150565b610e30611feb565b8060005b81811015610d2e57610e6c85858584818110610e5257610e526134c6565b9050602002016020810190610e679190613176565b612174565b610e75816134f2565b9050610e34565b610e84611feb565b8060005b81811015610d2e57610ec085858584818110610ea657610ea66134c6565b9050602002016020810190610ebb9190613176565b612213565b610ec9816134f2565b9050610e88565b610ed8611feb565b6001600160a01b038116610eff5760405163069018bf60e11b815260040160405180910390fd5b604080518082018252600181526000602080830182815286835260fe82528483206001600160a01b0387168452825284832093518454915162ffffff1990921690151562ffff0019161761010061ffff9092168202179093558582529190915220610f6a90826122b1565b506040805160018152600060208201526001600160a01b0383169184917fb5938f0c738d351d053db88baaeda5f2b265cd07e3b930e9182ebebd5f701d47910160405180910390a360408051808201825260018082526020808301918252600086815261010482528481206001600160a01b0387168252825284812093518454935161ffff1990941690151561ff0019161761010093151593909302929092179092558481526101089091522061102190826122b1565b5061102e610109836122c6565b5060408051600180825260208201526001600160a01b0383169184917fa5be4748fb5d494b8d2bf11ecd16b0d8e85aa0757ef33e43da3013e82745f07691015b60405180910390a35050565b611082611feb565b61108d8383836122d2565b505050565b6001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001630036110e35760405162461bcd60e51b81526004016110da9061350b565b60405180910390fd5b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031661112c60008051602061378c833981519152546001600160a01b031690565b6001600160a01b0316146111525760405162461bcd60e51b81526004016110da90613557565b61115b816123ba565b60408051600080825260208201909252611177918391906123e9565b50565b61010b546000908190819060ff1661119a575060009150869050856111ad565b50869050856111aa858584612554565b92505b955095509592505050565b6111c0611feb565b61108d8383836126bc565b610101546001600160a01b031633148015906111f257506097546001600160a01b03163314155b156112125760405163fade6b7760e01b81523360048201526024016110da565b80801561122b575061010b54610100900463ffffffff16155b1561124957604051630d1d25fb60e31b815260040160405180910390fd5b61010b805460ff19168215159081179091556040519081527fb41daa26da2f9dde6560a775993d566f429aa350cacccf7210b6032ddf4336b090602001610e1d565b6001600160a01b037f00000000000000000000000000000000000000000000000000000000000000001630036112d35760405162461bcd60e51b81526004016110da9061350b565b7f00000000000000000000000000000000000000000000000000000000000000006001600160a01b031661131c60008051602061378c833981519152546001600160a01b031690565b6001600160a01b0316146113425760405162461bcd60e51b81526004016110da90613557565b61134b826123ba565b610d47828260016123e9565b61135f611feb565b6001600160a01b0381166113865760405163069018bf60e11b815260040160405180910390fd5b6040805180820182526000808252602080830182815286835260fe82528483206001600160a01b0387168452825284832093518454915162ffffff1990921690151562ffff0019161761010061ffff90921682021790935585825291909152206113f090826122b1565b5060408051600080825260208201526001600160a01b0383169184917fb5938f0c738d351d053db88baaeda5f2b265cd07e3b930e9182ebebd5f701d47910160405180910390a3604080518082018252600181526000602080830182815286835261010482528483206001600160a01b0387168452825284832093518454915161ffff1990921690151561ff001916176101009115159190910217909255848152610108909152206114a290826122b1565b506114af610109836122c6565b506040805160018152600060208201526001600160a01b0383169184917fa5be4748fb5d494b8d2bf11ecd16b0d8e85aa0757ef33e43da3013e82745f076910161106e565b6000306001600160a01b037f000000000000000000000000000000000000000000000000000000000000000016146115945760405162461bcd60e51b815260206004820152603860248201527f555550535570677261646561626c653a206d757374206e6f742062652063616c60448201527f6c6564207468726f7567682064656c656761746563616c6c000000000000000060648201526084016110da565b5060008051602061378c83398151915290565b6115af611feb565b610d478282612047565b600081815261010760205260409020606090610d9b906127bc565b6115dc611feb565b8060005b81811015610d2e57611618858585848181106115fe576115fe6134c6565b90506020020160208101906116139190613176565b6127c9565b611621816134f2565b90506115e0565b611630611feb565b61108d838383612868565b611643611feb565b6001600160a01b03811661166a5760405163b325f76760e01b815260040160405180910390fd5b61010180546001600160a01b0319166001600160a01b0383169081179091556040517f8fe72c3e0020beb3234e76ae6676fa576fbfcae600af1c4fea44784cf0db329c90600090a250565b6040805160c08101825260008082526020820181905291810182905260a081019190915260fb5461010081046001600160a01b031660808301526060820183905260ff1661170d5760015b60ff1660a08201526117f4565b60fb5461010090046001600160a01b0316611729576002611700565b6000611736868686612920565b80519091506117505760025b60ff1660a0830152506117f4565b602081015161ffff161580159061177a575060208101516117779061ffff166000196135a3565b83115b15611786576003611742565b6020810151600090612710906117a09061ffff16866135c5565b6117aa91906135a3565b9050838111156117c2575050600360a08201526117f4565b6001835260208083015161ffff1690840152604083018190526117e581856135dc565b60608401525050600060a08201525b949350505050565b6040516317d5c96560e11b815260040160405180910390fd5b600081815260ff60205260409020606090610d9b906127bc565b60c95433906001600160a01b0316811461189d5760405162461bcd60e51b815260206004820152602960248201527f4f776e61626c6532537465703a2063616c6c6572206973206e6f7420746865206044820152683732bb9037bbb732b960b91b60648201526084016110da565b61117781612a33565b6118ae611feb565b828181146118d2576040516001621398b960e31b0319815260040160405180910390fd5b60005b8181101561193557611925878787848181106118f3576118f36134c6565b90506020020160208101906119089190613176565b86868581811061191a5761191a6134c6565b9050604002016122d2565b61192e816134f2565b90506118d5565b50505050505050565b610101546001600160a01b0316331480159061196557506097546001600160a01b03163314155b156119855760405163fade6b7760e01b81523360048201526024016110da565b60fb805460ff19168215159081179091556040519081527f4afba55e68999eb85b2692f998f6eea3e471317ba84d323f927b08ee304937dc90602001610e1d565b6119ce611feb565b828181146119f2576040516001621398b960e31b0319815260040160405180910390fd5b60005b8181101561193557611a4587878784818110611a1357611a136134c6565b9050602002016020810190611a289190613176565b868685818110611a3a57611a3a6134c6565b9050604002016126bc565b611a4e816134f2565b90506119f5565b611a5d611feb565b611a6961010582612a4c565b156111775760008181526101026020526040808220805461ffff191690555182917f0a2415bf80b7461d797239dee1547534768186ee4c6cfe9b03a2b14245ff4e8091a250565b61010b5460009060ff16611ac657506000611ad4565b611ad1848484612554565b90505b9392505050565b600081815261010860205260409020606090610d9b906127bc565b611afe611feb565b610d478282612213565b600081815261010060205260409020606090610d9b906127bc565b611b2b611feb565b82818114611b4f576040516001621398b960e31b0319815260040160405180910390fd5b60005b8181101561193557611ba287878784818110611b7057611b706134c6565b9050602002016020810190611b859190613176565b868685818110611b9757611b976134c6565b905060400201612a58565b611bab816134f2565b9050611b52565b600054610100900460ff1615808015611bd25750600054600160ff909116105b80611bec5750303b158015611bec575060005460ff166001145b611c4f5760405162461bcd60e51b815260206004820152602e60248201527f496e697469616c697a61626c653a20636f6e747261637420697320616c72656160448201526d191e481a5b9a5d1a585b1a5e995960921b60648201526084016110da565b6000805460ff191660011790558015611c72576000805461ff0019166101001790555b611c7a612b2f565b611c82612b2f565b611c8a612b5e565b6001600160a01b03821615801590611cab57506001600160a01b0382163314155b15611cb957611cb982612a33565b8015610d47576000805461ff0019169055604051600181527f7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb38474024989060200160405180910390a15050565b611d0a611feb565b610d4782826127c9565b611d1c611feb565b612710611d2f60408301602084016135ff565b61ffff161115611d6957611d4960408201602083016135ff565b60405163e476e19360e01b815261ffff90911660048201526024016110da565b600082815260fc602052604090208190611d83828261361c565b508290507f9c2ed4beffca08031c728cc780c96150259726860364488ef2ea81abe4f028e4611db560208401846131fd565b611dc560408501602086016135ff565b60408051921515835261ffff9091166020830152015b60405180910390a25050565b611def611feb565b82818114611e13576040516001621398b960e31b0319815260040160405180910390fd5b60005b8181101561193557611e6687878784818110611e3457611e346134c6565b9050602002016020810190611e499190613176565b868685818110611e5b57611e5b6134c6565b905060400201612868565b611e6f816134f2565b9050611e16565b611e7e611feb565b61108d838383612a58565b6060611e966101056127bc565b905090565b610101546001600160a01b03163314801590611ec257506097546001600160a01b03163314155b15611ee25760405163fade6b7760e01b81523360048201526024016110da565b6001600160a01b038116611f0957604051630665334760e11b815260040160405180910390fd5b60fb8054610100600160a81b0319166101006001600160a01b038416908102919091179091556040517fbdf37c276f641820b141429d245add2552b4118c0866e5a78638e3de5ef18d9d90600090a250565b611f63611feb565b60c980546001600160a01b0383166001600160a01b03199091168117909155611f946097546001600160a01b031690565b6001600160a01b03167f38d16b8cac22d99fc7c124b9cd0de2d3fa1faef420bfe791d8c362d765e2270060405160405180910390a350565b6060611e966101096127bc565b611fe1611feb565b610d478282612174565b6097546001600160a01b031633146120455760405162461bcd60e51b815260206004820181905260248201527f4f776e61626c653a2063616c6c6572206973206e6f7420746865206f776e657260448201526064016110da565b565b6001600160a01b03811661206e5760405163069018bf60e11b815260040160405180910390fd5b6000828152610108602052604090206120879082612b85565b15610d47576000828152610104602090815260408083206001600160a01b0385168085529252808320805461ffff1916905551909184917f416cacd5072a1d362d8caf354925f11cae9923a53b133827867f4dce0e9ab27d9190a35050565b6000828152610102602052604090208190612101828261365e565b506121109050610105836122c6565b5061211d610109836122c6565b50817f0dc819d083b890d1b2a7fd131d06d1bbe498e03a287d97314815db796bbd525f61214d60208401846131fd565b61215d60408501602086016131fd565b604080519215158352901515602083015201611ddb565b6001600160a01b03811661219b5760405163862f9ab160e01b815260040160405180910390fd5b6000828152610107602052604090206121b49082612b85565b15610d47576000828152610103602090815260408083206001600160a01b0385168085529252808320805461ffff1916905551909184917f3ea6f63dcc3d9f164de5d73605d36a6172345b1cdfa66c106d16acd2336549909190a35050565b6001600160a01b03811661223a5760405163862f9ab160e01b815260040160405180910390fd5b600082815260ff602052604090206122529082612b85565b15610d4757600082815260fd602090815260408083206001600160a01b0385168085529252808320805462ffffff1916905551909184917faafabd0077e7cf783725deb87142797a6a87e42f2afff85325d1b6912eb71d419190a35050565b6000611ad4836001600160a01b038416612b9a565b6000611ad48383612b9a565b6001600160a01b0382166122f95760405163862f9ab160e01b815260040160405180910390fd5b6000838152610103602090815260408083206001600160a01b038616845290915290208190612328828261365e565b505060008381526101076020526040902061234390836122b1565b50612350610109846122c6565b506001600160a01b038216837f7359d91a92cd2164ae8d6c4b05f86c4660e715557ebc657a18567a07d275aa5161238a60208501856131fd565b61239a60408601602087016131fd565b6040805192151583529015156020830152015b60405180910390a3505050565b6123c2611feb565b6001600160a01b0381166111775760405163022771b760e31b815260040160405180910390fd5b7f4910fdfa16fed3260ed0e7147f7cc6da11a60208b5b9406d12a635614ffd91435460ff161561241c5761108d83612be9565b826001600160a01b03166352d1902d6040518163ffffffff1660e01b8152600401602060405180830381865afa925050508015612476575060408051601f3d908101601f191682019092526124739181019061369e565b60015b6124d95760405162461bcd60e51b815260206004820152602e60248201527f45524331393637557067726164653a206e657720696d706c656d656e7461746960448201526d6f6e206973206e6f74205555505360901b60648201526084016110da565b60008051602061378c83398151915281146125485760405162461bcd60e51b815260206004820152602960248201527f45524331393637557067726164653a20756e737570706f727465642070726f786044820152681a58589b195555525160ba1b60648201526084016110da565b5061108d838383612c85565b6000838152610104602090815260408083206001600160a01b0385168452825280832081518083019092525460ff808216158015845261010090920416151592820192909252906125c75780602001516125bc5761010b54610100900463ffffffff166125bf565b60005b915050611ad4565b6001600160a01b0384161561264c576000858152610103602090815260408083206001600160a01b038816845282529182902082518084019093525460ff80821615801585526101009092041615159183019190915261264a57806020015161263e5761010b54610100900463ffffffff16612641565b60005b92505050611ad4565b505b6000858152610102602090815260409182902082518084019093525460ff8082161580158552610100909204161515918301919091526126a357806020015161263e5761010b54610100900463ffffffff16612641565b505061010b54610100900463ffffffff16949350505050565b6001600160a01b0382166126e35760405163862f9ab160e01b815260040160405180910390fd5b6127106126f660408301602084016135ff565b61ffff16111561271057611d4960408201602083016135ff565b600083815260fd602090815260408083206001600160a01b03861684529091529020819061273e828261361c565b5050600083815260ff6020526040902061275890836122b1565b506001600160a01b038216837f48d8c51d6d2a265f877d8d087866ac5804efe2d6770ba1dd2d196eeb23630c9061279260208501856131fd565b6127a260408601602087016135ff565b60408051921515835261ffff9091166020830152016123ad565b60606000611ad483612cb0565b6001600160a01b0381166127f05760405163069018bf60e11b815260040160405180910390fd5b6000828152610100602052604090206128099082612b85565b15610d4757600082815260fe602090815260408083206001600160a01b0385168085529252808320805462ffffff1916905551909184917f8a7413f0bcdbe90171aa0fcf0ebeb97f0c2dcee8e972861cb6b54a412041c82c9190a35050565b6001600160a01b03821661288f5760405163069018bf60e11b815260040160405180910390fd5b6000838152610104602090815260408083206001600160a01b0386168452909152902081906128be828261365e565b50506000838152610108602052604090206128d990836122b1565b506128e6610109846122c6565b506001600160a01b038216837fa5be4748fb5d494b8d2bf11ecd16b0d8e85aa0757ef33e43da3013e82745f07661238a60208501856131fd565b6040805180820190915260008082526020820152600084815260fc602090815260409182902082518084019093525460ff8116151580845261010090910461ffff1691830191909152612974579050611ad4565b600085815260fe602090815260408083206001600160a01b038716845282529182902082518084019093525460ff8116158015845261010090910461ffff16918301919091526129c7579150611ad49050565b6001600160a01b03851615612a2a5750600085815260fd602090815260408083206001600160a01b038816845282529182902082518084019093525460ff8116158015845261010090910461ffff1691830191909152612a2a579150611ad49050565b50949350505050565b60c980546001600160a01b031916905561117781612d0c565b6000611ad48383612d5e565b6001600160a01b038216612a7f5760405163069018bf60e11b815260040160405180910390fd5b612710612a9260408301602084016135ff565b61ffff161115612aac57611d4960408201602083016135ff565b600083815260fe602090815260408083206001600160a01b038616845290915290208190612ada828261361c565b5050600083815261010060205260409020612af590836122b1565b506001600160a01b038216837fb5938f0c738d351d053db88baaeda5f2b265cd07e3b930e9182ebebd5f701d4761279260208501856131fd565b600054610100900460ff16612b565760405162461bcd60e51b81526004016110da906136b7565b612045612e51565b600054610100900460ff166120455760405162461bcd60e51b81526004016110da906136b7565b6000611ad4836001600160a01b038416612d5e565b6000818152600183016020526040812054612be157508154600181810184556000848152602080822090930184905584548482528286019093526040902091909155610d9b565b506000610d9b565b6001600160a01b0381163b612c565760405162461bcd60e51b815260206004820152602d60248201527f455243313936373a206e657720696d706c656d656e746174696f6e206973206e60448201526c1bdd08184818dbdb9d1c9858dd609a1b60648201526084016110da565b60008051602061378c83398151915280546001600160a01b0319166001600160a01b0392909216919091179055565b612c8e83612e81565b600082511180612c9b5750805b1561108d57612caa8383612ec1565b50505050565b606081600001805480602002602001604051908101604052809291908181526020018280548015612d0057602002820191906000526020600020905b815481526020019060010190808311612cec575b50505050509050919050565b609780546001600160a01b038381166001600160a01b0319831681179093556040519116919082907f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e090600090a35050565b60008181526001830160205260408120548015612e47576000612d826001836135dc565b8554909150600090612d96906001906135dc565b9050818114612dfb576000866000018281548110612db657612db66134c6565b9060005260206000200154905080876000018481548110612dd957612dd96134c6565b6000918252602080832090910192909255918252600188019052604090208390555b8554869080612e0c57612e0c613702565b600190038181906000526020600020016000905590558560010160008681526020019081526020016000206000905560019350505050610d9b565b6000915050610d9b565b600054610100900460ff16612e785760405162461bcd60e51b81526004016110da906136b7565b61204533612a33565b612e8a81612be9565b6040516001600160a01b038216907fbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b90600090a250565b6060611ad483836040518060600160405280602781526020016137ac602791396060600080856001600160a01b031685604051612efe919061373c565b600060405180830381855af49150503d8060008114612f39576040519150601f19603f3d011682016040523d82523d6000602084013e612f3e565b606091505b5091509150612f4f86838387612f59565b9695505050505050565b60608315612fc8578251600003612fc1576001600160a01b0385163b612fc15760405162461bcd60e51b815260206004820152601d60248201527f416464726573733a2063616c6c20746f206e6f6e2d636f6e747261637400000060448201526064016110da565b50816117f4565b6117f48383815115612fdd5781518083602001fd5b8060405162461bcd60e51b81526004016110da9190613758565b60008083601f84011261300957600080fd5b50813567ffffffffffffffff81111561302157600080fd5b6020830191508360208260051b850101111561303c57600080fd5b9250929050565b60008060006040848603121561305857600080fd5b83359250602084013567ffffffffffffffff81111561307657600080fd5b61308286828701612ff7565b9497909650939450505050565b6000604082840312156130a157600080fd5b50919050565b600080606083850312156130ba57600080fd5b823591506130cb846020850161308f565b90509250929050565b80356001600160a01b03811681146130eb57600080fd5b919050565b6000806040838503121561310357600080fd5b823591506130cb602084016130d4565b60006020828403121561312557600080fd5b813563ffffffff81168114611ad457600080fd5b60008060006080848603121561314e57600080fd5b8335925061315e602085016130d4565b915061316d856040860161308f565b90509250925092565b60006020828403121561318857600080fd5b611ad4826130d4565b600080600080600060a086880312156131a957600080fd5b6131b2866130d4565b94506131c0602087016130d4565b93506131ce604087016130d4565b9250606086013591506131e3608087016130d4565b90509295509295909350565b801515811461117757600080fd5b60006020828403121561320f57600080fd5b8135611ad4816131ef565b634e487b7160e01b600052604160045260246000fd5b6000806040838503121561324357600080fd5b61324c836130d4565b9150602083013567ffffffffffffffff8082111561326957600080fd5b818501915085601f83011261327d57600080fd5b81358181111561328f5761328f61321a565b604051601f8201601f19908116603f011681019083821181831017156132b7576132b761321a565b816040528281528860208487010111156132d057600080fd5b8260208601602083013760006020848301015280955050505050509250929050565b60006020828403121561330457600080fd5b5035919050565b6020808252825182820181905260009190848201906040850190845b8181101561334c5783516001600160a01b031683529284019291840191600101613327565b50909695505050505050565b6000806000806080858703121561336e57600080fd5b8435935061337e602086016130d4565b925061338c604086016130d4565b9396929550929360600135925050565b60008083601f8401126133ae57600080fd5b50813567ffffffffffffffff8111156133c657600080fd5b6020830191508360208260061b850101111561303c57600080fd5b6000806000806000606086880312156133f957600080fd5b85359450602086013567ffffffffffffffff8082111561341857600080fd5b61342489838a01612ff7565b9096509450604088013591508082111561343d57600080fd5b5061344a8882890161339c565b969995985093965092949392505050565b60008060006060848603121561347057600080fd5b83359250613480602085016130d4565b915061316d604085016130d4565b6020808252825182820181905260009190848201906040850190845b8181101561334c578351835292840192918401916001016134aa565b634e487b7160e01b600052603260045260246000fd5b634e487b7160e01b600052601160045260246000fd5b600060018201613504576135046134dc565b5060010190565b6020808252602c908201527f46756e6374696f6e206d7573742062652063616c6c6564207468726f7567682060408201526b19195b1959d85d1958d85b1b60a21b606082015260800190565b6020808252602c908201527f46756e6374696f6e206d7573742062652063616c6c6564207468726f7567682060408201526b6163746976652070726f787960a01b606082015260800190565b6000826135c057634e487b7160e01b600052601260045260246000fd5b500490565b8082028115828204841417610d9b57610d9b6134dc565b81810381811115610d9b57610d9b6134dc565b61ffff8116811461117757600080fd5b60006020828403121561361157600080fd5b8135611ad4816135ef565b8135613627816131ef565b815460ff191660ff82151516178255506020820135613645816135ef565b815462ffff00191660089190911b62ffff001617905550565b8135613669816131ef565b815460ff191660ff82151516178255506020820135613687816131ef565b815461ff00191690151560081b61ff001617905550565b6000602082840312156136b057600080fd5b5051919050565b6020808252602b908201527f496e697469616c697a61626c653a20636f6e7472616374206973206e6f74206960408201526a6e697469616c697a696e6760a81b606082015260800190565b634e487b7160e01b600052603160045260246000fd5b60005b8381101561373357818101518382015260200161371b565b50506000910152565b6000825161374e818460208701613718565b9190910192915050565b6020815260008251806020840152613777816040850160208701613718565b601f01601f1916919091016040019291505056fe360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc416464726573733a206c6f772d6c6576656c2064656c65676174652063616c6c206661696c6564a2646970667358221220704b9104fe694a15a864151a3d75ef25a3cea3cf16ff516cfdf1328c90e58c1564736f6c63430008140033",
+            "v": "0x5f",
+            "r": "0x30ba34c7adac29d0b2040a6c985b41b5684a7150e5abbbcbc11068085eadfe01",
+            "s": "0x786867b22fffaf26e0f0d30214f699761249e695ba2de1cb95ecf9858ea10469",
+            "type": "0x0"
+        },
+        "implementationDeploymentReceipt": {
+            "transactionHash": "0xcc1bcce36c751a1c1749ea25c0679bd9936d37446f2d1f5d8aa41355a3c2ee50",
+            "transactionIndex": "0x1",
+            "blockHash": "0x71fd44568c4ca7547bcee0dff54c7b401fcf41e4a80130a476855e4abdc221b6",
+            "blockNumber": "0x8e2b21",
+            "cumulativeGasUsed": "0x31ccee",
+            "gasUsed": "0x30747d",
+            "contractAddress": "0xe85e7e5c81a4dcafa6976cd57988b81dbfcb18e1",
+            "logs": [
+                {
+                    "logIndex": "0x2",
+                    "blockNumber": "0x8e2b21",
+                    "blockHash": "0x71fd44568c4ca7547bcee0dff54c7b401fcf41e4a80130a476855e4abdc221b6",
+                    "transactionHash": "0xcc1bcce36c751a1c1749ea25c0679bd9936d37446f2d1f5d8aa41355a3c2ee50",
+                    "transactionIndex": "0x1",
+                    "address": "0xe85e7e5c81a4dcafa6976cd57988b81dbfcb18e1",
+                    "data": "0x00000000000000000000000000000000000000000000000000000000000000ff",
+                    "topics": [
+                        "0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498"
+                    ]
+                }
+            ],
+            "from": "0x163463b7ddbce853832037a059f5c5e6606bf9c4",
+            "to": null,
+            "status": "0x1",
+            "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000200000000000000000400000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000",
+            "type": "0x0",
+            "effectiveGasPrice": "0x18dbac0"
+        },
+        "blocks": {
+            "creation": {
+                "number": "0x8e2b21",
+                "hash": "0x71fd44568c4ca7547bcee0dff54c7b401fcf41e4a80130a476855e4abdc221b6",
+                "parentHash": "0x40b3a78d27296fe7e2e5fbfaec7ebfeec3f4969912e87618ed62babf4cde2267",
+                "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "nonce": "0x0000000000000000",
+                "sha3Uncles": "0x7544aecd883c794d33d0398936799cba78f48816bc5d9bd5782172410aafe85f",
+                "logsBloom": "0x00000000000000000000000000100020000100000010000000000200000000000020400000000000000000000000010000000000000000000008000000000000000000000004000000000000400040000000000000000000200200000000000000000000000000000000000000000100000000000000000000000000000000000000400000000000000000000000000000000000000080000000000000000000000000000200100020000000000400000000400000000000001000020000000000000001000000000000040000040000000020000000000000200000100000000000000000000000010000000080000000000000000000000000200000000000",
+                "transactionsRoot": "0xccf3c58dc802cef04faf5f90c6a600211c1ace7f89f88e4c942d6ecf968a6df6",
+                "stateRoot": "0x2b4b58cb62a0e8181493c50266433f62ffaf1d00c14aa713257343a2d7dd55bd",
+                "receiptsRoot": "0xa6220a9b4e2e7e43896c71ea018f1c87df952d2c48b75b674834fd8802fcd0a3",
+                "miner": "0x4e5dabc28e4a0f5e5b19fcb56b28c5a1989352c1",
+                "difficulty": "0x1854dd62e4329ed483f",
+                "totalDifficulty": "0xc69f4446c88791030a3f5004",
+                "extraData": "0xd30191564554495645522d643430323166636532",
+                "size": "0x4752",
+                "gasLimit": "0x989680",
+                "gasUsed": "0x31ccee",
+                "timestamp": "0x6acc22f8",
+                "transactions": [
+                    "0x769358095e84071cadd12f8442b9f370e390dc38a229e2f97cb15e307ba4124e",
+                    "0xcc1bcce36c751a1c1749ea25c0679bd9936d37446f2d1f5d8aa41355a3c2ee50",
+                    "0xa7d5a2ac5d1d97de570aa3ad6d1bac9fbed0ffe9899ffc83238e21e1ab8a1830"
+                ],
+                "uncles": ["0x4d524651c51439d15e2203be0bd9e27e13ed1378a38d14e71eb59af3c3c5774d"],
+                "minimumGasPrice": "0x1699280",
+                "bitcoinMergedMiningHeader": "0x00c06d23d4eaf8928d724a54f1a626c53f8c514f5358481b60420000000000000000000044d54840cc1997736810e7980977f6ad4c983e57a16dcbd54002eefb3804e128fe22cc6af01e0217d5022917",
+                "bitcoinMergedMiningCoinbaseTransaction": "0x0000000000000180b29669ae2ff4cfb80602e8f47301b128b0d264e4fed9120941a1f54492f425b800000000002b6a2952534b424c4f434b3a68d651697e08d2a79b8f613402cf74d7adce20b3635be761f3d2fc29008e2b2100000000",
+                "bitcoinMergedMiningMerkleProof": "0xdc3b6a14716250df9e9b4dc01bd4d5ffa546518bc2a6fc52780007b48b20198deba0f470f4de6687621ebebf8562731421f1a8636e67869433c7c7b99608e0c47d19533795c1fab8035bea8a124fd77b451e259472823413346386121078893bfafd8c88c058f36648c323ef14cf6d76fceb92948b356ede6cfee75aef0c48b6e75d65063a9762bab5b1fa32cdf841ddf4ca7915f40ca2b99a240f61ea01ba16f028ccd2baf08c802a46f2c1626d630c1c314526b82a198827c31ee929085379a64ef865250ace59426a24d8c9ccfaa8796432375d5d46b33b67270e16a146dffaafec1c31c7138888f420deb0298c064ad8e110af52737e34674e0eb33f74818dc63823dee721fdc7bb69bcf609bd687412051200895e454ad20ec09221a4fc89a5c6cd869db63b036803ecc7e657407279221c44a347858ee3a83bee5ca81ae4c5303a12f0db82a413656199737ef119c4108b8134969d3e75895b44a8ec135d4cfd4d444fe2ec7e7a900b6b6d711c27618c3075d8ef94b7bccac99e53a35c9b2e4a3bb7031853f5bc0e05278c1c609bdb9ce6e108ed9554f85d32c2231b6f",
+                "hashForMergedMining": "0x68d651697e08d2a79b8f613402cf74d7adce20b3635be761f3d2fc29008e2b21",
+                "paidFees": "0x4d5f21549e80",
+                "cumulativeDifficulty": "0x30c8fdb7d1d839190cb",
+                "rskPteEdges": null,
+                "baseEvent": null
+            },
+            "before": {
+                "number": "0x8e3cbc",
+                "hash": "0xb2b4b5058364614baeb4c3890eeaa7918b3f69145d8329afb48f89de9e893766",
+                "parentHash": "0x38af3ac0e44645ceb1ebda26d8cc5b157f8a2fa02331607bd983d7faf204de75",
+                "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "nonce": "0x0000000000000000",
+                "sha3Uncles": "0xb7e71a486674444f106ffe3933b5708fcdbc0975309fbf4507f5368c4eb95095",
+                "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000400000000000000000020000000000000000010000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                "transactionsRoot": "0x1dd89b795aa500acda91e8efbfe8575d592c49d7ff1573464aa6ec2f4daf5507",
+                "stateRoot": "0x5ac3c6d84c81853bea7b9918bff2ab6b5fabe94479617ff9268f546c9844367a",
+                "receiptsRoot": "0xe814602d2d15f5358a52c23c1e16ca73e5242acef98d737cbbca21e963d00742",
+                "miner": "0x12d3178a62ef1f520944534ed04504609f7307a1",
+                "difficulty": "0x17b3331c08f88c58b1f",
+                "totalDifficulty": "0xc6d591c45518d323a70b2af9",
+                "extraData": "0xd30191564554495645522d643430323166636532",
+                "size": "0x11de",
+                "gasLimit": "0x989680",
+                "gasUsed": "0x27f88",
+                "timestamp": "0x6ace39a8",
+                "transactions": [
+                    "0x499c44daf28d314bceb6a70a6ff56fe11836d3d0cc10cd4471d4e5baf5a23ead",
+                    "0xbb5bf3195426a0d0d0df13dc3b53ad6ff8eb74948269de682ffefa6fa7f91539"
+                ],
+                "uncles": [
+                    "0xfad0463f6e262ce0b6167b280e885813451cc66038d6a0a11c93d14ab408bf2e",
+                    "0x419b739139ac4bb72459f4957a1b67ef64a0e21e81b88cfede0f1a8aa9b6c9de"
+                ],
+                "minimumGasPrice": "0x1699280",
+                "bitcoinMergedMiningHeader": "0x000002203ded98414c9076addaa50b9d3741d0af195a9567c81002000000000000000000392d5f467edecc026a6da13481a9e60ec337d8854505c8b8ac60aa947bf95429d239ce6af01e02173d7afd25",
+                "bitcoinMergedMiningCoinbaseTransaction": "0x00000000000001407287afc82f9f3422691bec72fdf904964c7eebededf9a99e42ec56c73ecc2182487c942218b846d76fb477640ab8116b7b67c763bb7528098700000000000000002c6a4c2952534b424c4f434b3ac01c7b51b691e1b0cc8b6d5a08ca9503358a1c62ed0f4a6119b41c21008e3cbc0000000000000000296a2773797306fc0401b98476dca2f36c10a1affa7b4cde1b7e2838718bedc5b5cdc9b4122be07923000000000000000000266a24aa21a9ede313bc34f295ee270030cee4d9f1b1fd0a360283c1d9c97cbb4a6fcd35c92df8dc6d3640",
+                "bitcoinMergedMiningMerkleProof": "0x4e60e477416060166c5fd7d8d11537dbcd0224affed76a8910f27e7d853103922674d6581aa97845d915c9bf4753094011efad5b46d60ef01524b8e73dca65c1be4a77ead4a7c35a29c65361c0c00fb0f09ac82e9ed5ab5d3010412f61434a563c2887fc143b3d0856a32ea06291731f94aef8fcd15a1fe2d3d10ebeaae89c023a3d2d24891dad1b7bc26f254dce97cddd46170a8e582aa7c635fb5401bd1707617fe2567885c861ebcefd18a547675090ccca01965362579886007f38774fc72ce30c4acb1f63decb93a3f7a510f8d1e76a36e2598d89d2e84bd8eea2da3e66cd114b3793184153dd2be309b5371050e7533445a91302feaa4fa6ec859af68fe87753a58ffc70ec33e6a0f5ca31290a76c6241e496a9e91a27c879f3deaa0503e5a8f34c1a8190b3b46d2799b525a4c3ff96ae1fa0283fae52e076d2ad761af43e2e822c6f1d7400d4eb41bda53ebcd388d52ff144f2b2d84f48cdbeff03e7366b8f7663589db97d8039d6a53616249a0e238c924a562e3220211161345d1f0ff09e69895cf6a077178292794ceac360320d55d165f4979793bc968f0caf8df",
+                "hashForMergedMining": "0xc01c7b51b691e1b0cc8b6d5a08ca9503358a1c62ed0f4a6119b41c21008e3cbc",
+                "paidFees": "0x48301b98a88",
+                "cumulativeDifficulty": "0x473802cecac1d3f0395",
+                "rskPteEdges": null,
+                "baseEvent": null
+            },
+            "execution": {
+                "number": "0x8e3cbd",
+                "hash": "0x34598eec96dbdadc7b9b9f081c3cbbd47bc8e9f5cba5f2a4ce6638b009ef45bc",
+                "parentHash": "0xb2b4b5058364614baeb4c3890eeaa7918b3f69145d8329afb48f89de9e893766",
+                "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "nonce": "0x0000000000000000",
+                "sha3Uncles": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+                "logsBloom": "0x08000000000000000000000000000100400000000000000000000000040000000000000020000000000000000000000000000000000000004000000000000000000000000000008000040000000002000000040000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000002000000000000000000000000004000000000000000800000000000000000000000000000000000008000000000000040000000000000000200080000000020000000080002000001000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000080000000",
+                "transactionsRoot": "0xdd02eb0a7cb0b51b328cf080ee2f346e9103f1730e7a1f9b2c2587cd1d6f0f51",
+                "stateRoot": "0xe389a6fa30e0e69dc8e9b2e5f040d06b9963e1db04abe0269255532b8df4de5e",
+                "receiptsRoot": "0x4e0a59255c4d7d53568b523b3d611d623e9a5961668585596755b8e675b89e34",
+                "miner": "0x4e5dabc28e4a0f5e5b19fcb56b28c5a1989352c1",
+                "difficulty": "0x17a4081a0b822ab7318",
+                "totalDifficulty": "0xc6d5933e959a73dbc9b69e11",
+                "extraData": "0xd30191564554495645522d643430323166636532",
+                "size": "0x506",
+                "gasLimit": "0x989680",
+                "gasUsed": "0x15cb3",
+                "timestamp": "0x6ace39e8",
+                "transactions": [
+                    "0x80ef954d721e8a4273eb1cf35e30c2baa94527fc5032e3a53ffd195acd254dd1",
+                    "0x11f309d3db7759544b88939ee366145afbbb28d159cc6cae96ac637c13a926e7"
+                ],
+                "uncles": [],
+                "minimumGasPrice": "0x1699280",
+                "bitcoinMergedMiningHeader": "0x00e07c293ded98414c9076addaa50b9d3741d0af195a9567c81002000000000000000000c91a44f8301b218704b8cf07d930a2296cdddf70431f9a11b213c918f16c61f1ef39ce6af01e02177414ea85",
+                "bitcoinMergedMiningCoinbaseTransaction": "0x0000000000000180abfca1c0414b9a13b1a30774068c0ce16f72e5015699b11925db8f44253279280000000000002b6a2952534b424c4f434b3a6233f3eebc952e5c26ca347057522246f97fcc7ced0f4a6119b41c22008e3cbd00000000",
+                "bitcoinMergedMiningMerkleProof": "0x4e60e477416060166c5fd7d8d11537dbcd0224affed76a8910f27e7d853103922674d6581aa97845d915c9bf4753094011efad5b46d60ef01524b8e73dca65c105e7785fcfea40184a62c61421d49ecc858e6e2b8d1e7894b297da0cc709c27d6d6faf76ec9a3dfa16e1edb832acf2a933496b3c184549000e8aed8dbe799df1b403b50a633dbda447f5a20f4c58d1801aae4ea884b6bc66aa50849eb29442687ae94890a88261e71fc82c912ed01f5a623588a8eb052b7cf3245eec798a38111e37375d2ff45fda36dfc09c4583b583a61b112c1b11d630550e317452aa8fb07a284721bb78acf2d4107479c3b2b4d14266f027ba42e4c7f564a9b04a673e24f44a120eee0fabf52d99c373ddab5a6ea6d3439f133c3e34c9cfb21e4b01c2ce2155ac0c2c5de2e0b54f7c59ab5597847c464088c54a0443c0e86ff776758f33954ecac3d4bea31cf19ac7c3764aa372e898a1ef88046862890f7cc2252c01cf00117cf4e042919821b763a32de37574ec36a39859e82f37e94c5f8316142bfafdf1e82280b801e8e9b890f7f5e3f12ce92cf5c9a3f54a584a11eb239dbe8492",
+                "hashForMergedMining": "0x6233f3eebc952e5c26ca347057522246f97fcc7ced0f4a6119b41c22008e3cbd",
+                "paidFees": "0x2ce2059e976",
+                "cumulativeDifficulty": "0x17a4081a0b822ab7318",
+                "rskPteEdges": null,
+                "baseEvent": null
+            },
+            "latest": {
+                "number": "0x8e3ce5",
+                "hash": "0xfe9c842eb326469b238475acf1cfd2f13f071478b9ddc7097afa5080e766d188",
+                "parentHash": "0x1c09fbf577e30721408c0c0d23f38870c26c5197151b624d747d114a148d1fb5",
+                "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "nonce": "0x0000000000000000",
+                "sha3Uncles": "0x55d4a1f0447e240fb5742bfbaf16133557090fbd3d8a61dfdbe0cd21fa30176c",
+                "logsBloom": "0x00000000020000000000000004000000000000000000000000000000000000000020400010000000000000020010000000000000010020000008000000200000000000000010000840000008000000000000000000000800000000080000000000000000008080004000000000000000008000000000000002000010000800020000000000000000000000000000000000000000000000000000081004000001020000000004120024000000000000020000000000000800001004020000000000000103041000000000000000000000000020000000000008200000100000000010000020010000000001002080000000000000000000000000000100000000",
+                "transactionsRoot": "0x080040c7450e002b8e3dacdf3773072d094194940db583a0cad50de78ad256d5",
+                "stateRoot": "0xb7fdd78744180fb882dc50aba9f4dae3db665a0d9fdd0d150503bcd1d8c8009f",
+                "receiptsRoot": "0xb89e7e53d6571480abed2304a19c5effc265c3feb514a6537064775292f57e83",
+                "miner": "0x12d3178a62ef1f520944534ed04504609f7307a1",
+                "difficulty": "0x17e0213d68086000fc2",
+                "totalDifficulty": "0xc6d60d1348f421e43a1d248a",
+                "extraData": "0xd30191564554495645522d643430323166636532",
+                "size": "0x210f",
+                "gasLimit": "0x989680",
+                "gasUsed": "0x6e6ac",
+                "timestamp": "0x6ace3ed3",
+                "transactions": [
+                    "0x0f546bf4f116e0f249b9f2b40ba95a63b9a1de1b91b378254a7540e374ddc93a",
+                    "0xb5bf7e65cada1dc918c0e7a46c3104afd9e73c9547e9bc97e9e206eda3015a86",
+                    "0x4c989e5e7fc0000ee620dcc714fa2112c75940457164c94bedd796f01b337d3b",
+                    "0xf174a5ad6bffcf7863d4b9efde7b1ec16185a5c5a3015d301eea5ba9e36168f3"
+                ],
+                "uncles": [
+                    "0x90ff7997b7dc6e944a42a8ef08d243bde7d6fcf382f7913e9227a150c3f8951e",
+                    "0x72831fd41e73d3d1558c7c7b7bb69a90630d671c97029aad719ce54d999cb216",
+                    "0x20bfeca3709d1439c7ca46f8b5a85898519614359305a852d0a0b4fff12ca8c1"
+                ],
+                "minimumGasPrice": "0x1699280",
+                "bitcoinMergedMiningHeader": "0x00000032b207defae2ff8e0bcd437e0805dab949c44324e6a47700000000000000000000ba7044311ab3c030e62ed5b31d5858c0721245bafc2f186f9a667d8abf194718d53ece6af01e02170d1bd32c",
+                "bitcoinMergedMiningCoinbaseTransaction": "0x000000000000014026b64bec33688c7b6a15d5fa93b93524dc25268df6db422ba3088f58a09dbdc00000000000002c6a4c2952534b424c4f434b3a0bdc7e4501ff70e169d01c038304023cedff40f1bfed0f4a6119b41d008e3ce50000000000000000296a27737973f3ed59d342d1dfe75656d8a2d1188bc10ee2c558ec83b4c6acc22d56d69ee7abea7923000000000000000000266a24aa21a9ed386d13fd4f8c45d8a65847fe4ab339430f7f1af3d78d740f8df56fcec6f90967b6242c40",
+                "bitcoinMergedMiningMerkleProof": "0x59f1fa67deb7f58f2d944eff73afc5962cc34fe07e96ee2cb934d0cc948277cf489e0409ea24b42aa6f12e2433874c03a67df0c58af8adb21c25f858c2a4646158347082f4c18feb7dbfbd96a49e6e1728d60d9d2fb6da55954a82b1395919b0f6c66f918a3c5efc46ad9f737882cbf7566209a78b5367c320cef009ddaa38bf4380d3f6159e8d63b4e09f4131cb91a328766758ec5d8492f7b84322a22e49becf0a03796e10c846b6b1b1bfbdbada0ddfdd526231c81984eeaa3b5d60db779bc2cecbc814bf4a99fe1e1496fa3232c77334cf79247e4f97ea8105ee45fb04676aa6d9661fef78573e2cc0d63024f09d4525f64d1bffa50208bc895e7e0d0e09538591baf62dde6fda7a67778168225ea9e63bed503b3196dcfd57117cbcf0dfe5feb734a1bd1c6d6439d8c5658abb2b1e612536e6d683217ddc1c50651c72f61050b32ffa6ad21f3d1ffb09a83502d74f73ba98faa87b9374ca7e5fcaf0888326401aad2f4d266dac107391574bb50c299f1ad72550dd1ba39f7713ac0a3dce5625caa3f38f1d938f28027a19219bc8e10d9bc0afe384e19f0c7ffbbf05771c",
+                "hashForMergedMining": "0x0bdc7e4501ff70e169d01c038304023cedff40f1bfed0f4a6119b41d008e3ce5",
+                "paidFees": "0xaf732706045",
+                "cumulativeDifficulty": "0x5f6212b90868fc35562",
+                "rskPteEdges": null,
+                "baseEvent": null
+            }
+        },
+        "profile": {
+            "artifactSha256": "926e049c0d559ddfb1d7d6ccf790aceac1001898efef0c44ca12ac4e38d4736e",
+            "profileSha256": "9afc97a7fcd1147d69e4c079b8477b975eeec0cd7fb2db97e1d4fd2239413c7e",
+            "sourceGitSha": "ebd7b2fb2c62fe0dd06fcd2043fd2c80fe95416e",
+            "compiler": "0.8.20+commit.a1b79de6",
+            "optimizer": {
+                "enabled": true,
+                "runs": 200
+            },
+            "evmVersion": "paris",
+            "immutableReferences": {
+                "41324": [
+                    {
+                        "start": 4252,
+                        "length": 32
+                    },
+                    {
+                        "start": 4325,
+                        "length": 32
+                    },
+                    {
+                        "start": 4757,
+                        "length": 32
+                    },
+                    {
+                        "start": 4821,
+                        "length": 32
+                    },
+                    {
+                        "start": 5377,
+                        "length": 32
+                    }
+                ]
+            }
+        },
+        "toolHashes": {
+            "finalize-multisig-upgrade.py": "4b7973516d3a95bff80aa074a61c5d3087ddf0d21cc8c5a5d23d8aa62d6a4994",
+            "finalize-deployment.sh": "76bfb10e71c7616a7a7a118b71ccaaf8d6aa7f3b9af1fb3db57490e0c0d901c2",
+            "diff-storage-layouts.py": "02c53732547285211b1cffaa3b90328aa18723405017142aa10faf5fd2d84668"
+        },
+        "preservedState": {
+            "before": {
+                "owner": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                "pendingOwner": "0x0000000000000000000000000000000000000000",
+                "admin": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                "feeReceiver": "0xdde75f75ff33aa802f2316ccae2be77823fc6f9b",
+                "exitFeeEnabled": true
+            },
+            "after": {
+                "owner": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                "pendingOwner": "0x0000000000000000000000000000000000000000",
+                "admin": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                "feeReceiver": "0xdde75f75ff33aa802f2316ccae2be77823fc6f9b",
+                "exitFeeEnabled": true
+            },
+            "latest": {
+                "owner": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                "pendingOwner": "0x0000000000000000000000000000000000000000",
+                "admin": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                "feeReceiver": "0xdde75f75ff33aa802f2316ccae2be77823fc6f9b",
+                "exitFeeEnabled": true
+            },
+            "rawStorageSlots": {
+                "0": "0x0000000000000000000000000000000000000000000000000000000000000001",
+                "151": "0x000000000000000000000000924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+                "201": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "251": "0x0000000000000000000000dde75f75ff33aa802f2316ccae2be77823fc6f9b01",
+                "252": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "253": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "254": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "255": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "256": "0x0000000000000000000000000000000000000000000000000000000000000000",
+                "257": "0x000000000000000000000000924f5ad34698fd20c90fe5d5a8a0abd3b42dc711"
+            },
+            "feeSurfacesAndEnumeratedKeys": {
+                "0x44224716871939619faf861b30e39bac8861d4f76b5dd0468d31bf4b7dc684be": {
+                    "surface": "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000a",
+                    "subProductKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    },
+                    "actorKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    }
+                },
+                "0x785cea9856c907f8eb318fa26cc03e32cc9b61b22144c7a093eec9a60354a9b2": {
+                    "surface": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+                    "subProductKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    },
+                    "actorKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    }
+                },
+                "0xd4896528a9fba849e3d3db442dea05ef8f08c93e00cc760acac34c42a7dacffe": {
+                    "surface": "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000a",
+                    "subProductKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    },
+                    "actorKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000115caf168c51ed15ec535727f64684d33b7b08d1",
+                        "policies": {
+                            "0x115caf168c51ed15ec535727f64684d33b7b08d1": "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000"
+                        }
+                    }
+                },
+                "0xfa502ea562018a194d7f66e337810fa8b882ec21f706f3b3c709a53fa126b018": {
+                    "surface": "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000a",
+                    "subProductKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    },
+                    "actorKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    }
+                },
+                "0xfb3234ca0cf70fe9c90b73939f36a37fadcfdef4628afc42dd57d1f26dfd8fb5": {
+                    "surface": "0x0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000a",
+                    "subProductKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    },
+                    "actorKeys": {
+                        "keys": "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000",
+                        "policies": {}
+                    }
+                }
+            }
+        },
+        "preservationCoverage": "All prior non-gap storage words and five canonical fee surfaces plus declared extra IDs and their enumerated policy keys. No claim to discover undeclared arbitrary mapping keys.",
+        "rollback": {
+            "recordSha256": "ddd90c95ce388d8fef8c83e544c9be5cfd56fedbab273bbf6c4cf63e883bf44a",
+            "originalJson": "{\n  \"contractName\": \"ExitFeeController\",\n  \"chainId\": 30,\n  \"proxyAddress\": \"0x99994b4522483de17f31a5bc010c5901add3440e\",\n  \"implAddress\": \"0x50ec5c1c156cfa7e3007a0b0c97298e4f58a552d\",\n  \"implBytecodeHash\": \"0x114d739562bd85d57815ddee02c575a110258cc9750e1cc56e35195717ca039c\",\n  \"deploymentBlock\": 9179224,\n  \"deploymentTx\": \"0x176fc862fdc57945813c21d69430834fc081063481bc311a7054cce7232f0986\",\n  \"timestamp\": 1787577343971,\n  \"gitSha\": \"2c7afb4\",\n  \"abi\": [\n    {\n      \"type\": \"constructor\",\n      \"inputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"MAX_BPS\",\n      \"inputs\": [],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"uint16\",\n          \"internalType\": \"uint16\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"acceptOwnership\",\n      \"inputs\": [],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"actorKeys\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        }\n      ],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"address[]\",\n          \"internalType\": \"address[]\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"actorPolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"actor\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"tuple\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"admin\",\n      \"inputs\": [],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"exitFeeEnabled\",\n      \"inputs\": [],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"bool\",\n          \"internalType\": \"bool\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"feeReceiver\",\n      \"inputs\": [],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"initialize\",\n      \"inputs\": [\n        {\n          \"name\": \"newOwner_\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"owner\",\n      \"inputs\": [],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"pendingOwner\",\n      \"inputs\": [],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"proxiableUUID\",\n      \"inputs\": [],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"quoteExitFee\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProduct\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"actor\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"grossAmount\",\n          \"type\": \"uint256\",\n          \"internalType\": \"uint256\"\n        }\n      ],\n      \"outputs\": [\n        {\n          \"name\": \"quote\",\n          \"type\": \"tuple\",\n          \"internalType\": \"struct IExitFeeController.ExitFeeQuote\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            },\n            {\n              \"name\": \"feeAmount\",\n              \"type\": \"uint256\",\n              \"internalType\": \"uint256\"\n            },\n            {\n              \"name\": \"netAmount\",\n              \"type\": \"uint256\",\n              \"internalType\": \"uint256\"\n            },\n            {\n              \"name\": \"feeReceiver\",\n              \"type\": \"address\",\n              \"internalType\": \"address\"\n            },\n            {\n              \"name\": \"reason\",\n              \"type\": \"uint8\",\n              \"internalType\": \"uint8\"\n            }\n          ]\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"removeActorPolicies\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"actors\",\n          \"type\": \"address[]\",\n          \"internalType\": \"address[]\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"removeActorPolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"actor\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"removeSubProductPolicies\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProducts\",\n          \"type\": \"address[]\",\n          \"internalType\": \"address[]\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"removeSubProductPolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProduct\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"renounceOwnership\",\n      \"inputs\": [],\n      \"outputs\": [],\n      \"stateMutability\": \"pure\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setActorPolicies\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"actors\",\n          \"type\": \"address[]\",\n          \"internalType\": \"address[]\"\n        },\n        {\n          \"name\": \"policies\",\n          \"type\": \"tuple[]\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy[]\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setActorPolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"actor\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"policy\",\n          \"type\": \"tuple\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setAdmin\",\n      \"inputs\": [\n        {\n          \"name\": \"newAdmin\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setExitFeeEnabled\",\n      \"inputs\": [\n        {\n          \"name\": \"enabled\",\n          \"type\": \"bool\",\n          \"internalType\": \"bool\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setFeeReceiver\",\n      \"inputs\": [\n        {\n          \"name\": \"newReceiver\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setSubProductPolicies\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProducts\",\n          \"type\": \"address[]\",\n          \"internalType\": \"address[]\"\n        },\n        {\n          \"name\": \"policies\",\n          \"type\": \"tuple[]\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy[]\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setSubProductPolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProduct\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"policy\",\n          \"type\": \"tuple\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"setSurfacePolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"policy\",\n          \"type\": \"tuple\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"subProductKeys\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        }\n      ],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"address[]\",\n          \"internalType\": \"address[]\"\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"subProductPolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProduct\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"tuple\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"surfacePolicy\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"internalType\": \"bytes32\"\n        }\n      ],\n      \"outputs\": [\n        {\n          \"name\": \"\",\n          \"type\": \"tuple\",\n          \"internalType\": \"struct IExitFeeController.RatePolicy\",\n          \"components\": [\n            {\n              \"name\": \"active\",\n              \"type\": \"bool\",\n              \"internalType\": \"bool\"\n            },\n            {\n              \"name\": \"rateBps\",\n              \"type\": \"uint16\",\n              \"internalType\": \"uint16\"\n            }\n          ]\n        }\n      ],\n      \"stateMutability\": \"view\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"transferOwnership\",\n      \"inputs\": [\n        {\n          \"name\": \"newOwner\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"upgradeTo\",\n      \"inputs\": [\n        {\n          \"name\": \"newImplementation\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"nonpayable\"\n    },\n    {\n      \"type\": \"function\",\n      \"name\": \"upgradeToAndCall\",\n      \"inputs\": [\n        {\n          \"name\": \"newImplementation\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"data\",\n          \"type\": \"bytes\",\n          \"internalType\": \"bytes\"\n        }\n      ],\n      \"outputs\": [],\n      \"stateMutability\": \"payable\"\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"ActorPolicyRemoved\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"indexed\": true,\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"actor\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"ActorPolicySet\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"indexed\": true,\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"actor\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"active\",\n          \"type\": \"bool\",\n          \"indexed\": false,\n          \"internalType\": \"bool\"\n        },\n        {\n          \"name\": \"rateBps\",\n          \"type\": \"uint16\",\n          \"indexed\": false,\n          \"internalType\": \"uint16\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"AdminChanged\",\n      \"inputs\": [\n        {\n          \"name\": \"previousAdmin\",\n          \"type\": \"address\",\n          \"indexed\": false,\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"newAdmin\",\n          \"type\": \"address\",\n          \"indexed\": false,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"AdminSet\",\n      \"inputs\": [\n        {\n          \"name\": \"admin\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"BeaconUpgraded\",\n      \"inputs\": [\n        {\n          \"name\": \"beacon\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"ExitFeeEnabledSet\",\n      \"inputs\": [\n        {\n          \"name\": \"enabled\",\n          \"type\": \"bool\",\n          \"indexed\": false,\n          \"internalType\": \"bool\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"FeeReceiverSet\",\n      \"inputs\": [\n        {\n          \"name\": \"feeReceiver\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"Initialized\",\n      \"inputs\": [\n        {\n          \"name\": \"version\",\n          \"type\": \"uint8\",\n          \"indexed\": false,\n          \"internalType\": \"uint8\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"OwnershipTransferStarted\",\n      \"inputs\": [\n        {\n          \"name\": \"previousOwner\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"newOwner\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"OwnershipTransferred\",\n      \"inputs\": [\n        {\n          \"name\": \"previousOwner\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"newOwner\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"SubProductPolicyRemoved\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"indexed\": true,\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProduct\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"SubProductPolicySet\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"indexed\": true,\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"subProduct\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        },\n        {\n          \"name\": \"active\",\n          \"type\": \"bool\",\n          \"indexed\": false,\n          \"internalType\": \"bool\"\n        },\n        {\n          \"name\": \"rateBps\",\n          \"type\": \"uint16\",\n          \"indexed\": false,\n          \"internalType\": \"uint16\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"SurfacePolicySet\",\n      \"inputs\": [\n        {\n          \"name\": \"surfaceId\",\n          \"type\": \"bytes32\",\n          \"indexed\": true,\n          \"internalType\": \"bytes32\"\n        },\n        {\n          \"name\": \"active\",\n          \"type\": \"bool\",\n          \"indexed\": false,\n          \"internalType\": \"bool\"\n        },\n        {\n          \"name\": \"rateBps\",\n          \"type\": \"uint16\",\n          \"indexed\": false,\n          \"internalType\": \"uint16\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"event\",\n      \"name\": \"Upgraded\",\n      \"inputs\": [\n        {\n          \"name\": \"implementation\",\n          \"type\": \"address\",\n          \"indexed\": true,\n          \"internalType\": \"address\"\n        }\n      ],\n      \"anonymous\": false\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"ActorZero\",\n      \"inputs\": []\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"AdminZero\",\n      \"inputs\": []\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"FeeReceiverZero\",\n      \"inputs\": []\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"LengthMismatch\",\n      \"inputs\": []\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"NotAdminOrOwner\",\n      \"inputs\": [\n        {\n          \"name\": \"caller\",\n          \"type\": \"address\",\n          \"internalType\": \"address\"\n        }\n      ]\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"OwnershipCannotBeRenounced\",\n      \"inputs\": []\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"RateExceedsMaxBps\",\n      \"inputs\": [\n        {\n          \"name\": \"rateBps\",\n          \"type\": \"uint16\",\n          \"internalType\": \"uint16\"\n        }\n      ]\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"SubProductZero\",\n      \"inputs\": []\n    },\n    {\n      \"type\": \"error\",\n      \"name\": \"UpgradeImplZero\",\n      \"inputs\": []\n    }\n  ],\n  \"storageLayout\": {\n    \"storage\": [\n      {\n        \"astId\": 41142,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_initialized\",\n        \"offset\": 0,\n        \"slot\": \"0\",\n        \"type\": \"t_uint8\"\n      },\n      {\n        \"astId\": 41145,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_initializing\",\n        \"offset\": 1,\n        \"slot\": \"0\",\n        \"type\": \"t_bool\"\n      },\n      {\n        \"astId\": 41124,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"__gap\",\n        \"offset\": 0,\n        \"slot\": \"1\",\n        \"type\": \"t_array(t_uint256)50_storage\"\n      },\n      {\n        \"astId\": 41440,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"__gap\",\n        \"offset\": 0,\n        \"slot\": \"51\",\n        \"type\": \"t_array(t_uint256)50_storage\"\n      },\n      {\n        \"astId\": 41906,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"__gap\",\n        \"offset\": 0,\n        \"slot\": \"101\",\n        \"type\": \"t_array(t_uint256)50_storage\"\n      },\n      {\n        \"astId\": 40648,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_owner\",\n        \"offset\": 0,\n        \"slot\": \"151\",\n        \"type\": \"t_address\"\n      },\n      {\n        \"astId\": 40768,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"__gap\",\n        \"offset\": 0,\n        \"slot\": \"152\",\n        \"type\": \"t_array(t_uint256)49_storage\"\n      },\n      {\n        \"astId\": 40541,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_pendingOwner\",\n        \"offset\": 0,\n        \"slot\": \"201\",\n        \"type\": \"t_address\"\n      },\n      {\n        \"astId\": 40635,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"__gap\",\n        \"offset\": 0,\n        \"slot\": \"202\",\n        \"type\": \"t_array(t_uint256)49_storage\"\n      },\n      {\n        \"astId\": 46123,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"exitFeeEnabled\",\n        \"offset\": 0,\n        \"slot\": \"251\",\n        \"type\": \"t_bool\"\n      },\n      {\n        \"astId\": 46126,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"feeReceiver\",\n        \"offset\": 1,\n        \"slot\": \"251\",\n        \"type\": \"t_address\"\n      },\n      {\n        \"astId\": 46132,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_surfacePolicy\",\n        \"offset\": 0,\n        \"slot\": \"252\",\n        \"type\": \"t_mapping(t_bytes32,t_struct(RatePolicy)47564_storage)\"\n      },\n      {\n        \"astId\": 46140,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_subProductPolicy\",\n        \"offset\": 0,\n        \"slot\": \"253\",\n        \"type\": \"t_mapping(t_bytes32,t_mapping(t_address,t_struct(RatePolicy)47564_storage))\"\n      },\n      {\n        \"astId\": 46148,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_actorPolicy\",\n        \"offset\": 0,\n        \"slot\": \"254\",\n        \"type\": \"t_mapping(t_bytes32,t_mapping(t_address,t_struct(RatePolicy)47564_storage))\"\n      },\n      {\n        \"astId\": 46154,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_subProductKeys\",\n        \"offset\": 0,\n        \"slot\": \"255\",\n        \"type\": \"t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)\"\n      },\n      {\n        \"astId\": 46159,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"_actorKeys\",\n        \"offset\": 0,\n        \"slot\": \"256\",\n        \"type\": \"t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)\"\n      },\n      {\n        \"astId\": 46162,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"admin\",\n        \"offset\": 0,\n        \"slot\": \"257\",\n        \"type\": \"t_address\"\n      },\n      {\n        \"astId\": 46166,\n        \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n        \"label\": \"__gap\",\n        \"offset\": 0,\n        \"slot\": \"258\",\n        \"type\": \"t_array(t_uint256)43_storage\"\n      }\n    ],\n    \"types\": {\n      \"t_address\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"address\",\n        \"numberOfBytes\": \"20\"\n      },\n      \"t_array(t_bytes32)dyn_storage\": {\n        \"encoding\": \"dynamic_array\",\n        \"label\": \"bytes32[]\",\n        \"numberOfBytes\": \"32\",\n        \"base\": \"t_bytes32\"\n      },\n      \"t_array(t_uint256)43_storage\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"uint256[43]\",\n        \"numberOfBytes\": \"1376\",\n        \"base\": \"t_uint256\"\n      },\n      \"t_array(t_uint256)49_storage\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"uint256[49]\",\n        \"numberOfBytes\": \"1568\",\n        \"base\": \"t_uint256\"\n      },\n      \"t_array(t_uint256)50_storage\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"uint256[50]\",\n        \"numberOfBytes\": \"1600\",\n        \"base\": \"t_uint256\"\n      },\n      \"t_bool\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"bool\",\n        \"numberOfBytes\": \"1\"\n      },\n      \"t_bytes32\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"bytes32\",\n        \"numberOfBytes\": \"32\"\n      },\n      \"t_mapping(t_address,t_struct(RatePolicy)47564_storage)\": {\n        \"encoding\": \"mapping\",\n        \"key\": \"t_address\",\n        \"label\": \"mapping(address => struct IExitFeeController.RatePolicy)\",\n        \"numberOfBytes\": \"32\",\n        \"value\": \"t_struct(RatePolicy)47564_storage\"\n      },\n      \"t_mapping(t_bytes32,t_mapping(t_address,t_struct(RatePolicy)47564_storage))\": {\n        \"encoding\": \"mapping\",\n        \"key\": \"t_bytes32\",\n        \"label\": \"mapping(bytes32 => mapping(address => struct IExitFeeController.RatePolicy))\",\n        \"numberOfBytes\": \"32\",\n        \"value\": \"t_mapping(t_address,t_struct(RatePolicy)47564_storage)\"\n      },\n      \"t_mapping(t_bytes32,t_struct(AddressSet)44349_storage)\": {\n        \"encoding\": \"mapping\",\n        \"key\": \"t_bytes32\",\n        \"label\": \"mapping(bytes32 => struct EnumerableSet.AddressSet)\",\n        \"numberOfBytes\": \"32\",\n        \"value\": \"t_struct(AddressSet)44349_storage\"\n      },\n      \"t_mapping(t_bytes32,t_struct(RatePolicy)47564_storage)\": {\n        \"encoding\": \"mapping\",\n        \"key\": \"t_bytes32\",\n        \"label\": \"mapping(bytes32 => struct IExitFeeController.RatePolicy)\",\n        \"numberOfBytes\": \"32\",\n        \"value\": \"t_struct(RatePolicy)47564_storage\"\n      },\n      \"t_mapping(t_bytes32,t_uint256)\": {\n        \"encoding\": \"mapping\",\n        \"key\": \"t_bytes32\",\n        \"label\": \"mapping(bytes32 => uint256)\",\n        \"numberOfBytes\": \"32\",\n        \"value\": \"t_uint256\"\n      },\n      \"t_struct(AddressSet)44349_storage\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"struct EnumerableSet.AddressSet\",\n        \"numberOfBytes\": \"64\",\n        \"members\": [\n          {\n            \"astId\": 44348,\n            \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n            \"label\": \"_inner\",\n            \"offset\": 0,\n            \"slot\": \"0\",\n            \"type\": \"t_struct(Set)44034_storage\"\n          }\n        ]\n      },\n      \"t_struct(RatePolicy)47564_storage\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"struct IExitFeeController.RatePolicy\",\n        \"numberOfBytes\": \"32\",\n        \"members\": [\n          {\n            \"astId\": 47561,\n            \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n            \"label\": \"active\",\n            \"offset\": 0,\n            \"slot\": \"0\",\n            \"type\": \"t_bool\"\n          },\n          {\n            \"astId\": 47563,\n            \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n            \"label\": \"rateBps\",\n            \"offset\": 1,\n            \"slot\": \"0\",\n            \"type\": \"t_uint16\"\n          }\n        ]\n      },\n      \"t_struct(Set)44034_storage\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"struct EnumerableSet.Set\",\n        \"numberOfBytes\": \"64\",\n        \"members\": [\n          {\n            \"astId\": 44029,\n            \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n            \"label\": \"_values\",\n            \"offset\": 0,\n            \"slot\": \"0\",\n            \"type\": \"t_array(t_bytes32)dyn_storage\"\n          },\n          {\n            \"astId\": 44033,\n            \"contract\": \"src/ExitFeeController.sol:ExitFeeController\",\n            \"label\": \"_indexes\",\n            \"offset\": 0,\n            \"slot\": \"1\",\n            \"type\": \"t_mapping(t_bytes32,t_uint256)\"\n          }\n        ]\n      },\n      \"t_uint16\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"uint16\",\n        \"numberOfBytes\": \"2\"\n      },\n      \"t_uint256\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"uint256\",\n        \"numberOfBytes\": \"32\"\n      },\n      \"t_uint8\": {\n        \"encoding\": \"inplace\",\n        \"label\": \"uint8\",\n        \"numberOfBytes\": \"1\"\n      }\n    }\n  },\n  \"pendingImplementation\": {\n    \"implAddress\": \"0xe85e7e5c81a4dcafa6976cd57988b81dbfcb18e1\",\n    \"implBytecodeHash\": \"0x98d18b9f5a53aa6b2d211241a6e5a1888f00c37be3e9ea9f2c79151eb5a9eaf2\",\n    \"deploymentBlock\": 9317153,\n    \"deploymentTx\": \"0xcc1bcce36c751a1c1749ea25c0679bd9936d37446f2d1f5d8aa41355a3c2ee50\",\n    \"timestamp\": 1791763244215,\n    \"gitSha\": \"b51106f\"\n  }\n}\n",
+            "implementationAddress": "0x50ec5c1c156cfa7e3007a0b0c97298e4f58a552d",
+            "implementationCodeHash": "0x114d739562bd85d57815ddee02c575a110258cc9750e1cc56e35195717ca039c"
+        }
+    },
+    "address": "0x99994b4522483de17f31a5bc010c5901add3440e",
+    "implementation": "0xe85e7e5c81a4dcafa6976cd57988b81dbfcb18e1"
 }

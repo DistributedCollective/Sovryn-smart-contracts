@@ -70,5 +70,15 @@
             ],
             "anonymous": false
         }
-    ]
+    ],
+    "deployedBytecode": "0x608060405236601057600e6013565b005b600e5b601f601b6021565b6058565b565b600060537f360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc546001600160a01b031690565b905090565b3660008037600080366000845af43d6000803e8080156076573d6000f35b3d6000fdfea264697066735822122092e2b7b76aef8e668c0c8fff391f60956ba404ab8448bd690672d9a64f7f238864736f6c63430008140033",
+    "linkedData": {
+        "recordKind": "observed-proxy-runtime",
+        "chainId": 30,
+        "blockNumber": 9364190,
+        "blockHash": "0xfd76498d6bca6ca9a47f8de4f0eb804405a1c31835a1d89958e27a80e3ae5ea3",
+        "observedAtUtc": "2026-10-28T16:17:25.746Z",
+        "runtimeCodeHash": "0xb2131b4d8985250c3c5efa78c264ec73390f2afcd45bd8bc563fb9f4028b69b1",
+        "creationProvenance": "Not asserted by this record; historical imported artifact is preserved separately."
+    }
 }

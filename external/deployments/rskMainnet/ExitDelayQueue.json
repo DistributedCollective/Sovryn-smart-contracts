@@ -2664,5 +2664,6 @@
             }
         }
     },
-    "address": "0x6a281fcb0838f7a75f93d678000cb0e57ed8dc45"
+    "address": "0x6a281fcb0838f7a75f93d678000cb0e57ed8dc45",
+    "implementation": "0xb19c086fd3dbe31e3cea089a535f5ca808a3c50a"
 }

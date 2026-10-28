@@ -1,5 +1,13 @@
 {
-    "address": "0xDDE75f75ff33Aa802f2316cCAe2bE77823fc6f9B",
+    "contractName": "ExitFeeVault",
+    "chainId": 30,
+    "proxyAddress": "0xdde75f75ff33aa802f2316ccae2be77823fc6f9b",
+    "implAddress": "0x8f977f4c9dccce1a0306a34944c0460e4445deb4",
+    "implBytecodeHash": "0x270528aa2181e4eb17c3ee850bdab3a5f7a13b68aebf2238c1cdfa58675a0c69",
+    "deploymentBlock": 9179117,
+    "deploymentTx": "0x2ae9f18519bca0d81fa4695a3f63ded3932f926959c9fc661df6b5aef5b28818",
+    "timestamp": 1787574212713,
+    "gitSha": "2c7afb4",
     "abi": [
         {
             "type": "constructor",
@@ -462,5 +470,168 @@
             "name": "UpgradeImplZero",
             "inputs": []
         }
-    ]
+    ],
+    "storageLayout": {
+        "storage": [
+            {
+                "astId": 41142,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "_initialized",
+                "offset": 0,
+                "slot": "0",
+                "type": "t_uint8"
+            },
+            {
+                "astId": 41145,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "_initializing",
+                "offset": 1,
+                "slot": "0",
+                "type": "t_bool"
+            },
+            {
+                "astId": 41124,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "1",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 41440,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "51",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 41906,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "101",
+                "type": "t_array(t_uint256)50_storage"
+            },
+            {
+                "astId": 40648,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "_owner",
+                "offset": 0,
+                "slot": "151",
+                "type": "t_address"
+            },
+            {
+                "astId": 40768,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "152",
+                "type": "t_array(t_uint256)49_storage"
+            },
+            {
+                "astId": 40541,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "_pendingOwner",
+                "offset": 0,
+                "slot": "201",
+                "type": "t_address"
+            },
+            {
+                "astId": 40635,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "202",
+                "type": "t_array(t_uint256)49_storage"
+            },
+            {
+                "astId": 41456,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "_status",
+                "offset": 0,
+                "slot": "251",
+                "type": "t_uint256"
+            },
+            {
+                "astId": 41525,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "252",
+                "type": "t_array(t_uint256)49_storage"
+            },
+            {
+                "astId": 47185,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "defaultRecipient",
+                "offset": 0,
+                "slot": "301",
+                "type": "t_address_payable"
+            },
+            {
+                "astId": 47188,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "admin",
+                "offset": 0,
+                "slot": "302",
+                "type": "t_address"
+            },
+            {
+                "astId": 47192,
+                "contract": "src/ExitFeeVault.sol:ExitFeeVault",
+                "label": "__gap",
+                "offset": 0,
+                "slot": "303",
+                "type": "t_array(t_uint256)48_storage"
+            }
+        ],
+        "types": {
+            "t_address": {
+                "encoding": "inplace",
+                "label": "address",
+                "numberOfBytes": "20"
+            },
+            "t_address_payable": {
+                "encoding": "inplace",
+                "label": "address payable",
+                "numberOfBytes": "20"
+            },
+            "t_array(t_uint256)48_storage": {
+                "encoding": "inplace",
+                "label": "uint256[48]",
+                "numberOfBytes": "1536",
+                "base": "t_uint256"
+            },
+            "t_array(t_uint256)49_storage": {
+                "encoding": "inplace",
+                "label": "uint256[49]",
+                "numberOfBytes": "1568",
+                "base": "t_uint256"
+            },
+            "t_array(t_uint256)50_storage": {
+                "encoding": "inplace",
+                "label": "uint256[50]",
+                "numberOfBytes": "1600",
+                "base": "t_uint256"
+            },
+            "t_bool": {
+                "encoding": "inplace",
+                "label": "bool",
+                "numberOfBytes": "1"
+            },
+            "t_uint256": {
+                "encoding": "inplace",
+                "label": "uint256",
+                "numberOfBytes": "32"
+            },
+            "t_uint8": {
+                "encoding": "inplace",
+                "label": "uint8",
+                "numberOfBytes": "1"
+            }
+        }
+    },
+    "address": "0xdde75f75ff33aa802f2316ccae2be77823fc6f9b",
+    "implementation": "0x8f977f4c9dccce1a0306a34944c0460e4445deb4"
 }

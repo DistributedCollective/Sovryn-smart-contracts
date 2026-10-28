@@ -923,6 +923,28 @@ const getArgsSip_SOV_3161 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const assertHistoricalZeroSelection = async (hre, proposal, selections) => {
+    const { getOrNull } = hre.deployments;
+    for (const [recordName, delayName, environmentName] of selections) {
+        const implementation = await getOrNull(recordName);
+        const delayImplementation = await getOrNull(delayName);
+        const selected = implementation
+            ? implementation.address
+            : environmentName && process.env[environmentName];
+        if (
+            selected &&
+            delayImplementation &&
+            selected.toLowerCase() === delayImplementation.address.toLowerCase()
+        ) {
+            throw new Error(
+                `${proposal}: ${recordName} resolves to the Phase 2 implementation. ` +
+                    "Use explicitly pinned historical or fixture records; active deployment " +
+                    "aliases cannot reconstruct the historical proposal."
+            );
+        }
+    }
+};
+
 const getArgsSip0074 = async (hre) => {
     // Electron release
     const {
@@ -930,6 +952,11 @@ const getArgsSip0074 = async (hre) => {
         deployments: { get },
     } = hre;
     const abiCoder = new ethers.utils.AbiCoder();
+
+    await assertHistoricalZeroSelection(hre, "SIP-0074", [
+        ["BorrowerOperations_Implementation", "BorrowerOperationsPerimeter"],
+        ["TroveManager_Implementation", "TroveManagerLiquidationFix"],
+    ]);
 
     /** SOV3161 */
     const protocol = await ethers.getContract("ISovryn");
@@ -1692,12 +1719,11 @@ const resolveExitFeeControllerAddress = async (hre) => {
  * new CollSurplusPool are built in zero-contracts (branch
  * sovryn-perimeter-fee) and resolve from "BorrowerOperations_Implementation" /
  * "CollSurplusPool_Implementation" records or PERIMETER_ZERO_BORROWER_OPERATIONS /
- * PERIMETER_ZERO_COLL_SURPLUS_POOL. The existing
- * "BorrowerOperations_Implementation" record deliberately stays untouched —
- * it pins the pre-Perimeter implementation, i.e. the rollback target (the pool
- * proxy has NO prior implementation record at all — first-ever upgrade;
- * rollback corollary: deactivate the surplus surface before any pool
- * rollback).
+ * PERIMETER_ZERO_COLL_SURPLUS_POOL. Those generic records now describe the active
+ * implementations. Historical imported aliases are preserved separately under
+ * external/baselines/perimeter-delay-rskMainnet; fork replays must pin their
+ * pre-upgrade targets independently. Deactivate the surplus surface before a
+ * historical pool rollback.
  * Enablement (setExitFeeEnabled(true)) is NOT an action in either part: the
  * controller is Perimeter-Safe-owned, so governance cannot call it — the
  * ship-disabled build is enabled by a Safe transaction after both parts.
@@ -1712,6 +1738,20 @@ const getArgsSip0094Part1 = async (hre) => {
     if (!network.tags.mainnet) {
         throw new Error("getArgsSip0094Part1: run on mainnet or a mainnet fork only");
     }
+
+    // Active aliases follow the installed release, not this historical proposal.
+    await assertHistoricalZeroSelection(hre, "SIP-0094", [
+        [
+            "CollSurplusPool_Implementation",
+            "CollSurplusPoolPerimeter",
+            "PERIMETER_ZERO_COLL_SURPLUS_POOL",
+        ],
+        [
+            "BorrowerOperations_Implementation",
+            "BorrowerOperationsPerimeter",
+            "PERIMETER_ZERO_BORROWER_OPERATIONS",
+        ],
+    ]);
 
     const protocol = await ethers.getContract("ISovryn");
     const protocolOwner = await protocol.owner();
