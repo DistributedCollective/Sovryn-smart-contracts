@@ -1,0 +1,31 @@
+{
+    "address": "0xe0e757E8FCf336658036202834AEE10CE03dEBda",
+    "abi": [
+        {
+            "payable": true,
+            "stateMutability": "payable",
+            "type": "fallback"
+        }
+    ],
+    "transactionHash": "0x1444a08212f21960a8384b8fa0a90608782b35548b27cfb8475a7e3910af83b8",
+    "receipt": {
+        "to": null,
+        "from": "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E",
+        "contractAddress": "0xe0e757E8FCf336658036202834AEE10CE03dEBda",
+        "transactionIndex": 2,
+        "gasUsed": "79097",
+        "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "blockHash": "0x2d47f3be2f3a3241e1cc2708e38f7b0b45c5103494565937da95ae2d46e4c2a3",
+        "transactionHash": "0x1444a08212f21960a8384b8fa0a90608782b35548b27cfb8475a7e3910af83b8",
+        "logs": [],
+        "blockNumber": 9378979,
+        "cumulativeGasUsed": "157260",
+        "status": 1,
+        "byzantium": true
+    },
+    "args": [],
+    "numDeployments": 1,
+    "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{},\"notice\":\"Reverts every delegated request while native proxy administration remains available.\"}},\"settings\":{\"compilationTarget\":{\"contracts/zero/ZeroEmergencyHalt.sol\":\"ZeroEmergencyHalt\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/zero/ZeroEmergencyHalt.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\n/// @notice Reverts every delegated request while native proxy administration remains available.\\ncontract ZeroEmergencyHalt {\\n    function() external payable {\\n        revert(\\\"Zero: emergency shutdown\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x44ef00ac9a136470ca30c3f902cb5aa1ab722ce3236bc47455a37ba841273077\"}},\"version\":1}",
+    "bytecode": "0x6080604052348015600f57600080fd5b50607780601d6000396000f3fe6080604081905262461bcd60e51b81526020608452601860a4527f5a65726f3a20656d657267656e63792073687574646f776e000000000000000060c452606490fdfea265627a7a72315820c8a9c409fa61a8a9d440575db3752c4b0b9b31d465ae2365273df7a8d02a815c64736f6c63430005110032",
+    "deployedBytecode": "0x6080604081905262461bcd60e51b81526020608452601860a4527f5a65726f3a20656d657267656e63792073687574646f776e000000000000000060c452606490fdfea265627a7a72315820c8a9c409fa61a8a9d440575db3752c4b0b9b31d465ae2365273df7a8d02a815c64736f6c63430005110032"
+}

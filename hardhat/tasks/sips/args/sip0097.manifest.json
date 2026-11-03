@@ -1,0 +1,172 @@
+{
+    "observedUTC": "2026-11-03T12:40:29.768Z",
+    "block": 9380535,
+    "hash": "0xd42435fec868bc5687f42eeb2d6b66d0fb568c23ee9abab301776f02ff1ac9bb",
+    "timestamp": 1793708820,
+    "targets": [
+        {
+            "part": 1,
+            "name": "BorrowerOperations",
+            "address": "0x5B9dB4B8bdeF3e57323187a9AC2639C5DEe5FD39",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x8d69F344c051a73671Aef27D7695dF52C0bD7f7e",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0xd75fb5d99f4c1c1f6a05a55a69cbbada60c734c379e3496aca71163f7202208e"
+        },
+        {
+            "part": 1,
+            "name": "TroveManager",
+            "address": "0x82B09695ee4F214f3A0803683C4AaEc332E4E0a3",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x57219Dd6c9e869750c23e4043C62562dc6Fd1EC4",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0xc0d51f46fe9cc84ad6d826fd8f82b4cc91015d86c74dbf45d1f01c70cb429922"
+        },
+        {
+            "part": 1,
+            "name": "StabilityPool",
+            "address": "0xd46C0225D1331B46700d64fF8c906709D15C9202",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x2a1950a06AD5C5113e44721820305645d671eC4F",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x4dee6483dc28daab532fcb43176b287acffc95a52dad5a5a9276115c40a979fa"
+        },
+        {
+            "part": 1,
+            "name": "ZUSDToken",
+            "address": "0xdB107FA69E33f05180a4C2cE9c2E7CB481645C2d",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0xc0B70D65A665911B0D6Dbd1eD58094F9c85F5A39",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x41a63d785aa357c11a0230f195989bd93b0481a9e80fb230027e1d93368c88b6"
+        },
+        {
+            "part": 1,
+            "name": "ZEROToken",
+            "address": "0x5815D304D67Ad9240fe273452078Bd648e75e543",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x451291D48f23782cb5609cEd5A195b0C92EdDC7B",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x6b9a35e173a7ece280cc329ca9a5c60b8605e3ae49c87f86f6af5aa6b1f33cd6"
+        },
+        {
+            "part": 1,
+            "name": "ZEROStaking",
+            "address": "0x5369941b2a08db3feC31C4a6cD3b902f7b1468A3",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0xe09e12dEb814e1569101890b401A71A873BFd33e",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0xf2d7fa33df1a1fa9590456fe7c85d0b4009b71be2db0e92b826f82d502bb2938"
+        },
+        {
+            "part": 1,
+            "name": "ActivePool",
+            "address": "0xf294ea272d6f8FedC08aCf8E93ff50fe99E1f7E8",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x14c7357E1AC73E5A88E33AA3d06707795311B391",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x9b4cf35c18a3a98a9233266c8223e274330d1f75d57ea70ac21e9642ba3c5c8b"
+        },
+        {
+            "part": 1,
+            "name": "CollSurplusPool",
+            "address": "0x310ec7Fe6e4943DA773De8948255E37CC45e34bb",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0xDf0391a2bE429091D878a09753fCD3eB04C32149",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0xfdf215b711c9b7f2a2aa8367520e9f14d65bca9d21fc1ddb65673338525fb9db"
+        },
+        {
+            "part": 1,
+            "name": "DefaultPool",
+            "address": "0xcdbA14ca707B99afb8CA93E178aD614Db422a030",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x12BaF6f8151bd26f22E4AE1Df3cef6746840da93",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x87ec1e164ce5b6e425fb3e318a1546aa7064b153a2a9e1bd09c06193f7d4fe7b"
+        },
+        {
+            "part": 1,
+            "name": "FeeDistributor",
+            "address": "0x1261d5872d56e2Ab61B3C68451D015b752105027",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x006a2D407b3e5D54E0A835877cdC2F043e3E7296",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x7719dea231c86d2f2a43a187d3aa63a953c820aad7c4ac418c8640b6099839c1"
+        },
+        {
+            "part": 2,
+            "name": "CommunityIssuance",
+            "address": "0x9b38044A276fED8bC1703bd4a2DA1b17F2c61d16",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x5059A057df377436Fc9b68369b696A23cc61Ecc3",
+            "proxyCodeHash": "0xdbdb9d5f9b7372447a5cbc35c059b972c4e6c8f6dec8d51733ded9c0969d9e19",
+            "implementationCodeHash": "0x019eff1ccf4b371b95ab4e3576630210e0d044bd0f54a162be0ce94e38266892"
+        },
+        {
+            "part": 2,
+            "name": "SortedTroves",
+            "address": "0xdeEB95480B94f9395514Fe35CAF692A1C788DfE9",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x6dCC9c917a77C836057452dcC16A4e4F0A8ee2Dc",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x0ae7af77640636661a2d5bc3bcd842b46aaa786ea1ab60db7268ff80ef3cf0b4"
+        },
+        {
+            "part": 2,
+            "name": "PriceFeed",
+            "address": "0x6D1d9574d67e04cf35Fa1d916F763eDDae03b75d",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x867303dfCd696BE516f9C4023525F1107d903356",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x235b294366ebeba0ebb438049fb4febb14e0ce4792fcb5a9c996e5a9d8895181"
+        },
+        {
+            "part": 2,
+            "name": "LiquityBaseParams",
+            "address": "0xf8B04A36c36d5DbD1a9Fe7B74897c609d6A17aa2",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x4584A4f903821ebC9e83aaC129d5Af12d9024C3b",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x64d6c699fb93192399eab139b7415d78b699ad97660fb4b7cc8df21952429c0b"
+        },
+        {
+            "part": 2,
+            "name": "HintHelpers",
+            "address": "0x1D7DaC5a63A35540bE9e031212ecf39584AE5595",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x772Be98F08374a6fb688f0F9eC5CDbfC8a6cCB97",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0xef81a6049ae0a5619707e8880340de1ea400c7356de41232c7f939eaff7ee5ee"
+        },
+        {
+            "part": 2,
+            "name": "MultiTroveGetter",
+            "address": "0xF265a169191348c02829B62650B025BdeAf00AE4",
+            "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "implementation": "0x5E18262ccacF8F5c1113507fBf3Af0216533676F",
+            "proxyCodeHash": "0x577b60873bd1f538cb301bf0ede6c0a03869e4066386569ccb8265e0521048a5",
+            "implementationCodeHash": "0x1e761cc6e1c826b5b618c93aaf4b718bf48a8e9b9889cfaf9eedff05142471da"
+        }
+    ],
+    "bindings": {
+        "GovernorOwner": {
+            "address": "0x6496df39d000478a7a7352c01e0e713835051ccd",
+            "codeHash": "0xb9683cb81486039d85c71a61887634dd770809397ef3969c8e9ec218e34ff63b"
+        },
+        "TimelockOwner": {
+            "address": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+            "codeHash": "0x52839c3083f5a48a9721b9b7df6d514e1ff01b02ebfc159090b102b620131029"
+        },
+        "Staking": {
+            "address": "0x5684a06CaB22Db16d901fEe2A5C081b4C91eA40e",
+            "codeHash": "0xa076e35a983730518ca24d21d96e2714d1afde3bc79a1bd26674e31c3a385a79"
+        }
+    },
+    "previousBaseline": {
+        "observedUTC": "2026-11-02T22:53:57.205502Z",
+        "block": 9378980,
+        "hash": "0xd538fd86417273b8b704fa34600caedee8cf72b3d54232cb027fabea7ad5eafb",
+        "timestamp": 1793659430
+    }
+}

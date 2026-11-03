@@ -165,8 +165,14 @@ module.exports = {
             rskMainnetTenderly: 0,
             rskMainnet: 0,
         },
+        proposer1: {
+            default: 0,
+        },
         proposer2: {
             default: 1,
+        },
+        proposer3: {
+            default: 3,
         },
     },
     networks: {

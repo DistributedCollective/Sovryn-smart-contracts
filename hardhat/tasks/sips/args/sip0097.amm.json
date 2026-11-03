@@ -1,0 +1,47 @@
+{
+    "registry": {
+        "address": "0x46ebc03ef2277308bdb106a73d11c65109c4b89b",
+        "codeHash": "0x3e8920263dbb24e6e8676c54c30bb44205861ea03d41108660dac3ce7f0e545c",
+        "owner": "0x967c84b731679E36A344002b8E3CE50620A7F69f",
+        "newOwner": "0x0000000000000000000000000000000000000000"
+    },
+    "inert": {
+        "address": "0x8c293ed020f4d7321b6b16c71584fddb560e0ebd",
+        "codeHash": "0x8ec8ffa2692ec6859263b043a1494bf41561e8a526d3d9555eb3ac3bba85c7ae",
+        "contractName": "AMMEmergencyHalt",
+        "transactionHash": "0x3000ceaa106167634aa59b1fe6fa47f6be2f4744386c71f98dfa3d5f4ba49b6e",
+        "deploymentBlock": 9380535
+    },
+    "keys": [
+        {
+            "name": "SovrynSwapNetwork",
+            "key": "0x536f7672796e537761704e6574776f726b000000000000000000000000000000",
+            "address": "0x98ace08d2b759a265ae326f010496bcd63c15afc",
+            "codeHash": "0x2998b4f8b90024c04e28e40ed20e5495141e1a96defd05c3705f5961b45f245f"
+        },
+        {
+            "name": "SovrynSwapFormula",
+            "key": "0x536f7672796e53776170466f726d756c61000000000000000000000000000000",
+            "address": "0x3278734b16f27ed5c69fd246df9357a866fd811e",
+            "codeHash": "0xeb5e57f8de5dc4a0bd1ac286c201d2d82ae4517ed0ba38426115c21e895e9de6"
+        },
+        {
+            "name": "SovrynSwapConverterRegistryData",
+            "key": "0x536f7672796e53776170436f6e76657274657252656769737472794461746100",
+            "address": "0x73eef416cb8b63dbfcc66719f0b74bb7baea48fe",
+            "codeHash": "0x33b10e29d4940ba792406afaacf9f248cd63d809aea80e6be57cfa690fbb0a3b"
+        }
+    ],
+    "settings": {
+        "key": "0x5377617053657474696e67730000000000000000000000000000000000000000",
+        "address": "0x3ab00befdd7bfc0667de6483d2d3b2f9a74af2da",
+        "codeHash": "0x9ef8cee5f35a21accda6f2ba73454505fd1b8e3c06c8945f05a9fec5ed61801d"
+    },
+    "fsc": {
+        "address": "0x115caf168c51ed15ec535727f64684d33b7b08d1",
+        "codeHash": "0x26d04054c097cd966f9bac6f0a5decc1b0dd5029a5bb15138cdb62acc48c1e48",
+        "owner": "0x924f5ad34698fd20c90fe5d5a8a0abd3b42dc711",
+        "implementation": "0xccb75e444f4808012a57eb2db06648249f370d2f",
+        "implementationCodeHash": "0x5b8dc86aed1fd701b192c338bb19c1cac49c8c467cc96a40074f9e4aac6234fd"
+    }
+}

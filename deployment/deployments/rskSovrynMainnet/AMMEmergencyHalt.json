@@ -1,0 +1,43 @@
+{
+  "address": "0x8c293eD020f4D7321B6B16c71584fDdB560E0EbD",
+  "abi": [
+    {
+      "payable": true,
+      "stateMutability": "payable",
+      "type": "fallback"
+    }
+  ],
+  "transactionHash": "0x3000ceaa106167634aa59b1fe6fa47f6be2f4744386c71f98dfa3d5f4ba49b6e",
+  "receipt": {
+    "to": null,
+    "from": "0xFEe171A152C02F336021fb9E79b4fAc2304a9E7E",
+    "contractAddress": "0x8c293eD020f4D7321B6B16c71584fDdB560E0EbD",
+    "transactionIndex": 0,
+    "gasUsed": "79085",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xd42435fec868bc5687f42eeb2d6b66d0fb568c23ee9abab301776f02ff1ac9bb",
+    "transactionHash": "0x3000ceaa106167634aa59b1fe6fa47f6be2f4744386c71f98dfa3d5f4ba49b6e",
+    "logs": [],
+    "blockNumber": 9380535,
+    "cumulativeGasUsed": "79085",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "bca2dc1b17e9654e5f791eb78247fa5f",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.17+commit.d19bba13\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"payable\":true,\"stateMutability\":\"payable\",\"type\":\"fallback\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{},\"notice\":\"Reverts every call without modifying storage.\"}},\"settings\":{\"compilationTarget\":{\"contracts/swaps/AMMEmergencyHalt.sol\":\"AMMEmergencyHalt\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":forge-std/=foundry/lib/forge-std/src/\"]},\"sources\":{\"contracts/swaps/AMMEmergencyHalt.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.5.17;\\n\\n/// @notice Reverts every call without modifying storage.\\ncontract AMMEmergencyHalt {\\n    function() external payable {\\n        revert(\\\"AMM: emergency shutdown\\\");\\n    }\\n}\\n\",\"keccak256\":\"0x0cad39b5768f177a2356930eba60145b81ad0e96a26232244d7359be2d96b3cd\"}},\"version\":1}",
+  "bytecode": "0x6080604052348015600f57600080fd5b50607780601d6000396000f3fe6080604081905262461bcd60e51b81526020608452601760a4527f414d4d3a20656d657267656e63792073687574646f776e00000000000000000060c452606490fdfea265627a7a72315820f938023b2f7499c23b04d0a18279b12e516bb30f9e8440216549b33c69b29d3d64736f6c63430005110032",
+  "deployedBytecode": "0x6080604081905262461bcd60e51b81526020608452601760a4527f414d4d3a20656d657267656e63792073687574646f776e00000000000000000060c452606490fdfea265627a7a72315820f938023b2f7499c23b04d0a18279b12e516bb30f9e8440216549b33c69b29d3d64736f6c63430005110032",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {},
+    "notice": "Reverts every call without modifying storage."
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

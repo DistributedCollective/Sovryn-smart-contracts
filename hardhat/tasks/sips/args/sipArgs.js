@@ -2972,7 +2972,12 @@ const getArgsSipPerimeterDelayPart2 = async (hre) => {
     return { args, governor: "GovernorOwner" };
 };
 
+const { getArgsSip0097Part1, getArgsSip0097Part2, getArgsSip0097Part3 } = require("./sip0097");
+
 module.exports = {
+    getArgsSip0097Part1,
+    getArgsSip0097Part2,
+    getArgsSip0097Part3,
     sampleGovernorAdminSIP,
     sampleGovernorOwnerSIP,
     getArgsSip0047,

@@ -1,0 +1,38 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/swaps/AMMEmergencyHalt.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.5.17;\n\n/// @notice Reverts every call without modifying storage.\ncontract AMMEmergencyHalt {\n    function() external payable {\n        revert(\"AMM: emergency shutdown\");\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "storageLayout",
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    },
+    "remappings": [
+      "forge-std/=foundry/lib/forge-std/src/"
+    ]
+  }
+}
