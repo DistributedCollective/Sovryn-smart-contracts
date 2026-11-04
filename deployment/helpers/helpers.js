@@ -114,29 +114,46 @@ const stakingRegisterModuleWithMultisig = () => {
     return process.env.STAKING_REG_WITH_MULTISIG == "true";
 };
 
-const getMultisigWallet = async (multisig = undefined) => {
-    const { ethers } = hre;
-    if (multisig === undefined) {
-        multisig = "MultiSigWallet";
+const normalizeMultisigAddress = (address) => {
+    const { ethers, network } = hre;
+    if (ethers.utils.isAddress(address)) {
+        return ethers.utils.getAddress(address);
     }
-    if (!ethers.utils.isAddress(multisig)) {
+    // Rootstock's EIP-1191 checksum includes the chain ID; ethers v5 checks EIP-55 only.
+    if ([30, 31].includes(network.config.chainId) && /^0x[0-9a-fA-F]{40}$/.test(address)) {
+        const lower = address.toLowerCase();
+        const hash = ethers.utils
+            .keccak256(ethers.utils.toUtf8Bytes(`${network.config.chainId}${lower}`))
+            .slice(2);
+        const checksummed =
+            "0x" +
+            [...lower.slice(2)]
+                .map((char, i) => (parseInt(hash[i], 16) >= 8 ? char.toUpperCase() : char))
+                .join("");
+        if (address === checksummed) {
+            return ethers.utils.getAddress(lower);
+        }
+    }
+    throw new Error(`Invalid multisig address or checksum: ${address}`);
+};
+
+const getMultisigWallet = async (multisig = "MultiSigWallet") => {
+    const { ethers } = hre;
+    if (typeof multisig !== "string" || multisig === "") {
+        throw new Error("Multisig address or deployment name is required");
+    }
+    if (!/^0x/i.test(multisig)) {
         const multisigWallet = await ethers.getContractOrNull(multisig);
         if (multisigWallet === null) {
-            multisig = ethers.constants.AddressZero;
-        } else {
-            multisig = multisigWallet.address;
+            throw new Error(`Unknown multisig deployment: ${multisig}`);
         }
-    } else {
-        const code = await ethers.provider.getCode(multisig);
-        if (code === "0x") {
-            multisig = ethers.constants.AddressZero;
-        }
+        multisig = multisigWallet.address;
     }
-    const ms =
-        multisig === ethers.constants.AddressZero
-            ? await ethers.getContract("MultiSigWallet")
-            : await ethers.getContractAt("MultiSigWallet", multisig);
-    return ms;
+    multisig = normalizeMultisigAddress(multisig);
+    if ((await ethers.provider.getCode(multisig)) === "0x") {
+        throw new Error(`No contract deployed at multisig address: ${multisig}`);
+    }
+    return ethers.getContractAt("MultiSigWallet", multisig);
 };
 
 const isMultisigOwner = async (checkAddress, multisig = "MultiSigWallet") => {
@@ -145,20 +162,15 @@ const isMultisigOwner = async (checkAddress, multisig = "MultiSigWallet") => {
 };
 
 const multisigAddOwner = async (addAddress, sender, multisig = "MultiSigWallet") => {
-    const {
-        ethers,
-        deployments: { get },
-    } = hre;
+    addAddress = normalizeMultisigAddress(addAddress);
     const multisigWallet = await getMultisigWallet(multisig);
-    const multisigDeployment = await get(multisigWallet.address);
-    let multisigInterface = new ethers.utils.Interface(multisigDeployment.abi);
-    let data = multisigInterface.encodeFunctionData("addOwner", [addAddress]);
+    const data = multisigWallet.interface.encodeFunctionData("addOwner", [addAddress]);
     ///@todo check if the deployer is one of ms owners
     console.log(`creating multisig tx to add new owner ${addAddress}...`);
-    await sendWithMultisig(multisigDeployment.address, multisigDeployment.address, data, sender);
+    await sendWithMultisig(multisigWallet.address, multisigWallet.address, data, sender);
     console.log(
         col.bgBlue(
-            `>>> DONE. Requires Multisig (${multisigDeployment.address}) signing to execute tx <<<`
+            `>>> DONE. Requires Multisig (${multisigWallet.address}) signing to execute tx <<<`
         )
     );
 };

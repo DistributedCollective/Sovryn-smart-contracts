@@ -245,12 +245,13 @@ task("multisig:revoke-sigs", "Revoke multisig tx confirmation")
 
 task("multisig:add-owner", "Add or remove multisig owner")
     .addPositionalParam("address", "Owner address to add or remove", undefined, types.string)
+    .addOptionalParam("multisig", "Multisig address", "MultiSigWallet")
     .addOptionalParam("signer", "Signer name: 'signer' or 'deployer'", "deployer")
-    .setAction(async ({ address, signer }, hre) => {
+    .setAction(async ({ address, signer, multisig }, hre) => {
         const signerAcc = ethers.utils.isAddress(signer)
             ? signer
             : (await hre.getNamedAccounts())[signer];
-        await multisigAddOwner(address, signerAcc);
+        await multisigAddOwner(address, signerAcc, multisig);
     });
 
 task("multisig:get-owners", "Print multisig owners")
