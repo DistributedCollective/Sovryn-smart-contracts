@@ -346,7 +346,7 @@ async function build(hre, part) {
     return {
         args: {
             ...actionsForPart(part, blocker),
-            description: `${local ? "LOCAL FORK DRAFT ONLY — " : ""}SIP-0097 (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero\nhttps://github.com/DistributedCollective/SIPS/pull/94\n${summaries[part - 1]}\n---\nPart 1 proposes three AMM registry changes using the deployed, fully verified AMMEmergencyHalt at 0x8c293ed020f4d7321b6b16c71584fddb560e0ebd. Parts 2 and 3 halt ten financial and six auxiliary Zero proxies respectively. Each part executes atomically and independently; combined execution requires all three.\n\nDetails: https://github.com/DistributedCollective/SIPS/blob/${DOCUMENT.commit}/SIP-0097.md, sha256: ${DOCUMENT.sha256}`,
+            description: `${local ? "LOCAL FORK DRAFT ONLY — " : ""}SIP-0097 (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero\n\n${summaries[part - 1]}\n---\nPart 1 proposes three AMM registry changes using the deployed, fully verified AMMEmergencyHalt at 0x8c293ed020f4d7321b6b16c71584fddb560e0ebd. Parts 2 and 3 halt ten financial and six auxiliary Zero proxies respectively. Each part executes atomically and independently; combined execution requires all three.\n\nDetails: https://github.com/DistributedCollective/SIPS/blob/${DOCUMENT.commit}/SIP-0097.md, sha256: ${DOCUMENT.sha256}`,
         },
         governor: "GovernorOwner",
     };

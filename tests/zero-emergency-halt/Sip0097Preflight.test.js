@@ -452,7 +452,8 @@ describe("SIP0097 combined read-only preflight", function () {
             expect(title).to.equal(
                 `SIP-0097 (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero`
             );
-            expect(link).to.equal("https://github.com/DistributedCollective/SIPS/pull/94");
+            expect(link).to.equal("");
+            expect(description).not.to.include("/pull/94");
             expect(summary).to.equal(
                 [
                     "Pauses AMM swaps and liquidity operations through three registry changes.",
