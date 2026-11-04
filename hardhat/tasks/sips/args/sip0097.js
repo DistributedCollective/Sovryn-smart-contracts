@@ -338,10 +338,15 @@ async function build(hre, part) {
         "GovernorOwner deployment binding mismatch"
     );
     await preflight(hre.ethers.provider, blocker, part);
+    const summaries = [
+        "Pauses AMM swaps and liquidity operations through three registry changes.",
+        "Pauses ten Zero financial, token and custody proxy interfaces.",
+        "Pauses six remaining Zero auxiliary proxy interfaces.",
+    ];
     return {
         args: {
             ...actionsForPart(part, blocker),
-            description: `${local ? "LOCAL FORK DRAFT ONLY — " : ""}SIP-0097 (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero\nPart 1 proposes three AMM registry changes using the deployed, fully verified AMMEmergencyHalt at 0x8c293ed020f4d7321b6b16c71584fddb560e0ebd. Parts 2 and 3 halt ten financial and six auxiliary Zero proxies respectively. Each part executes atomically and independently; combined execution requires all three. LP-token transfers remain enabled. SwapSettings and the fee controller remain unchanged. The FeeSharingCollector converter whitelist must remain empty throughout the pause, with an independent immediate precheck and readback at execution. Existing Perimeter escrow claims remain outside these actions.\nhttps://github.com/DistributedCollective/SIPS/blob/${DOCUMENT.commit}/SIP-0097.md\nsha256: ${DOCUMENT.sha256}`,
+            description: `${local ? "LOCAL FORK DRAFT ONLY — " : ""}SIP-0097 (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero\nhttps://github.com/DistributedCollective/SIPS/pull/94\n${summaries[part - 1]}\n---\nPart 1 proposes three AMM registry changes using the deployed, fully verified AMMEmergencyHalt at 0x8c293ed020f4d7321b6b16c71584fddb560e0ebd. Parts 2 and 3 halt ten financial and six auxiliary Zero proxies respectively. Each part executes atomically and independently; combined execution requires all three.\n\nDetails: https://github.com/DistributedCollective/SIPS/blob/${DOCUMENT.commit}/SIP-0097.md, sha256: ${DOCUMENT.sha256}`,
         },
         governor: "GovernorOwner",
     };

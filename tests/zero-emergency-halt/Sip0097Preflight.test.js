@@ -213,7 +213,9 @@ describe("SIP0097 combined read-only preflight", function () {
         expect(result.args.description).to.include(
             "050339bbcd1895bfa4008b7000142ed38558964697b452943bf33973b32c52ac"
         );
-        expect(result.args.description).to.include("execution");
+        expect(result.args.description).to.include(
+            "Each part executes atomically and independently"
+        );
     });
     it("does not treat a prior preparation as an execution-time whitelist check", async function () {
         await sip.build(f.hre, 2);
@@ -446,8 +448,29 @@ describe("SIP0097 combined read-only preflight", function () {
             const { description, ...actions } = built.args;
             expect(actions).deep.equal(sip.actionsForPart(part, sip.RELEASE_ADDRESS));
             expect(description).not.to.include("LOCAL FORK");
-            expect(description).to.include(sip.DOCUMENT.commit);
-            expect(description).to.include(sip.DOCUMENT.sha256);
+            const [title, link, summary, separator, ...body] = description.split("\n");
+            expect(title).to.equal(
+                `SIP-0097 (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero`
+            );
+            expect(link).to.equal("https://github.com/DistributedCollective/SIPS/pull/94");
+            expect(summary).to.equal(
+                [
+                    "Pauses AMM swaps and liquidity operations through three registry changes.",
+                    "Pauses ten Zero financial, token and custody proxy interfaces.",
+                    "Pauses six remaining Zero auxiliary proxy interfaces.",
+                ][part - 1]
+            );
+            expect(separator).to.equal("---");
+            expect(body.join("\n")).to.include(sip.DOCUMENT.commit);
+            expect(body.join("\n")).to.include(sip.DOCUMENT.sha256);
+            for (const omitted of [
+                "LP-token transfers remain enabled",
+                "SwapSettings and the fee controller remain unchanged",
+                "FeeSharingCollector converter whitelist",
+                "Existing Perimeter escrow claims",
+            ]) {
+                expect(description).not.to.include(omitted);
+            }
             expect(description).not.to.include("a".repeat(40));
             expect(f.reads.length).to.be.greaterThan(0);
             expect(f.reads.every((tag) => tag === 10000000)).to.equal(true);
