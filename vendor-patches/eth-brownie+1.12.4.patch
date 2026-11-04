@@ -1,0 +1,25 @@
+--- a/brownie/project/scripts.py
++++ b/brownie/project/scripts.py
+@@ -104,6 +104,22 @@
+ def _import_from_path(path: Path) -> ModuleType:
+     # Imports a module from the given path
+     import_str = ".".join(path.parts[1:-1] + (path.stem,))
++    # Dotted parent folders (for example .worktrees) cannot be module components.
++    # Use a unique package rooted at this project, preserving relative imports
++    # and keeping identically named scripts in separate projects isolated.
++    if any("." in part for part in path.parts[1:-1]):
++        root = check_for_project(path) or path.parent
++        package_name = "_brownie_scripts_" + sha1(str(root).encode()).hexdigest()
++        if package_name not in sys.modules:
++            package = ModuleType(package_name)
++            package.__path__ = [str(root)]
++            package.__package__ = package_name
++            package.__spec__ = importlib.machinery.ModuleSpec(
++                package_name, loader=None, is_package=True
++            )
++            sys.modules[package_name] = package
++        relative = path.relative_to(root)
++        import_str = ".".join((package_name,) + relative.parts[:-1] + (relative.stem,))
+     if import_str in _import_cache:
+         importlib.reload(_import_cache[import_str])
+     else:
