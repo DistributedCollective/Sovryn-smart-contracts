@@ -11,8 +11,8 @@ freeze(MANIFEST);
 freeze(AMM);
 const HALT_RUNTIME_HASH = "0x824f7d71bf073c4c12d28ed3bac7a58e4bc1a27f3cb16bb5558ec99a5b3f85ae";
 const DOCUMENT = Object.freeze({
-    commit: "72396f03f303e3a7bbddda99ec97dbcadd548ad0",
-    sha256: "6860e20181af09d8a075c708f550f59bc7c517b7bef3e71857d1271125ff8cce",
+    commit: "e6b41d1f1e79d0527bcd7b1f1622cbe7fc208721",
+    sha256: "050339bbcd1895bfa4008b7000142ed38558964697b452943bf33973b32c52ac",
     finalized: true,
 });
 // The immutable public document and both verified deployed halt targets are bound.
@@ -341,7 +341,7 @@ async function build(hre, part) {
     return {
         args: {
             ...actionsForPart(part, blocker),
-            description: `${local ? "LOCAL FORK DRAFT ONLY — " : ""}SIP-0097 DRAFT FOR REVIEW (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero\nPart 1 proposes three AMM registry changes using the deployed, fully verified AMMEmergencyHalt at 0x8c293ed020f4d7321b6b16c71584fddb560e0ebd. Parts 2 and 3 halt ten financial and six auxiliary Zero proxies respectively. Each part executes atomically and independently; combined execution requires all three. LP-token transfers remain enabled. SwapSettings and the fee controller remain unchanged. The FeeSharingCollector converter whitelist must remain empty throughout the pause, with an independent immediate precheck and readback at execution. Existing Perimeter escrow claims remain outside these actions.\nhttps://github.com/DistributedCollective/SIPS/blob/${DOCUMENT.commit}/SIP-0097.md\nsha256: ${DOCUMENT.sha256}`,
+            description: `${local ? "LOCAL FORK DRAFT ONLY — " : ""}SIP-0097 (Part ${part} of 3): Proposed Temporary Pause of the AMM and Zero\nPart 1 proposes three AMM registry changes using the deployed, fully verified AMMEmergencyHalt at 0x8c293ed020f4d7321b6b16c71584fddb560e0ebd. Parts 2 and 3 halt ten financial and six auxiliary Zero proxies respectively. Each part executes atomically and independently; combined execution requires all three. LP-token transfers remain enabled. SwapSettings and the fee controller remain unchanged. The FeeSharingCollector converter whitelist must remain empty throughout the pause, with an independent immediate precheck and readback at execution. Existing Perimeter escrow claims remain outside these actions.\nhttps://github.com/DistributedCollective/SIPS/blob/${DOCUMENT.commit}/SIP-0097.md\nsha256: ${DOCUMENT.sha256}`,
         },
         governor: "GovernorOwner",
     };

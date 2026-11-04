@@ -79,9 +79,9 @@ describe("SIP0097 fail-closed builders", function () {
     it("pins the verified deployed blocker and finalized immutable publication", function () {
         expect(sip.RELEASE_ADDRESS).to.equal("0xe0e757e8fcf336658036202834aee10ce03debda");
         expect(sip.DOCUMENT.finalized).to.equal(true);
-        expect(sip.DOCUMENT.commit).to.equal("72396f03f303e3a7bbddda99ec97dbcadd548ad0");
+        expect(sip.DOCUMENT.commit).to.equal("e6b41d1f1e79d0527bcd7b1f1622cbe7fc208721");
         expect(sip.DOCUMENT.sha256).to.equal(
-            "6860e20181af09d8a075c708f550f59bc7c517b7bef3e71857d1271125ff8cce"
+            "050339bbcd1895bfa4008b7000142ed38558964697b452943bf33973b32c52ac"
         );
     });
     it("rejects an omitted target and duplicate target", function () {
