@@ -173,6 +173,8 @@ module.exports = {
         },
         proposer3: {
             default: 3,
+            // Empty and duplicate key slots are removed from mainnetAccounts above.
+            rskSovrynMainnet: process.env.DEPLOYER ? mainnetPKs.indexOf(process.env.DEPLOYER) : -1,
         },
     },
     networks: {
