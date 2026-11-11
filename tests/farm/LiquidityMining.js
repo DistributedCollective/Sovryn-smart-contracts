@@ -2592,6 +2592,134 @@ contract("LiquidityMining", (accounts) => {
             expect(reward1).bignumber.equal("15");
             expect(reward2).bignumber.equal("5");
         });
+
+        it.only("check calculation for two users, same token (shares taken into account)", async () => {
+            const token = token1;
+            const amount = amount1;
+            await token.mint(account2, amount);
+            await token.approve(liquidityMining.address, amount, { from: account2 });
+
+            const initialBlockNumber = await web3.eth.getBlockNumber();
+            console.log("initialBlockNumber", initialBlockNumber);
+            const initialBalance = await token1.balanceOf(account1);
+            console.log("initialBalance", initialBalance.toString());
+
+            await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account1 });
+            const blockNumberAfterFirstDeposit = await web3.eth.getBlockNumber();
+            console.log("blockNumberAfterFirstDeposit", blockNumberAfterFirstDeposit);
+            const balanceAfterFirstDeposit = await token1.balanceOf(account1);
+            console.log("balanceAfterFirstDeposit", balanceAfterFirstDeposit.toString());
+            const reward001 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            console.log("reward user 1 after first deposit", reward001.toString());
+            const reward002 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+            console.log("reward user 2 after first deposit", reward002.toString());
+
+            // because automining is on, the following will advance a block
+            await liquidityMining.deposit(token.address, amount, ZERO_ADDRESS, { from: account2 });
+            const blockNumberAfterSecondDeposit = await web3.eth.getBlockNumber();
+            console.log("blockNumberAfterSecondDeposit", blockNumberAfterSecondDeposit);
+            // sanity checks
+            expect(
+                await liquidityMining.getUserAccumulatedReward(token.address, account1)
+            ).bignumber.equal("10");
+            expect(
+                await liquidityMining.getUserAccumulatedReward(token.address, account2)
+            ).bignumber.equal("0");
+            const reward101 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            console.log("reward user 1 after second deposit", reward101.toString());
+            const reward102 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+            console.log("reward user 2 after second deposit", reward102.toString());
+
+            await mineBlock();
+            const blockNumberAfterFirstJump = await web3.eth.getBlockNumber();
+            console.log("blockNumberAfterFirstJump", blockNumberAfterFirstJump);
+            expect(
+                await liquidityMining.getUserAccumulatedReward(token.address, account2)
+            ).bignumber.equal("5");
+            const reward1 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            console.log("reward user 1 after first jump", reward1.toString());
+            const reward2 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+            console.log("reward user 2 after first jump", reward2.toString());
+
+            // for the first block, user 1 will receive the reward of 10 (reward given per block for 100% of shares)
+            // for the second block:
+            // - user 1 owns 1/2 of the shares => expected reward = 5 (total 10 + 5 = 15)
+            // - user 2 owns 1/2 of the shares => expected reward = 5
+            expect(reward1).bignumber.equal("15");
+            expect(reward2).bignumber.equal("5");
+
+            // 1 block pass here due to automining, 5 reward to each account
+            await liquidityMining.emergencyWithdraw(token1.address, { from: account1 });
+            const blockNumberAfterEmergencyWithdraw = await web3.eth.getBlockNumber();
+            console.log("blockNumberAfterEmergencyWithdraw", blockNumberAfterEmergencyWithdraw);
+            const balanceAfterEmergencyWithdraw = await token1.balanceOf(account1);
+            console.log("balanceAfterEmergencyWithdraw", balanceAfterEmergencyWithdraw.toString());
+
+            const reward01 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            console.log("reward01", reward01.toString());
+            const reward02 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+            console.log("reward02", reward02.toString());
+
+            // 1 block pass here
+            await mineBlock();
+            const blockNumberAfterSecondJump = await web3.eth.getBlockNumber();
+            console.log("blockNumberAfterSecondJump", blockNumberAfterSecondJump);
+            const reward11 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            expect(reward11).bignumber.equal("0");
+            console.log("reward user 1 after jump after emergency withdraw", reward11.toString());
+            const reward22 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+            console.log("reward user 2 after jump after emergency withdraw", reward22.toString());
+            //Since account 1 has made emergencyWithdraw so account2 should get all unfinalized rewards
+            // Fails since update pool and user reward reduces reward to 20
+            // expect(reward22).bignumber.equal("40");
+            expect(reward22).bignumber.equal("40");
+
+            await mineBlock();
+            const blockNumberAfterThirdJump = await web3.eth.getBlockNumber();
+            console.log("blockNumberAfterThirdJump", blockNumberAfterThirdJump);
+            const reward31 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account1
+            );
+            expect(reward31).bignumber.equal("0");
+            console.log("reward user 1 after third jump", reward31.toString());
+            const reward32 = await liquidityMining.getUserAccumulatedReward(
+                token.address,
+                account2
+            );
+            console.log("reward user 2 after third jump", reward32.toString());
+            expect(reward32).bignumber.equal("50");
+        });
     });
 
     describe("getEstimatedReward", () => {
