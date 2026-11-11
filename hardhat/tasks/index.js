@@ -16,3 +16,11 @@ require("./perimeter/policyTasks");
 require("./perimeter/recoveryTasks");
 require("./perimeter/lendingRoutes");
 require("./perimeter/qa");
+
+require("./fsc-whitelist-removals");
+
+require("./fsc-emergency-stop");
+
+require("./fsc-full-rescue");
+
+require("./fsc-withheld-withdrawals");

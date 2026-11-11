@@ -59,3 +59,9 @@ cache_hardhat/
 secrets/
 crytic-export/
 /qa/
+
+# Local proposal task journals.
+fsc-hardhat-removals.json*
+fsc-withheld-withdrawals.json
+fsc-withheld-withdrawals.json.lock
+fsc-withheld-withdrawals.json.*.tmp
