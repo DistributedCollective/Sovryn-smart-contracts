@@ -27,4 +27,6 @@ require("./fsc-withheld-withdrawals");
 
 require("./babelfish");
 
+require("./amm-xusd-wrbtc-delisting");
+
 require("./babelfish-redemptions");
