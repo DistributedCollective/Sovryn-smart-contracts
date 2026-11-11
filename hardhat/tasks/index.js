@@ -24,3 +24,7 @@ require("./fsc-emergency-stop");
 require("./fsc-full-rescue");
 
 require("./fsc-withheld-withdrawals");
+
+require("./babelfish");
+
+require("./babelfish-redemptions");
